@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';
+import 'package:rrhfit_sys32/pages/Usuario_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -19,6 +20,7 @@ class _MainPageState extends State<MainPage> {
     SidebarXItem(icon: Icons.access_time, label: 'Asistencia'),
     SidebarXItem(icon: Icons.assignment, label: 'Solicitudes'),
     SidebarXItem(icon: Icons.healing, label: 'Incapacidades'),
+    SidebarXItem(icon: Icons.exit_to_app, label: 'Configuracion'),
   ];
 
   final List<Widget> _pages = [
@@ -29,6 +31,7 @@ class _MainPageState extends State<MainPage> {
     Center(
       child: Text("Página de Incapacidades", style: TextStyle(fontSize: 22)),
     ),
+    const PerfilPage()
   ];
 
   @override
