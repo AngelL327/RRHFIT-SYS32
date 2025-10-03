@@ -7,8 +7,13 @@ environment:
   sdk: ^3.9.0
 
 dependencies:
+  cloud_firestore: ^6.0.2
+  firebase_auth: ^6.1.0
+  firebase_core: ^4.1.1
+  firebase_database: ^12.0.2
   flutter:
     sdk: flutter
+  shared_preferences: ^2.5.3
   sidebarx: ^0.17.2
 
 dev_dependencies:
