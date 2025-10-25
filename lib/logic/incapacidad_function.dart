@@ -1,10 +1,13 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rrhfit_sys32/logic/functions/estados_solicitudes.dart';
+import 'package:rrhfit_sys32/logic/functions/tipos_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
 
 Future<List<IncapacidadModel>> getAllIncapacidades() async {
   List<IncapacidadModel> incapacidades = [];
       await FirebaseFirestore.instance.collection('solicitudes')
-      .where("tipo", isEqualTo: "Incapacidad")
+      .where("tipo", isEqualTo: TipoSolicitud().incapacidad())
       .get()
       .then((value) {
         print('Incapacidades obtenidas: ${value.docs.length}');
@@ -18,3 +21,46 @@ Future<List<IncapacidadModel>> getAllIncapacidades() async {
   return incapacidades;
 }
 
+Future<String?> getCountIncapacidadesPendientes() async {
+  int count = 0;
+  List<IncapacidadModel> incapacidades = await getAllIncapacidades();
+  for (var inc in incapacidades) {
+    if (inc.estado == EstadoSolicitud.pendiente) {
+      count++;
+    }
+  }
+  return count.toString();
+}
+
+Future<String?> getCountIncapacidadesRevisadas() async {
+  int count = 0;
+  List<IncapacidadModel> incapacidades = await getAllIncapacidades();
+  for (var inc in incapacidades) {
+    if (inc.estado != EstadoSolicitud.pendiente) {
+      count++;
+    }
+  }
+  return count.toString();
+}
+
+Future<String?> getCountIncapacidadesAprobadas() async {
+  int count = 0;
+  List<IncapacidadModel> incapacidades = await getAllIncapacidades();
+  for (var inc in incapacidades) {
+    if (inc.estado == EstadoSolicitud.aprobada) {
+      count++;
+    }
+  }
+  return count.toString();
+}
+
+Future<String?> getCountIncapacidadesRechazadas() async {
+  int count = 0;
+  List<IncapacidadModel> incapacidades = await getAllIncapacidades();
+  for (var inc in incapacidades) {
+    if (inc.estado == EstadoSolicitud.rechazada) {
+      count++;
+    }
+  }
+  return count.toString();
+}

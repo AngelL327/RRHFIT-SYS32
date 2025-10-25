@@ -1,6 +1,7 @@
 
 
 import 'package:rrhfit_sys32/logic/functions/format_date.dart';
+import 'package:rrhfit_sys32/logic/functions/tipos_solicitudes.dart';
 
 class IncapacidadModel {
   String id;
@@ -31,7 +32,7 @@ class IncapacidadModel {
       // prefer document id passed in; fall back to json uid if present
       id: (json['uid'] as String?) ?? id,
       usuario: json['empleado'] as String? ?? '',
-      tipoSolicitud: json['tipo'] as String? ?? '',
+      tipoSolicitud: TipoSolicitud().incapacidad(),
       fechaSolicitud: parseToDateTime((json['creadoEn'])),
       fechaExpediente: parseToDateTime((json['fechaExpediente'])),
       fechaInicioIncapacidad: parseToDateTime((json['fechaInicioIncapacidad'])),
@@ -45,7 +46,7 @@ class IncapacidadModel {
     return {
       'uid': id,
       'empleado': usuario,
-      'tipo': tipoSolicitud,
+      'tipo': TipoSolicitud().incapacidad(),
       'creadoEn': fechaSolicitud,
       'fechaExpediente': fechaExpediente,
       'fechaInicioIncapacidad': fechaInicioIncapacidad,
