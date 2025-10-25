@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/empleados/screens/empleados_screen.dart';
 import 'package:rrhfit_sys32/pages/rrhh/incapacidades_page.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
@@ -26,11 +27,12 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     const DashboardPage(),
-    Center(child: Text("Página de Empleados", style: TextStyle(fontSize: 22))),
+    // Center(child: Text("Página de Empleados", style: TextStyle(fontSize: 22))),
+    EmpleadosScreen(),
     Center(child: Text("Página de Asistencia", style: TextStyle(fontSize: 22))),
     const SolicitudesScreen(),
     IncapacidadesScreen(),
-    const PerfilPage()
+    const PerfilPage(),
   ];
 
   @override
@@ -77,7 +79,6 @@ class _MainPageState extends State<MainPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                 
                   const Text(
                     'Fittlay',
                     style: TextStyle(
