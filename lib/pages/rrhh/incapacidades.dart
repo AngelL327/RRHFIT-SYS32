@@ -72,12 +72,12 @@ class IncapacidadesScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Table
-            Expanded(
-              child: PaginatedDataTable(
-                  columns: const <DataColumn>[
-                    DataColumn(label: Text("Nombre"))
-                  ], source: solicitudes)
-            ),
+            // Expanded(
+            //   child: PaginatedDataTable(
+            //       columns: const <DataColumn>[
+            //         DataColumn(label: Text("Nombre"))
+            //       ], source: DataTableSource<List<DataColumn>>)
+            // ),
           ],
         ),
       ),
@@ -113,14 +113,4 @@ class IncapacidadesScreen extends StatelessWidget {
 }
 
 
-
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get selectedRowCount => 0;
-}
-
-final DataTableSource dataSource = MyDataSource();
 
