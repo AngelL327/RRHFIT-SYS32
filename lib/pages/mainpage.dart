@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rrhfit_sys32/pages/rrhh/incapacidades.dart';
+import 'package:rrhfit_sys32/pages/rrhh/incapacidades_page.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';

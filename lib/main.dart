@@ -51,7 +51,6 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-     
         return StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {

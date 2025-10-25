@@ -69,7 +69,6 @@ class _RegistroPageState extends State<RegistroPage> {
           });
 
       // guardar la info de documento para mostrar en el usuario, y guardar localmente
-   
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushAndRemoveUntil(
