@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/pages/rrhh/incapacidades.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';
@@ -28,9 +29,7 @@ class _MainPageState extends State<MainPage> {
     Center(child: Text("Página de Empleados", style: TextStyle(fontSize: 22))),
     Center(child: Text("Página de Asistencia", style: TextStyle(fontSize: 22))),
     const SolicitudesScreen(),
-    Center(
-      child: Text("Página de Incapacidades", style: TextStyle(fontSize: 22)),
-    ),
+    IncapacidadesScreen(),
     const PerfilPage()
   ];
 

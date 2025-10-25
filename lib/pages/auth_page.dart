@@ -137,19 +137,19 @@ class _LoginPageState extends State<AuthPage> {
                         ? const CircularProgressIndicator()
                         : ElevatedButton(
                           onPressed: login,
-                          child: const Text(
-                            'Iniciar Sesión',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0XFF1D9FCB),
-                            ),
-                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(
                               255,
                               212,
                               229,
                               243,
+                            ),
+                          ),
+                          child: const Text(
+                            'Iniciar Sesión',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0XFF1D9FCB),
                             ),
                           ),
                         ),
@@ -162,19 +162,19 @@ class _LoginPageState extends State<AuthPage> {
                           ),
                         );
                       },
-                      child: const Text(
-                        'Si aún no tienes una cuenta. Registrate',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0XFF1D9FCB),
-                        ),
-                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(
                           255,
                           212,
                           229,
                           243,
+                        ),
+                      ),
+                      child: const Text(
+                        'Si aún no tienes una cuenta. Registrate',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0XFF1D9FCB),
                         ),
                       ),
                     ),

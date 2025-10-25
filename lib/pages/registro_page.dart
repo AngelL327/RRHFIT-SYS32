@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/pages/mainpage.dart';
 
 class RegistroPage extends StatefulWidget {
-  const RegistroPage({Key? key}) : super(key: key);
+  const RegistroPage({super.key});
 
   @override
   State<RegistroPage> createState() => _RegistroPageState();

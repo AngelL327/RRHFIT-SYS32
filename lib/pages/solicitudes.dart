@@ -115,8 +115,8 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
             ),
           );
         },
-        child: const Icon(Icons.add),
         backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -251,7 +251,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: DropdownButtonFormField<String>(
-                            value: _tipoFiltro,
+                            initialValue: _tipoFiltro,
                             items:
                                 [
                                       {
@@ -309,7 +309,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: DropdownButtonFormField<String>(
-                    value: _fechaFiltro,
+                    initialValue: _fechaFiltro,
                     items: ["Más recientes", "Más antiguas"]
                         .map(
                           (tipo) =>
@@ -373,8 +373,9 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
     return StreamBuilder<QuerySnapshot>(
       stream: stream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         final docs = snapshot.data!.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
@@ -660,7 +661,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
         ),
         const SizedBox(height: 24),
         DropdownButtonFormField<String>(
-          value: _tipoSolicitud,
+          initialValue: _tipoSolicitud,
           items: ["Vacaciones", "Permiso médico", "Cambio de turno"]
               .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
               .toList(),
@@ -764,7 +765,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
           ),
           const SizedBox(height: 24),
           DropdownButtonFormField<String>(
-            value: _tipoSolicitud,
+            initialValue: _tipoSolicitud,
             items: ["Vacaciones", "Permiso médico", "Cambio de turno"]
                 .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
                 .toList(),
@@ -834,8 +835,9 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2030),
                     );
-                    if (fecha != null)
+                    if (fecha != null) {
                       setState(() => _fechaSeleccionada = fecha);
+                    }
                   },
                   child: Text(
                     _fechaSeleccionada == null
