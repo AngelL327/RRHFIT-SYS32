@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:rrhfit_sys32/logic/functions/format_date.dart';
+import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_function.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
+import 'package:rrhfit_sys32/pages/rrhh/incapacidades_details_page.dart';
 import 'package:rrhfit_sys32/widgets/alert_message.dart';
 import 'package:rrhfit_sys32/widgets/search_bar.dart';
 import 'package:rrhfit_sys32/widgets/summary_box.dart';
@@ -130,9 +132,9 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: SearchBarWidget(
-                      hintText: 'Buscar por empleado, tipo, estado o fecha (dd-mm-yyyy)',
+                      hintText: 'Buscar por empleado, tipo, estado o fecha',
                       initialQuery: _query,
-                      onChanged: (value) => setState(() => _query = value.toLowerCase()),
+                      onChanged: (value) => value.isNotEmpty ? setState(() => _query = value.toLowerCase()) : null,
                       onClear: () => setState(() => _query = ''),
                       sortColumns: _sortColumns,
                       currentSortColumn: _sortColumn,
@@ -213,10 +215,78 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                             : inc.estado == "Aprobada" ? const Text("Aprobada", style: TextStyle(color: Colors.green),)
                             : const Text("Rechazada", style: TextStyle(color: Colors.red),)),
 
-                            DataCell(ElevatedButton(child: Text("Detalles"), onPressed: () {
-                              // TODO:Acción al presionar el botón
-                              successScaffoldMsg(context,"Detalles de la incapacidad seleccionada");
-                            },)),
+                            DataCell(ElevatedButton(
+                              child: const Text('Detalles'),
+                              onPressed: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Detalles de Incapacidad'),
+                                    content: SingleChildScrollView(
+                                      child: ListBody(
+                                        children: [
+                                          Text('ID: ${inc.id}'),
+                                          const SizedBox(height: 6),
+                                          Text('Empleado: ${inc.usuario}'),
+                                          Text('Tipo: ${inc.tipoSolicitud}'),
+                                          const SizedBox(height: 6),
+                                          Text('Fecha Solicitud: ${formatDate(inc.fechaSolicitud)}'),
+                                          Text('Fecha Expediente: ${formatDate(inc.fechaExpediente)}'),
+                                          Text('Inicio incapacidad: ${formatDate(inc.fechaInicioIncapacidad)}'),
+                                          Text('Fin incapacidad: ${formatDate(inc.fechaFinIncapacidad)}'),
+                                          const SizedBox(height: 6),
+                                          Text('Estado: ${inc.estado}'),
+                                        ],
+                                      ),
+                                    ),
+                                    actions: [
+                                      if (inc.estado == 'Pendiente') ...[
+                                        TextButton(
+                                          onPressed: () async {
+                                            // Approve
+                                            try {
+                                              await FirebaseFirestore.instance
+                                                  .collection('solicitudes')
+                                                  .doc(inc.id)
+                                                  .update({'estado': 'Aprobada'});
+                                              Navigator.of(ctx).pop();
+                                              setState(() {});
+                                              successScaffoldMsg(context, 'Solicitud aprobada');
+                                            } catch (e) {
+                                              Navigator.of(ctx).pop();
+                                              successScaffoldMsg(context, 'Error al aprobar: $e');
+                                            }
+                                          },
+                                          child: const Text('Aprobar'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+                                            // Reject
+                                            try {
+                                              await FirebaseFirestore.instance
+                                                  .collection('solicitudes')
+                                                  .doc(inc.id)
+                                                  .update({'estado': 'Rechazada'});
+                                              Navigator.of(ctx).pop();
+                                              setState(() {});
+                                              successScaffoldMsg(context, 'Solicitud rechazada');
+                                            } catch (e) {
+                                              Navigator.of(ctx).pop();
+                                              successScaffoldMsg(context, 'Error al rechazar: $e');
+                                            }
+                                          },
+                                          child: const Text('Rechazar'),
+                                        ),
+                                      ],
+                                      TextButton(
+                                        onPressed: () => Navigator.of(ctx).pop(),
+                                        child: const Text('Cerrar'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            )),
                           ]);
                         }).toList(),
                       ),

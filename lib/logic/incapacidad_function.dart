@@ -1,13 +1,13 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:rrhfit_sys32/logic/functions/estados_solicitudes.dart';
-import 'package:rrhfit_sys32/logic/functions/tipos_solicitudes.dart';
+import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
+import 'package:rrhfit_sys32/logic/utilities/tipos_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
 
 Future<List<IncapacidadModel>> getAllIncapacidades() async {
   List<IncapacidadModel> incapacidades = [];
       await FirebaseFirestore.instance.collection('solicitudes')
-      .where("tipo", isEqualTo: TipoSolicitud().incapacidad())
+      .where("tipo", isEqualTo: TipoSolicitud.incapacidad)
       .get()
       .then((value) {
         print('Incapacidades obtenidas: ${value.docs.length}');
