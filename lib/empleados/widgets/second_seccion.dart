@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
@@ -5,31 +6,24 @@ import 'package:rrhfit_sys32/empleados/views/empleado_form.dart';
 import 'package:rrhfit_sys32/empleados/widgets/custom_button.dart';
 
 class SecondSeccion extends StatefulWidget {
-  const SecondSeccion({super.key});
+  final EmployeeController controller;
+  const SecondSeccion({super.key, required this.controller});
 
   @override
   State<SecondSeccion> createState() => _SecondSeccionState();
 }
 
 class _SecondSeccionState extends State<SecondSeccion> {
-  late final EmployeeController _controller;
-  late final EmpleadosDataSource _dataSource;
+  late final EmpleadosDataSource dataSource;
 
   @override
   void initState() {
     super.initState();
-    _controller = EmployeeController();
-    _dataSource = EmpleadosDataSource(
+    dataSource = EmpleadosDataSource(
       context: context,
       empleados: [],
-      controller: _controller,
+      controller: widget.controller,
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   bool estado(String str) {
@@ -47,12 +41,13 @@ class _SecondSeccionState extends State<SecondSeccion> {
         physics: const NeverScrollableScrollPhysics(),
         children: [
           StreamBuilder<List<Empleado>>(
-            stream: _controller.empleadosStream,
+            stream: widget.controller.empleadosStream,
             builder: (context, snapshot) {
               final empleados = snapshot.data ?? [];
 
-              // Actualiza la data del dataSource y notifica listeners
-              _dataSource.updateData(empleados);
+              if (!listEquals(empleados, dataSource.empleados)) {
+                dataSource.updateData(empleados);
+              }
 
               return PaginatedDataTable(
                 header: Row(
@@ -68,14 +63,26 @@ class _SecondSeccionState extends State<SecondSeccion> {
                       icono: const Icon(Icons.person_add),
                       btnTitle: "Crear",
                       onPressed: () async {
-                        final nuevo = await showDialog<Empleado?>(
-                          context: context,
-                          builder: (_) => const EmpleadoForm(),
-                        );
-                        if (nuevo != null) {
-                          await _controller.createEmployee(nuevo);
+                        try {
+                          await widget.controller.ready;
+
+                          final nuevo = await showDialog<Empleado?>(
+                            context: context,
+                            builder: (_) =>
+                                EmpleadoForm(controller: widget.controller),
+                          );
+                          if (nuevo != null) {
+                            await widget.controller.createEmployee(nuevo);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Empleado creado')),
+                            );
+                          }
+                        } catch (e) {
+                          debugPrint('Error al abrir formulario crear: $e');
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Empleado creado')),
+                            const SnackBar(
+                              content: Text('Error inicializando datos'),
+                            ),
                           );
                         }
                       },
@@ -95,11 +102,12 @@ class _SecondSeccionState extends State<SecondSeccion> {
                   DataColumn(label: Text('Teléfono')),
                   DataColumn(label: Text('Estado')),
                   DataColumn(label: Text('Departamento')),
+                  DataColumn(label: Text('Area')),
                   DataColumn(label: Text('Puesto')),
                   DataColumn(label: Text('Fecha Contratación')),
                   DataColumn(label: Text('Acciones')),
                 ],
-                source: _dataSource,
+                source: dataSource,
               );
             },
           ),
@@ -142,11 +150,17 @@ class EmpleadosDataSource extends DataTableSource {
         DataCell(Text(empleado.telefono ?? '-')),
         DataCell(
           (empleado.estado == "Activo")
-              ? Icon(Icons.circle, color: Colors.green)
-              : Icon(Icons.circle, color: Colors.red),
+              ? const Icon(Icons.circle, color: Colors.green)
+              : const Icon(Icons.circle, color: Colors.red),
         ),
-        DataCell(Text(empleado.departamentoId ?? '-')),
-        DataCell(Text(empleado.puestoId ?? '-')),
+        DataCell(
+          Text(
+            controller.getDepartamentoNombre(empleado.departamentoId) ?? '-',
+          ),
+        ),
+        DataCell(Text(controller.getAreaNombre(empleado.areaId) ?? '-')),
+        DataCell(Text(controller.getPuestoNombre(empleado.puestoId) ?? '-')),
+
         DataCell(Text(formato(empleado.fechaContratacion))),
         DataCell(
           Row(
@@ -154,18 +168,32 @@ class EmpleadosDataSource extends DataTableSource {
               IconButton(
                 tooltip: 'Editar',
                 onPressed: () async {
-                  final actualizado = await showDialog<Empleado?>(
-                    context: context,
-                    builder: (_) => EmpleadoForm(employee: empleado),
-                  );
-                  if (actualizado != null) {
-                    actualizado.id = empleado.id;
-                    await controller.updateEmployee(actualizado);
+                  try {
+                    await controller.ready;
+                    final actualizado = await showDialog<Empleado?>(
+                      context: context,
+                      builder: (_) => EmpleadoForm(
+                        employee: empleado,
+                        controller: controller,
+                      ),
+                    );
+                    if (actualizado != null) {
+                      actualizado.id = empleado.id;
+                      await controller.updateEmployee(actualizado);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Empleado actualizado')),
+                      );
+                    }
+                  } catch (e) {
+                    debugPrint('Error al abrir formulario editar: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Empleado actualizado')),
+                      const SnackBar(
+                        content: Text('Error inicializando datos'),
+                      ),
                     );
                   }
                 },
+
                 icon: const Icon(Icons.edit),
                 color: Colors.blue,
               ),
