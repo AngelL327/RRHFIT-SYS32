@@ -1,65 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
 
-class EmployeeForm extends StatefulWidget {
-  final Employee? employee;
-  const EmployeeForm({super.key, this.employee});
+class EmpleadoForm extends StatefulWidget {
+  final Empleado? employee;
+  const EmpleadoForm({super.key, this.employee});
 
   @override
-  State<EmployeeForm> createState() => _EmployeeFormState();
+  State<EmpleadoForm> createState() => _EmpleadoFormState();
 }
 
-class _EmployeeFormState extends State<EmployeeForm> {
-  final _formKey = GlobalKey<FormState>();
+class _EmpleadoFormState extends State<EmpleadoForm> {
+  final formKey = GlobalKey<FormState>();
 
-  late final TextEditingController _nombreC;
-  late final TextEditingController _codigoC;
-  late final TextEditingController _correoC;
-  late final TextEditingController _telefonoC;
-  late final TextEditingController _estadoC;
-  late final TextEditingController _direccionC;
-  late final TextEditingController _numeroCuentaC;
-  late final TextEditingController _departamentoIdC;
-  late final TextEditingController _areaIdC;
-  late final TextEditingController _puestoIdC;
+  late final TextEditingController nombre;
+  late final TextEditingController codigo;
+  late final TextEditingController correo;
+  late final TextEditingController telefono;
+  late final TextEditingController estado;
+  late final TextEditingController direccion;
+  late final TextEditingController numeroCuenta;
+  late final TextEditingController departamentoId;
+  late final TextEditingController areaId;
+  late final TextEditingController puestoId;
 
-  DateTime? _fechaNacimiento;
-  DateTime? _fechaContratacion;
+  DateTime? fechaNacimiento;
+  DateTime? fechaContratacion;
 
   @override
   void initState() {
     super.initState();
-    final e = widget.employee;
-    _nombreC = TextEditingController(text: e?.nombre ?? '');
-    _codigoC = TextEditingController(text: e?.codigoEmpleado ?? '');
-    _correoC = TextEditingController(text: e?.correo ?? '');
-    _telefonoC = TextEditingController(text: e?.telefono ?? '');
-    _estadoC = TextEditingController(text: e?.estado ?? '');
-    _direccionC = TextEditingController(text: e?.direccion ?? '');
-    _numeroCuentaC = TextEditingController(text: e?.numeroCuenta ?? '');
-    _departamentoIdC = TextEditingController(text: e?.departamentoId ?? '');
-    _areaIdC = TextEditingController(text: e?.areaId ?? '');
-    _puestoIdC = TextEditingController(text: e?.puestoId ?? '');
-    _fechaNacimiento = e?.fechaNacimiento;
-    _fechaContratacion = e?.fechaContratacion;
+    final empleado = widget.employee;
+    nombre = TextEditingController(text: empleado?.nombre ?? '');
+    codigo = TextEditingController(text: empleado?.codigoEmpleado ?? '');
+    correo = TextEditingController(text: empleado?.correo ?? '');
+    telefono = TextEditingController(text: empleado?.telefono ?? '');
+    estado = TextEditingController(text: empleado?.estado ?? '');
+    direccion = TextEditingController(text: empleado?.direccion ?? '');
+    numeroCuenta = TextEditingController(text: empleado?.numeroCuenta ?? '');
+    departamentoId = TextEditingController(
+      text: empleado?.departamentoId ?? '',
+    );
+    areaId = TextEditingController(text: empleado?.areaId ?? '');
+    puestoId = TextEditingController(text: empleado?.puestoId ?? '');
+    fechaNacimiento = empleado?.fechaNacimiento;
+    fechaContratacion = empleado?.fechaContratacion;
   }
 
   @override
   void dispose() {
-    _nombreC.dispose();
-    _codigoC.dispose();
-    _correoC.dispose();
-    _telefonoC.dispose();
-    _estadoC.dispose();
-    _direccionC.dispose();
-    _numeroCuentaC.dispose();
-    _departamentoIdC.dispose();
-    _areaIdC.dispose();
-    _puestoIdC.dispose();
+    nombre.dispose();
+    codigo.dispose();
+    correo.dispose();
+    telefono.dispose();
+    estado.dispose();
+    direccion.dispose();
+    numeroCuenta.dispose();
+    departamentoId.dispose();
+    areaId.dispose();
+    puestoId.dispose();
     super.dispose();
   }
 
-  Future<void> _pickDate(
+  Future<void> pickDate(
     BuildContext context,
     DateTime? initial,
     ValueChanged<DateTime?> onPicked,
@@ -74,7 +76,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     onPicked(result);
   }
 
-  String _formatDate(DateTime? d) =>
+  String formatoDate(DateTime? d) =>
       d == null ? '-' : d.toLocal().toIso8601String().split('T')[0];
 
   @override
@@ -84,20 +86,20 @@ class _EmployeeFormState extends State<EmployeeForm> {
         widget.employee == null ? 'Crear empleado' : 'Editar empleado',
       ),
       content: Form(
-        key: _formKey,
+        key: formKey,
         child: SizedBox(
           width: 500,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
-                  controller: _nombreC,
+                  controller: nombre,
                   decoration: const InputDecoration(labelText: 'Nombre'),
                   validator: (v) =>
                       (v == null || v.isEmpty) ? 'Ingrese nombre' : null,
                 ),
                 TextFormField(
-                  controller: _codigoC,
+                  controller: codigo,
                   decoration: const InputDecoration(
                     labelText: 'Código empleado',
                   ),
@@ -106,7 +108,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _correoC,
+                        controller: correo,
                         decoration: const InputDecoration(labelText: 'Correo'),
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Ingrese correo';
@@ -117,7 +119,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextFormField(
-                        controller: _telefonoC,
+                        controller: telefono,
                         decoration: const InputDecoration(
                           labelText: 'Teléfono',
                         ),
@@ -126,15 +128,15 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   ],
                 ),
                 TextFormField(
-                  controller: _estadoC,
+                  controller: estado,
                   decoration: const InputDecoration(labelText: 'Estado'),
                 ),
                 TextFormField(
-                  controller: _direccionC,
+                  controller: direccion,
                   decoration: const InputDecoration(labelText: 'Dirección'),
                 ),
                 TextFormField(
-                  controller: _numeroCuentaC,
+                  controller: numeroCuenta,
                   decoration: const InputDecoration(
                     labelText: 'Número de cuenta',
                   ),
@@ -143,7 +145,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _departamentoIdC,
+                        controller: departamentoId,
                         decoration: const InputDecoration(
                           labelText: 'Departamento ID',
                         ),
@@ -152,14 +154,14 @@ class _EmployeeFormState extends State<EmployeeForm> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextFormField(
-                        controller: _areaIdC,
+                        controller: areaId,
                         decoration: const InputDecoration(labelText: 'Area ID'),
                       ),
                     ),
                   ],
                 ),
                 TextFormField(
-                  controller: _puestoIdC,
+                  controller: puestoId,
                   decoration: const InputDecoration(labelText: 'Puesto ID'),
                 ),
                 const SizedBox(height: 8),
@@ -167,26 +169,26 @@ class _EmployeeFormState extends State<EmployeeForm> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => _pickDate(
+                        onPressed: () => pickDate(
                           context,
-                          _fechaNacimiento,
-                          (d) => setState(() => _fechaNacimiento = d),
+                          fechaNacimiento,
+                          (d) => setState(() => fechaNacimiento = d),
                         ),
                         child: Text(
-                          'Fecha Nac: ${_formatDate(_fechaNacimiento)}',
+                          'Fecha Nac: ${formatoDate(fechaNacimiento)}',
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => _pickDate(
+                        onPressed: () => pickDate(
                           context,
-                          _fechaContratacion,
-                          (d) => setState(() => _fechaContratacion = d),
+                          fechaContratacion,
+                          (d) => setState(() => fechaContratacion = d),
                         ),
                         child: Text(
-                          'Fecha Contratación: ${_formatDate(_fechaContratacion)}',
+                          'Fecha Contratación: ${formatoDate(fechaContratacion)}',
                         ),
                       ),
                     ),
@@ -204,23 +206,23 @@ class _EmployeeFormState extends State<EmployeeForm> {
         ),
         ElevatedButton(
           onPressed: () {
-            if (!_formKey.currentState!.validate()) return;
-            final newEmp = Employee(
+            if (!formKey.currentState!.validate()) return;
+            final newEmpleado = Empleado(
               id: widget.employee?.id,
-              nombre: _nombreC.text.trim(),
-              codigoEmpleado: _codigoC.text.trim(),
-              fechaNacimiento: _fechaNacimiento,
-              correo: _correoC.text.trim(),
-              telefono: _telefonoC.text.trim(),
-              estado: _estadoC.text.trim(),
-              direccion: _direccionC.text.trim(),
-              numeroCuenta: _numeroCuentaC.text.trim(),
-              departamentoId: _departamentoIdC.text.trim(),
-              areaId: _areaIdC.text.trim(),
-              puestoId: _puestoIdC.text.trim(),
-              fechaContratacion: _fechaContratacion,
+              nombre: nombre.text.trim(),
+              codigoEmpleado: codigo.text.trim(),
+              fechaNacimiento: fechaNacimiento,
+              correo: correo.text.trim(),
+              telefono: telefono.text.trim(),
+              estado: estado.text.trim(),
+              direccion: direccion.text.trim(),
+              numeroCuenta: numeroCuenta.text.trim(),
+              departamentoId: departamentoId.text.trim(),
+              areaId: areaId.text.trim(),
+              puestoId: puestoId.text.trim(),
+              fechaContratacion: fechaContratacion,
             );
-            Navigator.pop(context, newEmp);
+            Navigator.pop(context, newEmpleado);
           },
           child: const Text('Guardar'),
         ),

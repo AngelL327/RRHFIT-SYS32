@@ -11,12 +11,12 @@ class EmployeeController with ChangeNotifier {
     _init();
   }
 
-  final StreamController<List<Employee>> empleadosController =
+  final StreamController<List<Empleado>> empleadosController =
       StreamController.broadcast();
   StreamSubscription? streamSubCollection;
   final Completer<void> readyCompleter = Completer<void>();
 
-  Stream<List<Employee>> get empleadosStream => empleadosController.stream;
+  Stream<List<Empleado>> get empleadosStream => empleadosController.stream;
 
   Future<void> _init() async {
     try {
@@ -24,8 +24,8 @@ class EmployeeController with ChangeNotifier {
         (list) {
           empleadosController.add(list);
         },
-        onError: (e, s) {
-          debugPrint('Empleado error de stream: $e');
+        onError: (error, s) {
+          debugPrint('Empleado error de stream: $error');
         },
       );
       // marcamos como listo
@@ -36,14 +36,14 @@ class EmployeeController with ChangeNotifier {
     }
   }
 
-  Future<void> createEmployee(Employee e) async {
+  Future<void> createEmployee(Empleado empleado) async {
     await readyCompleter.future;
-    await service.createEmployee(e);
+    await service.createEmployee(empleado);
   }
 
-  Future<void> updateEmployee(Employee e) async {
+  Future<void> updateEmployee(Empleado empleado) async {
     await readyCompleter.future;
-    await service.updateEmployee(e);
+    await service.updateEmployee(empleado);
   }
 
   Future<void> deleteEmployee(String id) async {

@@ -7,21 +7,22 @@ class FirestoreService {
     'empleados',
   );
 
-  Stream<List<Employee>> streamEmpleados() {
+  Stream<List<Empleado>> streamEmpleados() {
     return coll.snapshots().map((snap) {
       final docs = snap.docs;
-      return docs.map((d) => Employee.fromDocument(d)).toList();
+      return docs.map((d) => Empleado.fromDocument(d)).toList();
     });
   }
 
-  Future<Employee> createEmployee(Employee empleado) async {
+  Future<Empleado> createEmployee(Empleado empleado) async {
     final docRef = await coll.add(empleado.toMap());
-    empleado.id = docRef.id;
+    final hash = docRef.id.substring(0, 8).toUpperCase();
+    empleado.id = hash;
     await docRef.update({'empleado_id': empleado.id});
     return empleado;
   }
 
-  Future<void> updateEmployee(Employee empleado) async {
+  Future<void> updateEmployee(Empleado empleado) async {
     if (empleado.id == null) {
       throw Exception('Employee id is null');
     }
@@ -32,9 +33,9 @@ class FirestoreService {
     await coll.doc(id).delete();
   }
 
-  Future<Employee?> getById(String id) async {
+  Future<Empleado?> getById(String id) async {
     final doc = await coll.doc(id).get();
     if (!doc.exists) return null;
-    return Employee.fromDocument(doc);
+    return Empleado.fromDocument(doc);
   }
 }

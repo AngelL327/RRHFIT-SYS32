@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Employee {
+class Empleado {
   String? id;
   String? empleadoId;
   String? nombre;
@@ -16,7 +16,7 @@ class Employee {
   String? puestoId;
   DateTime? fechaContratacion;
 
-  Employee({
+  Empleado({
     this.id,
     this.empleadoId,
     this.nombre,
@@ -33,8 +33,8 @@ class Employee {
     this.fechaContratacion,
   });
 
-  factory Employee.fromDocument(DocumentSnapshot doc) {
-    final map = doc.data() as Map<String, dynamic>? ?? {};
+  factory Empleado.fromDocument(DocumentSnapshot doc) {
+    final mapa = doc.data() as Map<String, dynamic>? ?? {};
     DateTime? fromTimestamp(dynamic value) {
       if (value == null) return null;
       if (value is Timestamp) return value.toDate();
@@ -42,21 +42,21 @@ class Employee {
       return null;
     }
 
-    return Employee(
+    return Empleado(
       id: doc.id,
-      empleadoId: map['empleado_id'] as String?,
-      nombre: map['nombre'] as String?,
-      codigoEmpleado: map['codigo_empleado'] as String?,
-      fechaNacimiento: fromTimestamp(map['fecha_nacimiento']),
-      correo: map['correo'] as String?,
-      telefono: map['telefono'] as String?,
-      estado: map['estado'] as String?,
-      direccion: map['direccion'] as String?,
-      numeroCuenta: map['numero_cuenta'] as String?,
-      departamentoId: map['departamento_id'] as String?,
-      areaId: map['area_id'] as String?,
-      puestoId: map['puesto_id'] as String?,
-      fechaContratacion: fromTimestamp(map['fecha_contratacion']),
+      empleadoId: mapa['empleado_id'] as String?,
+      nombre: mapa['nombre'] as String?,
+      codigoEmpleado: mapa['codigo_empleado'] as String?,
+      fechaNacimiento: fromTimestamp(mapa['fecha_nacimiento']),
+      correo: mapa['correo'] as String?,
+      telefono: mapa['telefono'] as String?,
+      estado: mapa['estado'] as String?,
+      direccion: mapa['direccion'] as String?,
+      numeroCuenta: mapa['numero_cuenta'] as String?,
+      departamentoId: mapa['departamento_id'] as String?,
+      areaId: mapa['area_id'] as String?,
+      puestoId: mapa['puesto_id'] as String?,
+      fechaContratacion: fromTimestamp(mapa['fecha_contratacion']),
     );
   }
 

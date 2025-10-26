@@ -13,13 +13,13 @@ class SecondSeccion extends StatefulWidget {
 
 class _SecondSeccionState extends State<SecondSeccion> {
   late final EmployeeController _controller;
-  late final EmployeeDataSource _dataSource;
+  late final EmpleadosDataSource _dataSource;
 
   @override
   void initState() {
     super.initState();
     _controller = EmployeeController();
-    _dataSource = EmployeeDataSource(
+    _dataSource = EmpleadosDataSource(
       context: context,
       empleados: [],
       controller: _controller,
@@ -32,6 +32,11 @@ class _SecondSeccionState extends State<SecondSeccion> {
     super.dispose();
   }
 
+  bool estado(String str) {
+    if (str == "Activo") return true;
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -41,7 +46,7 @@ class _SecondSeccionState extends State<SecondSeccion> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          StreamBuilder<List<Employee>>(
+          StreamBuilder<List<Empleado>>(
             stream: _controller.empleadosStream,
             builder: (context, snapshot) {
               final empleados = snapshot.data ?? [];
@@ -53,16 +58,19 @@ class _SecondSeccionState extends State<SecondSeccion> {
                 header: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Empleados'),
+                    const Text(
+                      'Empleados',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     CustomButton(
                       bgColor: Colors.green,
                       fgColor: Colors.white,
                       icono: const Icon(Icons.person_add),
                       btnTitle: "Crear",
                       onPressed: () async {
-                        final nuevo = await showDialog<Employee?>(
+                        final nuevo = await showDialog<Empleado?>(
                           context: context,
-                          builder: (_) => const EmployeeForm(),
+                          builder: (_) => const EmpleadoForm(),
                         );
                         if (nuevo != null) {
                           await _controller.createEmployee(nuevo);
@@ -74,8 +82,13 @@ class _SecondSeccionState extends State<SecondSeccion> {
                     ),
                   ],
                 ),
+                columnSpacing: 12,
+                horizontalMargin: 12,
+                headingRowHeight: 48,
+                dataRowHeight: 52,
                 rowsPerPage: 6,
                 columns: const [
+                  DataColumn(label: Text('EmpleadoID')),
                   DataColumn(label: Text('Nombre')),
                   DataColumn(label: Text('Código')),
                   DataColumn(label: Text('Correo')),
@@ -96,18 +109,18 @@ class _SecondSeccionState extends State<SecondSeccion> {
   }
 }
 
-class EmployeeDataSource extends DataTableSource {
-  EmployeeDataSource({
+class EmpleadosDataSource extends DataTableSource {
+  EmpleadosDataSource({
     required this.context,
-    List<Employee>? empleados,
+    List<Empleado>? empleados,
     required this.controller,
   }) : empleados = empleados ?? [];
 
   final BuildContext context;
   final EmployeeController controller;
-  List<Employee> empleados;
+  List<Empleado> empleados;
 
-  void updateData(List<Employee> nuevaLista) {
+  void updateData(List<Empleado> nuevaLista) {
     empleados = nuevaLista;
     notifyListeners();
   }
@@ -115,33 +128,38 @@ class EmployeeDataSource extends DataTableSource {
   @override
   DataRow? getRow(int index) {
     if (index >= empleados.length) return null;
-    final e = empleados[index];
-    String formato(DateTime? d) =>
-        d == null ? '-' : d.toLocal().toIso8601String().split('T')[0];
+    final empleado = empleados[index];
+    String formato(DateTime? date) =>
+        date == null ? '-' : date.toLocal().toIso8601String().split('T')[0];
     return DataRow.byIndex(
       index: index,
       selected: false,
       cells: [
-        DataCell(Text(e.nombre ?? '-')),
-        DataCell(Text(e.codigoEmpleado ?? '-')),
-        DataCell(Text(e.correo ?? '-')),
-        DataCell(Text(e.telefono ?? '-')),
-        DataCell(Text(e.estado ?? '-')),
-        DataCell(Text(e.departamentoId ?? '-')),
-        DataCell(Text(e.puestoId ?? '-')),
-        DataCell(Text(formato(e.fechaContratacion))),
+        DataCell(Text(empleado.empleadoId ?? '-')),
+        DataCell(Text(empleado.nombre ?? '-')),
+        DataCell(Text(empleado.codigoEmpleado ?? '-')),
+        DataCell(Text(empleado.correo ?? '-')),
+        DataCell(Text(empleado.telefono ?? '-')),
+        DataCell(
+          (empleado.estado == "Activo")
+              ? Icon(Icons.circle, color: Colors.green)
+              : Icon(Icons.circle, color: Colors.red),
+        ),
+        DataCell(Text(empleado.departamentoId ?? '-')),
+        DataCell(Text(empleado.puestoId ?? '-')),
+        DataCell(Text(formato(empleado.fechaContratacion))),
         DataCell(
           Row(
             children: [
               IconButton(
                 tooltip: 'Editar',
                 onPressed: () async {
-                  final actualizado = await showDialog<Employee?>(
+                  final actualizado = await showDialog<Empleado?>(
                     context: context,
-                    builder: (_) => EmployeeForm(employee: e),
+                    builder: (_) => EmpleadoForm(employee: empleado),
                   );
                   if (actualizado != null) {
-                    actualizado.id = e.id;
+                    actualizado.id = empleado.id;
                     await controller.updateEmployee(actualizado);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Empleado actualizado')),
@@ -159,7 +177,7 @@ class EmployeeDataSource extends DataTableSource {
                     builder: (_) => AlertDialog(
                       title: const Text('Confirmar eliminación'),
                       content: Text(
-                        'Eliminar a ${e.nombre ?? 'este empleado'}?',
+                        'Eliminar a ${empleado.nombre ?? 'este empleado'}?',
                       ),
                       actions: [
                         TextButton(
@@ -173,8 +191,8 @@ class EmployeeDataSource extends DataTableSource {
                       ],
                     ),
                   );
-                  if (confirm == true && e.id != null) {
-                    await controller.deleteEmployee(e.id!);
+                  if (confirm == true && empleado.id != null) {
+                    await controller.deleteEmployee(empleado.id!);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Empleado eliminado')),
                     );
