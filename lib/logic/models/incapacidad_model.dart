@@ -1,11 +1,15 @@
 
 
-import 'package:rrhfit_sys32/logic/functions/format_date.dart';
+import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
+import 'package:rrhfit_sys32/logic/utilities/tipos_solicitudes.dart';
 
 class IncapacidadModel {
   String id;
+  String userId;
   String usuario;
   String tipoSolicitud;
+  String numCertificado;
+  String enteEmisor;
   DateTime fechaSolicitud;
   DateTime fechaExpediente;
   DateTime fechaInicioIncapacidad;
@@ -15,8 +19,11 @@ class IncapacidadModel {
 
   IncapacidadModel({
     required this.id,
+    required this.userId,
     required this.usuario,
     required this.tipoSolicitud,
+    required this.numCertificado,
+    required this.enteEmisor,
     required this.fechaSolicitud,
     required this.fechaExpediente,
     required this.fechaInicioIncapacidad,
@@ -26,30 +33,33 @@ class IncapacidadModel {
   });
 
   factory IncapacidadModel.fromJson(String id, Map<String, dynamic> json) {
-
     return IncapacidadModel(
-      // prefer document id passed in; fall back to json uid if present
-      id: (json['uid'] as String?) ?? id,
-      usuario: json['empleado'] as String? ?? '',
-      tipoSolicitud: json['tipo'] as String? ?? '',
-      fechaSolicitud: parseToDateTime((json['creadoEn'])),
-      fechaExpediente: parseToDateTime((json['fechaExpediente'])),
-      fechaInicioIncapacidad: parseToDateTime((json['fechaInicioIncapacidad'])),
-      fechaFinIncapacidad: parseToDateTime((json['fechaFinIncapacidad'])),
-      estado: json['estado'] as String? ?? '',
-      //descripcion: json['descripcion'] as String,
+      id: id,
+      userId: json['uid']?? 'N/A',
+      usuario: json['empleado'] ?? 'N/A',
+      tipoSolicitud: json['tipo'] ?? 'N/A',
+      numCertificado: json['numCertificado'] ?? 'N/A',
+      enteEmisor: json['enteEmisor'] ?? 'N/A',
+      fechaSolicitud: parseToDateTime(json['creadoEn']),
+      fechaExpediente: parseToDateTime(json['fechaExpediente']),
+      fechaInicioIncapacidad: parseToDateTime(json['fechaInicioIncapacidad']),
+      fechaFinIncapacidad: parseToDateTime(json['fechaFinIncapacidad']),
+      estado: json['estado'] ?? 'N/A',
+      //descripcion: json['descripcion'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'uid': id,
+      'uid': userId,
       'empleado': usuario,
-      'tipo': tipoSolicitud,
-      'creadoEn': fechaSolicitud,
-      'fechaExpediente': fechaExpediente,
-      'fechaInicioIncapacidad': fechaInicioIncapacidad,
-      'fechaFinIncapacidad': fechaFinIncapacidad,
+      'tipo': TipoSolicitud.incapacidad,
+      'numCertificado': numCertificado,
+      'enteEmisor': enteEmisor,
+      'creadoEn': parseToTimestamp(fechaSolicitud),
+      'fechaExpediente': parseToTimestamp(fechaExpediente),
+      'fechaInicioIncapacidad': parseToTimestamp(fechaInicioIncapacidad),
+      'fechaFinIncapacidad': parseToTimestamp(fechaFinIncapacidad),
       'estado': estado,
       //'descripcion': descripcion,
     };
