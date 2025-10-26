@@ -3,6 +3,7 @@ import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_function.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
+import 'package:rrhfit_sys32/pages/generate_pdf_screen.dart';
 import 'package:rrhfit_sys32/pages/rrhh/incapacidades_details_page.dart';
 import 'package:rrhfit_sys32/widgets/alert_message.dart';
 import 'package:rrhfit_sys32/widgets/search_bar.dart';
@@ -128,6 +129,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
             // Search bar
             Row(
               children: [
+                GeneratePDFScreen(title: "Reporte de Incapacidades"),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),

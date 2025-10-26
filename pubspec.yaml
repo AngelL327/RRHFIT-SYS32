@@ -16,6 +16,8 @@ dependencies:
   shared_preferences: ^2.5.3
   sidebarx: ^0.17.2
   intl: ^0.18.0
+  pdf: ^3.11.3
+  printing: ^5.11.0
 
 dev_dependencies:
   flutter_test:
@@ -24,3 +26,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/fittlay.png
+    - assets/fonts/Roboto-Regular.ttf
