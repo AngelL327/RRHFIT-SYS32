@@ -85,8 +85,30 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Solicitudes'),
-        backgroundColor: Colors.grey[900],
+            title: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Incapacidades - Gestión de incapacidades de empleados',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        backgroundColor: const Color.fromRGBO(0, 150, 32, 1),
+        foregroundColor: const Color.fromARGB(255, 251, 255, 250),
+        elevation: 0,
+        centerTitle: true,
+       
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(0, 150, 32, 1), 
+                Color.fromRGBO(50, 200, 120, 1), 
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),

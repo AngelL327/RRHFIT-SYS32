@@ -6,6 +6,7 @@ import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';
 import 'package:rrhfit_sys32/pages/Usuario_page.dart';
 import 'package:rrhfit_sys32/pages/generate_pdf_screen.dart';
+import 'package:rrhfit_sys32/pages/rrhh/asistencia.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -30,7 +31,8 @@ class _MainPageState extends State<MainPage> {
     const DashboardPage(),
     // Center(child: Text("Página de Empleados", style: TextStyle(fontSize: 22))),
     EmpleadosScreen(),
-    Center(child: Text("Página de Asistencia", style: TextStyle(fontSize: 22))),
+   // Center(child: Text("Página de Asistencia", style: TextStyle(fontSize: 22))),
+    const AsistenciaScreen(),
     const SolicitudesScreen(),
     const IncapacidadesScreen(),
     const PerfilPage(),
@@ -80,14 +82,17 @@ class _MainPageState extends State<MainPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Fittlay',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/images/fittlay.png',
+                      height: 80, // Ajusta el tamaño
+                      fit: BoxFit.cover,
                     ),
                   ),
+                  const Text( 'Fittlay', style: TextStyle
+                  ( fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, ), ),
+              
                 ],
               ),
             ),
