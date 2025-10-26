@@ -1,18 +1,288 @@
-import "package:flutter/material.dart";
+import 'dart:typed_data';
 
-class IncapacidadDetallesScreen extends StatelessWidget {
-  const IncapacidadDetallesScreen({super.key});
+import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
+import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
+import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
+import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
+import 'package:rrhfit_sys32/widgets/alert_message.dart';
+import 'package:http/http.dart' as http;
 
-  @override
-  Widget build(BuildContext context) {
-    // TODO: Implementar la pantalla de detalles de incapacidad
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalles de Incapacidad'),
-      ),
-      body: const Center(
-        child: Text('Aquí se mostrarán los detalles de la incapacidad'),
+
+Widget _documentPreview(BuildContext context, IncapacidadModel inc) {
+  final url = inc.documentoUrl.trim();
+  final theme = AppTheme.lightTheme.textTheme;
+  if (url.isEmpty) {
+    return Center(child: Text('No hay documento adjunto', style: theme.bodyMedium));
+  }
+
+  final lower = url.toLowerCase();
+  // Simple inline preview: images shown via network image; PDFs show a placeholder
+  if (!lower.endsWith('.pdf')) {
+    // Use http to fetch bytes and show Image.memory so we can handle failures gracefully
+    return FutureBuilder<Uint8List?>(
+      future: () async {
+        try {
+          final uri = Uri.parse(url);
+          final resp = await http.get(uri).timeout(const Duration(seconds: 15));
+          if (resp.statusCode == 200) {
+            return resp.bodyBytes;
+          } else {
+            // non-200, return null so the UI shows the error text below
+            debugPrint('Image HTTP error ${resp.statusCode} for $url');
+            return null;
+          }
+        } catch (e) {
+          debugPrint('Error fetching image: $e');
+          return null;
+        }
+      }(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasData && snapshot.data != null && snapshot.data!.isNotEmpty) {
+          return Image.memory(
+            snapshot.data!,
+            fit: BoxFit.contain,
+            errorBuilder: (c, e, s) => Center(child: Text('Error al mostrar la imagen', style: theme.bodyMedium)),
+          );
+        }
+        // Show helpful error + raw URL so you can diagnose (CORS, cert, cleartext, etc.)
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.broken_image, size: 40, color: Colors.grey.shade600),
+              const SizedBox(height: 8),
+              Text('No se pudo cargar la imagen', style: theme.titleMedium),
+              const SizedBox(height: 6),
+              Text(url, overflow: TextOverflow.ellipsis, style: theme.bodySmall),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  if (lower.endsWith('.pdf')) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.picture_as_pdf, size: 48, color: Colors.red.shade700),
+          const SizedBox(height: 8),
+          Text('PDF adjunto', style: theme.titleMedium),
+          const SizedBox(height: 6),
+          Text(url, overflow: TextOverflow.ellipsis, style: theme.bodySmall),
+        ],
       ),
     );
   }
+
+  // Fallback for other types
+  return Center(child: Text('Archivo adjunto: ${url.split('/').last}', style: theme.bodyMedium));
+}
+
+
+Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function? setState}) {
+  Size size = MediaQuery.of(context).size;
+  return AlertDialog(
+    title:  Text('Detalles de Incapacidad'),
+    titleTextStyle: TextStyle(fontSize: 30),
+    backgroundColor: AppTheme.cream,
+    content: SingleChildScrollView(
+      child: SizedBox(
+        width: size.width * 0.8,
+        height: size.height * 0.8,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text('Empleado: ${inc.usuario}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Tipo de solicitud: ${inc.tipoSolicitud}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Fecha de Solicitud: ${formatDate(inc.fechaSolicitud)}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Fecha de Expediente: ${formatDate(inc.fechaExpediente)}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Fecha Inicio de Incapacidad: ${formatDate(inc.fechaInicioIncapacidad)}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Fecha Final de Incapacidad: ${formatDate(inc.fechaFinIncapacidad)}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Número de Certificado: ${inc.numCertificado}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Ente Emisor: ${inc.enteEmisor}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+
+                    if(inc.estado == EstadoSolicitud.aprobada)...[
+                    Text('Estado de Solicitud: ${inc.estado}', 
+                      style: AppTheme.lightTheme.textTheme.titleLarge!.copyWith(color: Colors.green.shade700),
+                    )],
+
+                    if(inc.estado == EstadoSolicitud.rechazada)...[
+                    Text('Estado de Solicitud: ${inc.estado}', 
+                      style: AppTheme.lightTheme.textTheme.titleLarge!.copyWith(color: Colors.red.shade700),
+                    )],
+
+                    if(inc.estado == EstadoSolicitud.pendiente)...[
+                    Text('Estado de Solicitud: ${inc.estado}', 
+                      style: AppTheme.lightTheme.textTheme.titleLarge!.copyWith(color: Colors.orange.shade700),
+                    )],
+                    SizedBox(
+                      width: size.width * 0.3,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          TextField(
+                            readOnly: true,
+                            maxLines: 10,
+                            decoration: InputDecoration(
+                              labelText: 'Motivo',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            controller: TextEditingController(text: inc.motivo),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const VerticalDivider(
+              color: Colors.grey,
+              thickness: 1,
+            ),
+
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.description, size: 40, color: Colors.green.shade700,),
+                          const SizedBox(width: 10,),
+                          Text('Documento adjunto', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Preview box
+                      Container(
+                        height: size.height * 0.6,
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey.shade50,
+                        ),
+                        child: _documentPreview(context, inc),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      if (inc.estado == EstadoSolicitud.aprobada) ...[
+        TextButton(
+          style: AppTheme.lightTheme.elevatedButtonTheme.style,
+          onPressed: () async {
+            // Rechazar
+            try {
+              await updateEstadoIncapacidad(inc.id, EstadoSolicitud.rechazada)
+              .then((val){
+                if (val) {
+                  Navigator.pop(context);
+                  successScaffoldMsg(context, 'Solicitud rechazada exitosamente');
+                  if (setState != null) {
+                    setState();
+                  }
+                } else {
+                  Navigator.pop(context);
+                  successScaffoldMsg(context, 'Error al rechazar la solicitud');
+                }
+              });
+            } catch (e) {
+              Navigator.pop(context);
+              successScaffoldMsg(context, 'Error al rechazar: $e');
+            }
+          },
+          child: const Text('Rechazar'),
+        ),
+      ],
+      if (inc.estado == EstadoSolicitud.rechazada)...[
+        TextButton(
+            style: AppTheme.lightTheme.elevatedButtonTheme.style,
+            onPressed: () async {
+              // Aprobar
+              try {
+                await updateEstadoIncapacidad(inc.id, EstadoSolicitud.aprobada)
+                .then((value) {
+                  if (value) {
+                    successScaffoldMsg(context, 'Solicitud aprobada exitosamente');
+                    Navigator.pop(context);
+                    if (setState != null) {
+                      setState();
+                    }
+                  }else {
+                    Navigator.pop(context);
+                    successScaffoldMsg(context, 'Error al aprobar la solicitud');
+                  }
+                });
+              } catch (e) {
+                Navigator.pop(context);
+                successScaffoldMsg(context, 'Error al aprobar: $e');
+              }
+            },
+            child: const Text('Aprobar'),
+          ),
+      ],
+      TextButton.icon(
+          style: AppTheme.lightTheme.elevatedButtonTheme.style,
+          onPressed: () async {
+            await deleteIncapacidad(inc.id)
+            .then((value) {
+              if (value) {
+                Navigator.pop(context);
+                successScaffoldMsg(context, 'Solicitud eliminada exitosamente');
+                if (setState != null) {
+                  setState();
+                }
+              } else {
+                Navigator.pop(context);
+                successScaffoldMsg(context, 'Error al eliminar la solicitud');
+              }
+            })
+            .catchError((e) {
+              Navigator.pop(context);
+              successScaffoldMsg(context, 'Error al eliminar: $e');
+            });
+          },
+          label: const Text('Eliminar'),
+          icon: const Icon(Icons.delete, color: Colors.red),
+        ),
+      TextButton(
+          style: AppTheme.lightTheme.elevatedButtonTheme.style,
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cerrar'),
+      ),
+    ],
+  );
 }

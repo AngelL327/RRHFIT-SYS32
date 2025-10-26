@@ -5,7 +5,6 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';
 import 'package:rrhfit_sys32/pages/Usuario_page.dart';
-import 'package:rrhfit_sys32/pages/generate_pdf_screen.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

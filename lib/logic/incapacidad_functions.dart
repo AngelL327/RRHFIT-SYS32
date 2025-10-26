@@ -10,16 +10,56 @@ Future<List<IncapacidadModel>> getAllIncapacidades() async {
       .where("tipo", isEqualTo: TipoSolicitud.incapacidad)
       .get()
       .then((value) {
-        print('Incapacidades obtenidas: ${value.docs.length}');
         for (var doc in value.docs) {
           incapacidades.add(IncapacidadModel.fromJson(doc.id, doc.data()));
         }
+        incapacidades.sort((a, b) => b.fechaSolicitud.compareTo(a.fechaSolicitud));
+        incapacidades.sort((a, b) {
+          // Priorizar estados: Pendiente > Aprobada > Rechazada
+          int getEstadoPriority(String estado) {
+            switch (estado) {
+              case "Pendiente":
+                return 3;
+              case "Aprobada":
+                return 2;
+              case "Rechazada":
+                return 1;
+              default:
+                return 0;
+            }
+          }
+          return getEstadoPriority(b.estado).compareTo(getEstadoPriority(a.estado));
+        });
       })
       .catchError((error) {
-        print('Error obteniendo incapacidades: $error');
       });
   return incapacidades;
 }
+
+Future<bool> deleteIncapacidad(String id) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('solicitudes')
+        .doc(id)
+        .delete();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+Future<bool> updateEstadoIncapacidad(String id, String nuevoEstado) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('solicitudes')
+        .doc(id)
+        .update({'estado': nuevoEstado});
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 
 Future<String?> getCountIncapacidadesPendientes() async {
   int count = 0;

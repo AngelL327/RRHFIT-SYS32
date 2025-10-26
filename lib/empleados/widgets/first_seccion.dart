@@ -8,10 +8,10 @@ class FirstSeccion extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 15.0),
       child: Center(
-        child: Container(
+        child: SizedBox(
           width: 1200,
           height: 100,
-          child: Container(
+          child: SizedBox(
             width: 800,
             height: 100,
             child: Row(
