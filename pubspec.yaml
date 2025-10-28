@@ -18,13 +18,10 @@ dependencies:
   intl: ^0.18.0
   pdf: ^3.11.3
   printing: ^5.11.0
-<<<<<<< HEAD
+  http: ^1.5.0
   supabase_flutter: ^2.10.3
   file_picker: ^10.3.3
   open_filex: ^4.7.0
-=======
-  http: ^1.5.0
->>>>>>> a6939d5ed005ccaae93b2c51de5fd6a3b7e9fafc
 
 dev_dependencies:
   flutter_test:

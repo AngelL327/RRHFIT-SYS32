@@ -60,6 +60,10 @@ Future<bool> updateEstadoIncapacidad(String id, String nuevoEstado) async {
   }
 }
 
+Future<String?> getCountIncapacidades() async {
+  List<IncapacidadModel> incapacidades = await getAllIncapacidades();
+  return incapacidades.length.toString();
+}
 
 Future<String?> getCountIncapacidadesPendientes() async {
   int count = 0;

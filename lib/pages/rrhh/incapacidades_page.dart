@@ -98,7 +98,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
         foregroundColor: const Color.fromARGB(255, 251, 255, 250),
         elevation: 0,
         centerTitle: true,
-       
+
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -120,6 +120,23 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+
+                //Total de solicitudes
+                FutureBuilder<String?>(
+                  future: getCountIncapacidades(),
+                  builder: (context, snapshot) {
+                    //get current month
+                    final text = snapshot.connectionState == ConnectionState.waiting
+                        ? '...'
+                        : (snapshot.data ?? '0');
+                    return SummaryBox(
+                      title: 'Total de solicitudes:',
+                      number: text,
+                      color: Colors.blueGrey,
+                    );
+                  },
+                ),
+                //Total de solicitudes revisadas
                 FutureBuilder<String?>(
                   future: getCountIncapacidadesRevisadas(),
                   builder: (context, snapshot) {
@@ -133,6 +150,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     );
                   },
                 ),
+                //Total de solicitudes pendientes
                 FutureBuilder<String?>(
                   future: getCountIncapacidadesPendientes(),
                   builder: (context, snapshot) {
@@ -143,6 +161,20 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                       title: 'Solicitudes pendientes:',
                       number: text,
                       color: Colors.orange,
+                    );
+                  },
+                ),
+                //Total de solicitudes rechazadas
+                FutureBuilder<String?>(
+                  future: getCountIncapacidadesRechazadas(),
+                  builder: (context, snapshot) {
+                    final text = snapshot.connectionState == ConnectionState.waiting
+                        ? '...'
+                        : (snapshot.data ?? '0');
+                    return SummaryBox(
+                      title: 'Solicitudes rechazadas:',
+                      number: text,
+                      color: Colors.red,
                     );
                   },
                 ),
