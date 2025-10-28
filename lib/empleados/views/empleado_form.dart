@@ -7,7 +7,7 @@ import 'package:rrhfit_sys32/empleados/models/puesto_model.dart';
 
 class EmpleadoForm extends StatefulWidget {
   final Empleado? employee;
-  final EmployeeController controller;
+  final EmpleadoController controller;
 
   const EmpleadoForm({super.key, this.employee, required this.controller});
 

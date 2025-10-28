@@ -2,11 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
+import 'package:rrhfit_sys32/empleados/views/empleado_detalle.dart';
 import 'package:rrhfit_sys32/empleados/views/empleado_form.dart';
 import 'package:rrhfit_sys32/empleados/widgets/custom_button.dart';
 
 class SecondSeccion extends StatefulWidget {
-  final EmployeeController controller;
+  final EmpleadoController controller;
   const SecondSeccion({super.key, required this.controller});
 
   @override
@@ -125,7 +126,7 @@ class EmpleadosDataSource extends DataTableSource {
   }) : empleados = empleados ?? [];
 
   final BuildContext context;
-  final EmployeeController controller;
+  final EmpleadoController controller;
   List<Empleado> empleados;
 
   void updateData(List<Empleado> nuevaLista) {
@@ -139,9 +140,25 @@ class EmpleadosDataSource extends DataTableSource {
     final empleado = empleados[index];
     String formato(DateTime? date) =>
         date == null ? '-' : date.toLocal().toIso8601String().split('T')[0];
+
     return DataRow.byIndex(
       index: index,
+      // no manejamos selected persistente; permitimos seleccionar para abrir detalle
       selected: false,
+      onSelectChanged: (selected) {
+        if (selected == true) {
+          // abrir pantalla detalle
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => EmpleadoDetalleScreen(
+                empleado: empleado,
+                controller: controller,
+              ),
+            ),
+          );
+        }
+      },
       cells: [
         DataCell(Text(empleado.empleadoId ?? '-')),
         DataCell(Text(empleado.nombre ?? '-')),
@@ -160,11 +177,29 @@ class EmpleadosDataSource extends DataTableSource {
         ),
         DataCell(Text(controller.getAreaNombre(empleado.areaId) ?? '-')),
         DataCell(Text(controller.getPuestoNombre(empleado.puestoId) ?? '-')),
-
         DataCell(Text(formato(empleado.fechaContratacion))),
         DataCell(
           Row(
             children: [
+              // Ver (abre detalle)
+              IconButton(
+                tooltip: 'Ver',
+                icon: const Icon(Icons.visibility),
+                color: Colors.grey[700],
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EmpleadoDetalleScreen(
+                        empleado: empleado,
+                        controller: controller,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Editar
               IconButton(
                 tooltip: 'Editar',
                 onPressed: () async {
@@ -193,10 +228,11 @@ class EmpleadosDataSource extends DataTableSource {
                     );
                   }
                 },
-
                 icon: const Icon(Icons.edit),
                 color: Colors.blue,
               ),
+
+              // Eliminar
               IconButton(
                 tooltip: 'Eliminar',
                 onPressed: () async {

@@ -60,6 +60,10 @@ class Empleado {
     );
   }
 
+  get fechaFinContrato => null;
+
+  get salario => null;
+
   Map<String, dynamic> toMap() {
     dynamic toTimestamp(DateTime? d) =>
         d == null ? null : Timestamp.fromDate(d);

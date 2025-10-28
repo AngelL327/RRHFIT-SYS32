@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 
 class FirstSeccion extends StatefulWidget {
-  final EmployeeController controller;
+  final EmpleadoController controller;
   const FirstSeccion({super.key, required this.controller});
 
   @override

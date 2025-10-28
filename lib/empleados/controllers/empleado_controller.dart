@@ -6,10 +6,10 @@ import 'package:rrhfit_sys32/empleados/models/area_model.dart';
 import 'package:rrhfit_sys32/empleados/models/puesto_model.dart';
 import 'package:rrhfit_sys32/empleados/services/firestore_service.dart';
 
-class EmployeeController with ChangeNotifier {
+class EmpleadoController with ChangeNotifier {
   final FirestoreService _service;
 
-  EmployeeController({FirestoreService? service})
+  EmpleadoController({FirestoreService? service})
     : _service = service ?? FirestoreService() {
     empleadosController = StreamController<List<Empleado>>.broadcast(
       onListen: () {
