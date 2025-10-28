@@ -7,6 +7,7 @@ import 'package:rrhfit_sys32/pages/solicitudes.dart';
 import 'package:rrhfit_sys32/pages/Usuario_page.dart';
 import 'package:rrhfit_sys32/pages/generate_pdf_screen.dart';
 import 'package:rrhfit_sys32/pages/rrhh/asistencia.dart';
+import 'package:rrhfit_sys32/pages/subirpdf.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -24,6 +25,7 @@ class _MainPageState extends State<MainPage> {
     SidebarXItem(icon: Icons.access_time, label: 'Asistencia'),
     SidebarXItem(icon: Icons.assignment, label: 'Solicitudes'),
     SidebarXItem(icon: Icons.healing, label: 'Incapacidades'),
+    SidebarXItem(icon: Icons.picture_as_pdf_sharp, label: 'SubirPDF prueba'),
     SidebarXItem(icon: Icons.exit_to_app, label: 'Configuracion'),
   ];
 
@@ -35,6 +37,7 @@ class _MainPageState extends State<MainPage> {
     const AsistenciaScreen(),
     const SolicitudesScreen(),
     const IncapacidadesScreen(),
+    const PdfStorageWidget(),
     const PerfilPage(),
   ];
 
