@@ -12,6 +12,7 @@ switch(estado.toLowerCase()){
 }
 
 class EstadoSolicitud {
+
   static String get pendiente => 'Pendiente';
   static String get aprobada => 'Aprobada';
   static String get rechazada => 'Rechazada';

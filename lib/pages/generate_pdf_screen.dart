@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart' as pdf_lib;
 import 'package:printing/printing.dart';
-import 'package:rrhfit_sys32/logic/incapacidad_function.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:rrhfit_sys32/Reportes/report_header.dart';
@@ -76,11 +77,27 @@ class GeneratePDFScreen extends StatelessWidget {
             pw.Padding(
               padding: pw.EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
               child:pw.TableHelper.fromTextArray(
-              headers: ['Empleado', 'Inicio', 'Fin', 'Estado'],
+              headers: [
+                'Empleado',
+                '#Certificado', 
+                'Emisor', 
+                'Inicio', 
+                'Fin', 
+                'Estado', 
+                'Motivo',
+                ],
               data: incapacidades.map((inc) {
                 final inicio = dateFmt.format(inc.fechaInicioIncapacidad);
                 final fin = dateFmt.format(inc.fechaFinIncapacidad);
-                return [inc.usuario, inicio, fin, inc.estado];
+                return [
+                  inc.usuario, 
+                  inc.numCertificado, 
+                  inc.enteEmisor, 
+                  inicio, 
+                  fin, 
+                  inc.estado, 
+                  inc.motivo.length > 30 ? '${inc.motivo.substring(0, 30)}...' : inc.motivo
+                ];
               }).toList(),
               headerStyle: ttf != null ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, fontSize: 10) : pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: ttf != null ? pw.TextStyle(font: ttf, fontSize: 9) : pw.TextStyle(fontSize: 9),
@@ -91,6 +108,9 @@ class GeneratePDFScreen extends StatelessWidget {
                 1: pw.FlexColumnWidth(1.5),
                 2: pw.FlexColumnWidth(1.5),
                 3: pw.FlexColumnWidth(1.5),
+                4: pw.FlexColumnWidth(1.5),
+                5: pw.FlexColumnWidth(1.5),
+                6: pw.FlexColumnWidth(1.5),
               },
               border: pw.TableBorder.all(width: 0.5, color: pdf_lib.PdfColors.grey600),
             ),
@@ -106,8 +126,18 @@ class GeneratePDFScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-              child: const Text('Abrir vista previa en diálogo'),
+    return IconButton(
+              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              icon:  Row(
+                children: [
+                  Icon(Icons.picture_as_pdf), 
+                  const SizedBox(width: 8), 
+                  Text('Imprimir reporte de incapacidades',
+                    style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),    
+              tooltip: 'Imprimir reporte de incapacidades',
               onPressed: () {
                 showDialog(
                   context: context,

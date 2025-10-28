@@ -15,7 +15,8 @@ class IncapacidadModel {
   DateTime fechaInicioIncapacidad;
   DateTime fechaFinIncapacidad;
   String estado;
-  //String descripcion;
+  String motivo;
+  String documentoUrl;
 
   IncapacidadModel({
     required this.id,
@@ -29,7 +30,8 @@ class IncapacidadModel {
     required this.fechaInicioIncapacidad,
     required this.fechaFinIncapacidad,
     required this.estado,
-    //required this.descripcion,
+    required this.motivo,
+    required this.documentoUrl,
   });
 
   factory IncapacidadModel.fromJson(String id, Map<String, dynamic> json) {
@@ -45,7 +47,8 @@ class IncapacidadModel {
       fechaInicioIncapacidad: parseToDateTime(json['fechaInicioIncapacidad']),
       fechaFinIncapacidad: parseToDateTime(json['fechaFinIncapacidad']),
       estado: json['estado'] ?? 'N/A',
-      //descripcion: json['descripcion'] ?? '',
+      motivo: json['motivo'] ?? 'N/A',
+      documentoUrl: json['documento'] ?? json['documento'] ?? json['documento'] ?? '',
     );
   }
 
@@ -61,7 +64,8 @@ class IncapacidadModel {
       'fechaInicioIncapacidad': parseToTimestamp(fechaInicioIncapacidad),
       'fechaFinIncapacidad': parseToTimestamp(fechaFinIncapacidad),
       'estado': estado,
-      //'descripcion': descripcion,
+      'motivo': motivo,
+      'documento': documentoUrl,
     };
   }
 
