@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rrhfit_sys32/widgets/type.dart';
+import 'package:rrhfit_sys32/widgets/reporte_solicitudes_widget.dart';
 
 class SolicitudesScreen extends StatefulWidget {
   const SolicitudesScreen({super.key});
@@ -18,6 +20,13 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   final TextEditingController _empleadoCtrl = TextEditingController();
   final TextEditingController _departamentoCtrl = TextEditingController();
   final TextEditingController _descripcionCtrl = TextEditingController();
+  final TextEditingController _puestoCtrl = TextEditingController();
+  final TextEditingController _codigoCtrl = TextEditingController();
+  
+
+
+
+  String? _empleadoId;
   String _tipoSolicitud = "Vacaciones";
   DateTime? _fechaSeleccionada;
   String _busqueda = "";
@@ -81,13 +90,13 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
         foregroundColor: const Color.fromARGB(255, 251, 255, 250),
         elevation: 0,
         centerTitle: true,
-       
+
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color.fromRGBO(0, 150, 32, 1), 
-                Color.fromRGBO(50, 200, 120, 1), 
+                Color.fromRGBO(0, 150, 32, 1),
+                Color.fromRGBO(50, 200, 120, 1),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -126,7 +135,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
     if (user == null) return const Center(child: Text("Usuario no logueado"));
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Column(
         children: [
           StreamBuilder<QuerySnapshot>(
@@ -328,7 +337,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
             ],
           ),
 
-          // 🔹 Tabs
+          // Tabs
           Container(
             margin: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -343,17 +352,19 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                 Tab(text: "Pendientes"),
                 Tab(text: "Aprobadas"),
                 Tab(text: "Rechazadas"),
+                Tab(text: "Reportes"),
               ],
             ),
           ),
 
-          // 🔹 Contenido de cada Tab
+          // Contenido de cada Tab
           Expanded(
             child: TabBarView(
               children: [
                 _buildSolicitudList(user.uid, "Pendiente"),
                 _buildSolicitudList(user.uid, "Aprobada"),
                 _buildSolicitudList(user.uid, "Rechazada"),
+                ReporteSolicitudesWidget(),
               ],
             ),
           ),
@@ -394,7 +405,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
             crossAxisCount: 4,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1, 
+            childAspectRatio: 1,
           ),
           itemCount: docs.length,
           itemBuilder: (context, index) {
@@ -422,7 +433,6 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -554,8 +564,8 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                             },
                             child: Text(
                               data["descripcion"] ?? "",
-                              maxLines: 2, 
-                              overflow: TextOverflow.ellipsis, 
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(fontSize: 16),
                             ),
                           ),
@@ -674,25 +684,31 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        TextField(
-          controller: _empleadoCtrl,
-          decoration: InputDecoration(
-            labelText: "Empleado",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.white,
-          ),
+
+        EmpleadoAutocomplete(
+          empleadoCtrl: _empleadoCtrl,
+          codigoCtrl: _codigoCtrl,
+          departamentoCtrl: _departamentoCtrl, 
+          onEmpleadoSeleccionado: (id) {
+            setState(() {
+              _empleadoId = id;
+            });
+          },
+          onDepartamentoSeleccionado: (id) {
+      
+          
+          },
         ),
+        
         const SizedBox(height: 16),
         TextField(
-          controller: _departamentoCtrl,
-          decoration: InputDecoration(
-            labelText: "Departamento",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.white,
+          controller: _puestoCtrl,
+          decoration: const InputDecoration(
+            labelText: "Puesto",
+            border: OutlineInputBorder(),
           ),
         ),
+     
         const SizedBox(height: 16),
         TextField(
           controller: _descripcionCtrl,
