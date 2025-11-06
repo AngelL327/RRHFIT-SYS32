@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/widgets/first_seccion.dart';
+import 'package:rrhfit_sys32/empleados/widgets/report_seccion.dart';
 import 'package:rrhfit_sys32/empleados/widgets/second_seccion.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 import 'package:rrhfit_sys32/empleados/widgets/third_seccion.dart';
@@ -47,6 +48,8 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     FirstSeccion(controller: _controller),
+                    const SizedBox(height: 12),
+                    ReportSeccion(),
                     const SizedBox(height: 12),
                     SecondSeccion(controller: _controller),
                     const SizedBox(height: 12),

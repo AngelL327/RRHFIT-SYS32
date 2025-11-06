@@ -27,7 +27,6 @@ class ThirdSeccion extends StatelessWidget {
           final nuevos30dias = _empleadosNuevosEnDias(empleados, 30);
           final cumpleaniosProximos = _cumpleanosProximos(empleados, 30);
           final expiracionContratos = _contratosPorVencer(empleados, 30);
-          // final salarioStats = _calcularDistribucionSalarial(empleados);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -70,7 +69,7 @@ class ThirdSeccion extends StatelessWidget {
                         title: 'Antigüedad Promedio',
                         child: _metricNumber(
                           antiguedadPromedio != null
-                              ? '${antiguedadPromedio.toStringAsFixed(1)} yrs'
+                              ? '${antiguedadPromedio.toStringAsFixed(1)} años'
                               : '-',
                         ),
                       ),
