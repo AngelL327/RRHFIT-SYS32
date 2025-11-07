@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/tracker_page.dart';
 import 'package:sidebarx/sidebarx.dart';
 
@@ -60,7 +61,7 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
   List<Widget> _getPages() {
     return [
       TrackerPage(empleadoId: _empleadoId),
-      Center(child: Text("Página de Mis Solicitudes", style: TextStyle(fontSize: 22))),
+      SolicitudesEmpleadoPage(empleadoId: _empleadoId, empleadoNombre: ''),
       Center(child: Text("Página de Mi Perfil", style: TextStyle(fontSize: 22))),
     ];
   }
@@ -125,6 +126,14 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                const SizedBox(height: 8), // Espacio entre el texto y la imagen
+      Image.asset(
+        'assets/images/fittlay.png',
+        height: 80,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.error, color: Colors.red, size: 80);
+        },
+      ),
                 ],
               ),
             ),

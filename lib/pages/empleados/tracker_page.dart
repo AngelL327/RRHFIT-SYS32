@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'reporte_asistencia.dart';
 
 class TrackerPage extends StatefulWidget {
   final String empleadoId; // ID del empleado actual
@@ -51,20 +52,26 @@ class _TrackerPageState extends State<TrackerPage> {
     });
   }
 
-  String _getDocumentId() {
-    // Formato: empleadoId_YYYY-MM-DD
-    // Ejemplo: merari_argueta_2025-10-25
-    final fecha = DateFormat('yyyy-MM-dd').format(_fechaSeleccionada);
-    return '${widget.empleadoId}_$fecha';
+  String _getFechaDocId() {
+    // Formato: YYYY-MM-DD
+    return DateFormat('yyyy-MM-dd').format(_fechaSeleccionada);
+  }
+
+  // Referencia a la subcolección de registros del empleado
+  CollectionReference _getRegistrosCollection() {
+    return _firestore
+        .collection('asistencias')
+        .doc(widget.empleadoId)
+        .collection('registros');
   }
 
   Future<void> _cargarRegistroDelDia() async {
     try {
-      final docId = _getDocumentId();
-      final doc = await _firestore.collection('asistencias').doc(docId).get();
+      final fechaId = _getFechaDocId();
+      final doc = await _getRegistrosCollection().doc(fechaId).get();
       
       setState(() {
-        _registroHoy = doc.exists ? doc.data() : null;
+        _registroHoy = doc.exists ? doc.data() as Map<String, dynamic>? : null;
         _isLoading = false;
       });
       
@@ -86,7 +93,7 @@ class _TrackerPageState extends State<TrackerPage> {
     }
 
     try {
-      final docId = _getDocumentId();
+      final fechaId = _getFechaDocId();
       final ahora = DateTime.now();
       final horaFormato = DateFormat('HH:mm:ss').format(ahora);
       
@@ -119,14 +126,14 @@ class _TrackerPageState extends State<TrackerPage> {
       }
 
       // Usar merge para no sobrescribir datos existentes
-      await _firestore.collection('asistencias').doc(docId).set(
+      await _getRegistrosCollection().doc(fechaId).set(
         datos,
         SetOptions(merge: true),
       );
 
       // Si es salida, calcular y guardar horas totales
       if (tipo == 'salida') {
-        await _guardarHorasTotales(docId);
+        await _guardarHorasTotales(fechaId);
       }
 
       // Recargar datos
@@ -276,16 +283,16 @@ class _TrackerPageState extends State<TrackerPage> {
     return "$horas:$minutos:$segundos";
   }
 
-  Future<void> _guardarHorasTotales(String docId) async {
+  Future<void> _guardarHorasTotales(String fechaId) async {
     try {
       // Esperar un momento para que Firebase actualice los datos
       await Future.delayed(const Duration(milliseconds: 500));
       
       // Recargar datos para asegurar que tenemos la información completa
-      final doc = await _firestore.collection('asistencias').doc(docId).get();
+      final doc = await _getRegistrosCollection().doc(fechaId).get();
       if (!doc.exists) return;
 
-      final data = doc.data()!;
+      final data = doc.data() as Map<String, dynamic>;
       
       if (data['entradaTimestamp'] == null || data['salidaTimestamp'] == null) {
         return;
@@ -317,7 +324,7 @@ class _TrackerPageState extends State<TrackerPage> {
       double horasDecimales = total.inMinutes / 60.0;
       
       // Guardar en Firebase
-      await _firestore.collection('asistencias').doc(docId).update({
+      await _getRegistrosCollection().doc(fechaId).update({
         'horasTrabajadas': _formatearDuracion(total), // Formato HH:MM:SS
         'horasDecimales': double.parse(horasDecimales.toStringAsFixed(2)), // Para cálculos
         'totalMinutos': total.inMinutes, // Minutos totales
@@ -412,7 +419,6 @@ class _TrackerPageState extends State<TrackerPage> {
                     ),
                     child: Column(
                       children: [
-                        // Hora actual (pequeña arriba)
                         Text(
                           DateFormat('HH:mm:ss').format(_currentTime),
                           style: TextStyle(
@@ -567,6 +573,7 @@ class _TrackerPageState extends State<TrackerPage> {
                               ),
                             ),
                           )
+                          
                         else
                           Column(
                             children: [
@@ -669,6 +676,14 @@ class _TrackerPageState extends State<TrackerPage> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        // Botón de generar reporte - CORREGIDO
+                        Center(
+                          child: BotonGenerarReporte(
+                            empleadoUid: widget.empleadoId, // Pasar el empleadoId aquí
+                            fecha: _fechaSeleccionada, // Pasar la fecha seleccionada
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -750,6 +765,83 @@ class _TrackerPageState extends State<TrackerPage> {
           ),
           Icon(Icons.check_circle, color: Colors.green[400]),
         ],
+      ),
+    );
+  }
+}
+
+// Widget del botón que ahora incluye empleadoUid
+class BotonGenerarReporte extends StatelessWidget {
+  final String empleadoUid;
+  final DateTime fecha;
+
+  const BotonGenerarReporte({
+    super.key,
+    required this.empleadoUid,
+    required this.fecha,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                final size = MediaQuery.of(context).size;
+                return AlertDialog(
+                  titlePadding: const EdgeInsets.fromLTRB(16, 12, 8, 0),
+                  title: Row(
+                    children: [
+                      const Expanded(child: Text('Imprimir Reporte de Asistencias')),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20),
+                        color: Colors.redAccent,
+                        splashRadius: 18,
+                        tooltip: 'Cerrar',
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  content: SizedBox(
+                    width: size.width * 0.9,
+                    height: size.height * 0.8,
+                    child: GenerateAsistenciaPDFScreen(
+                      title: 'Reporte de Asistencias',
+                      empleadoId: empleadoUid,
+                      fecha: fecha, // Pasar la fecha aquí también
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+          icon: const Icon(Icons.picture_as_pdf, size: 24),
+          label: const Text(
+            'Generar Reporte PDF',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2E7D32),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 16,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 4,
+          ),
+        ),
       ),
     );
   }
