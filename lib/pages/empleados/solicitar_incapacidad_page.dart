@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:rrhfit_sys32/widgets/type.dart';
+import 'package:rrhfit_sys32/pages/solicitudes.dart';
+import 'package:rrhfit_sys32/pages/mainpage.dart';
 
 class SolicitudesEmpleadoPage extends StatefulWidget {
   final String empleadoId; // ID del empleado actual
@@ -13,27 +16,30 @@ class SolicitudesEmpleadoPage extends StatefulWidget {
   });
 
   @override
-  State<SolicitudesEmpleadoPage> createState() => _SolicitudesEmpleadoPageState();
+  State<SolicitudesEmpleadoPage> createState() =>
+      _SolicitudesEmpleadoPageState();
 }
 
-class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with SingleTickerProviderStateMixin {
+class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
+    with SingleTickerProviderStateMixin {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   late TabController _tabController;
 
   final _formKey = GlobalKey<FormState>();
   final _descripcionCtrl = TextEditingController();
   final _departamentoCtrl = TextEditingController();
+  final TextEditingController _puestoCtrl = TextEditingController();
+  final TextEditingController _codigoCtrl = TextEditingController();
 
   String _tipoSolicitud = "Permiso médico";
   DateTime _fechaSeleccionada = DateTime.now();
   bool _isSubmitting = false;
 
   final List<String> _tiposSolicitud = [
-    "Permiso médico",
     "Vacaciones",
-    "Permiso personal",
-    "Licencia",
-    "Otro",
+    "Permiso médico",
+    "Cambio de turno",
+
   ];
 
   final List<String> _departamentos = [
@@ -42,7 +48,7 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
     "Operaciones",
     "Ventas",
     "IT",
-    "Otro",
+    
   ];
 
   @override
@@ -79,6 +85,8 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
         "fecha": _fechaSeleccionada,
         "estado": "Pendiente",
         "creadoEn": FieldValue.serverTimestamp(),
+        "codigo": _codigoCtrl.text,
+        "puesto": _puestoCtrl.text,
       });
 
       if (mounted) {
@@ -208,10 +216,7 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildNuevaSolicitudTab(),
-          _buildMisSolicitudesTab(),
-        ],
+        children: [_buildNuevaSolicitudTab(), _buildMisSolicitudesTab()],
       ),
     );
   }
@@ -313,15 +318,15 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
               child: DropdownButtonFormField<String>(
                 value: _tipoSolicitud,
                 decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   border: InputBorder.none,
                   prefixIcon: Icon(Icons.category, color: Color(0xFF2E7D32)),
                 ),
                 items: _tiposSolicitud.map((tipo) {
-                  return DropdownMenuItem(
-                    value: tipo,
-                    child: Text(tipo),
-                  );
+                  return DropdownMenuItem(value: tipo, child: Text(tipo));
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -352,15 +357,15 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
               child: DropdownButtonFormField<String>(
                 value: _departamentoCtrl.text,
                 decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   border: InputBorder.none,
                   prefixIcon: Icon(Icons.business, color: Color(0xFF2E7D32)),
                 ),
                 items: _departamentos.map((dept) {
-                  return DropdownMenuItem(
-                    value: dept,
-                    child: Text(dept),
-                  );
+                  return DropdownMenuItem(value: dept, child: Text(dept));
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -528,11 +533,11 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
           final bData = b.data() as Map<String, dynamic>;
           final aTimestamp = aData['creadoEn'] as Timestamp?;
           final bTimestamp = bData['creadoEn'] as Timestamp?;
-          
+
           if (aTimestamp == null && bTimestamp == null) return 0;
           if (aTimestamp == null) return 1;
           if (bTimestamp == null) return -1;
-          
+
           return bTimestamp.compareTo(aTimestamp);
         });
 
@@ -554,10 +559,7 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
                 const SizedBox(height: 8),
                 Text(
                   'Crea tu primera solicitud en la pestaña anterior',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                 ),
               ],
             ),
@@ -570,11 +572,12 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
           itemBuilder: (context, index) {
             final doc = solicitudes[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             final String tipo = data['tipo'] ?? 'Sin tipo';
             final String descripcion = data['descripcion'] ?? 'Sin descripción';
             final String estado = data['estado'] ?? 'Pendiente';
-            final String departamento = data['departamento'] ?? 'Sin departamento';
+            final String departamento =
+                data['departamento'] ?? 'Sin departamento';
             final Timestamp? fechaTs = data['fecha'];
             final Timestamp? creadoEnTs = data['creadoEn'];
 
@@ -681,7 +684,11 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
                         // Información adicional
                         Row(
                           children: [
-                            Icon(Icons.business, size: 16, color: Colors.grey[500]),
+                            Icon(
+                              Icons.business,
+                              size: 16,
+                              color: Colors.grey[500],
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               departamento,
@@ -697,7 +704,11 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
                         if (fechaTs != null)
                           Row(
                             children: [
-                              Icon(Icons.calendar_today, size: 16, color: Colors.grey[500]),
+                              Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color: Colors.grey[500],
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 'Fecha: ${DateFormat('dd/MM/yyyy').format(fechaTs.toDate())}',
@@ -713,7 +724,11 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage> with 
                         if (creadoEnTs != null)
                           Row(
                             children: [
-                              Icon(Icons.access_time, size: 16, color: Colors.grey[500]),
+                              Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: Colors.grey[500],
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 'Enviada: ${DateFormat('dd/MM/yyyy HH:mm').format(creadoEnTs.toDate())}',
