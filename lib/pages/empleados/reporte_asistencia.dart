@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -39,13 +40,15 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
     required this.title,
     required this.empleadoId,
     required this.fecha,
+    this.uid,
   });
 
   final String title;
   final String empleadoId;
   final DateTime fecha;
+  final String? uid;
 
-  Future<DatosUsuario> getDatosUsuario(String uid) async {
+  Future<DatosUsuario> getDatosUsuario(String? uid) async {
     try {
       print('Buscando datos de usuario para UID: $uid');
       
@@ -174,7 +177,7 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
     // Obtener eventos del día Y datos del usuario
     final resultados = await Future.wait([
       getEventosDelDia(empleadoId, fecha),
-      getDatosUsuario(empleadoId),
+      getDatosUsuario(uid),
     ]);
     
     List<EventoAsistencia> eventos = resultados[0] as List<EventoAsistencia>;
@@ -248,7 +251,8 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                   child: pw.Align(
                     alignment: pw.Alignment.centerLeft,
                     child: pw.Text(
-                      datosUsuario.departamento,
+                      "Departamento de RRHH",
+                      //datosUsuario.departamento,
                       style: ttf != null
                           ? pw.TextStyle(font: ttf, fontSize: 10, color: pdf_lib.PdfColors.grey900)
                           : pw.TextStyle(fontSize: 10, color: pdf_lib.PdfColors.grey900),
@@ -290,14 +294,31 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
             // Título
             pw.Center(
               child: pw.Text(
-                'Reporte Historial de Asistencia Diario',
+                'Fittlay',
                 style: ttfBold != null
-                    ? pw.TextStyle(font: ttfBold, fontSize: 14, fontWeight: pw.FontWeight.bold)
-                    : pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                    ? pw.TextStyle(font: ttfBold, fontSize: 16, fontWeight: pw.FontWeight.bold)
+                    : pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
             ),
-            
             pw.SizedBox(height: 8),
+            pw.Center(
+              child: pw.Text(
+                'Reporte Historial de Asistencia Diario',
+                style: ttfBold != null
+                    ? pw.TextStyle(font: ttfBold, fontSize: 12, fontWeight: pw.FontWeight.bold)
+                    : pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+              ),
+            ),
+            pw.SizedBox(height: 4),
+            pw.Center(
+              child: pw.Text(dateFmt.format(fecha),
+                        style: ttf != null
+                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 12)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 12),),
+            ),
+            
+            pw.SizedBox(height: 12),
+            
             pw.Center(
               child: pw.Text(
                 'Datos del Empleado',
@@ -318,23 +339,18 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                       pw.Text(
                         'Empleado:',
                         style: ttfBold != null
-                            ? pw.TextStyle(font: ttfBold, fontWeight: pw.FontWeight.bold, fontSize: 8.0)
-                            : pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.0),
+                            ? pw.TextStyle(font: ttfBold, fontWeight: pw.FontWeight.bold, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
                       ),
                       pw.SizedBox(height: 6),
                       pw.Text(
                         'Departamento:',
                         style: ttfBold != null
-                            ? pw.TextStyle(font: ttfBold, fontWeight: pw.FontWeight.bold, fontSize: 8.0)
-                            : pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.0),
+                            ? pw.TextStyle(font: ttfBold, fontWeight: pw.FontWeight.bold, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
                       ),
                       pw.SizedBox(height: 6),
-                      pw.Text(
-                        'Fecha del reporte:',
-                        style: ttfBold != null
-                            ? pw.TextStyle(font: ttfBold, fontWeight: pw.FontWeight.bold, fontSize: 8.0)
-                            : pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.0),
-                      ),
+                      
                     ],
                   ),
                   pw.SizedBox(width: 15),
@@ -344,23 +360,60 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                       pw.Text(
                         datosUsuario.nombreCompleto,
                         style: ttf != null
-                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 8.0)
-                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 8.0),
+                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 11),
                       ),
                       pw.SizedBox(height: 6),
                       pw.Text(
                         datosUsuario.departamento,
                         style: ttf != null
-                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 8.0)
-                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 8.0),
+                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 11),
+                      ),
+                      pw.SizedBox(height: 6),
+                      
+                    ],
+                  ),
+                  pw.SizedBox(width: 150),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        "Correo:",
+                        style: ttf != null
+                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 11),
                       ),
                       pw.SizedBox(height: 6),
                       pw.Text(
-                        dateFmt.format(fecha),
+                        "Teléfono:",
                         style: ttf != null
-                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 8.0)
-                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 8.0),
+                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 11),
                       ),
+                      pw.SizedBox(height: 6),
+                      
+                    ],
+                  ),
+                  pw.SizedBox(width: 15),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        "merariarguetajdn2021@gmail.com",//Por mientras
+                        style: ttf != null
+                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 11),
+                      ),
+                      pw.SizedBox(height: 6),
+                      pw.Text(
+                        "97643734",//pondre los de firebase despues
+                        style: ttf != null
+                            ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 11)
+                            : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 11),
+                      ),
+                      pw.SizedBox(height: 6),
+                      
                     ],
                   ),
                 ],

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -682,6 +683,7 @@ class _TrackerPageState extends State<TrackerPage> {
                           child: BotonGenerarReporte(
                             empleadoUid: widget.empleadoId, // Pasar el empleadoId aquí
                             fecha: _fechaSeleccionada, // Pasar la fecha seleccionada
+                            usuarioUid: FirebaseAuth.instance.currentUser?.uid,
                           ),
                         ),
                       ],
@@ -774,11 +776,13 @@ class _TrackerPageState extends State<TrackerPage> {
 class BotonGenerarReporte extends StatelessWidget {
   final String empleadoUid;
   final DateTime fecha;
+  final String? usuarioUid;
 
   const BotonGenerarReporte({
     super.key,
     required this.empleadoUid,
     required this.fecha,
+    this.usuarioUid,
   });
 
   @override
@@ -815,6 +819,7 @@ class BotonGenerarReporte extends StatelessWidget {
                       title: 'Reporte de Asistencias',
                       empleadoId: empleadoUid,
                       fecha: fecha, // Pasar la fecha aquí también
+                      uid: usuarioUid
                     ),
                   ),
                 );
