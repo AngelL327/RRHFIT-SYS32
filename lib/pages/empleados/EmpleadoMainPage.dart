@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/tracker_page.dart';
 import 'package:sidebarx/sidebarx.dart';
+import 'package:rrhfit_sys32/pages/empleados/mi_perfil_page.dart';
 
 class EmpleadoMainPage extends StatefulWidget {
   const EmpleadoMainPage({super.key});
@@ -62,7 +63,7 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
     return [
       TrackerPage(empleadoId: _empleadoId),
       SolicitudesEmpleadoPage(empleadoId: _empleadoId, empleadoNombre: ''),
-      Center(child: Text("Página de Mi Perfil", style: TextStyle(fontSize: 22))),
+      MiPerfilPage(empleadoId: _empleadoId),
     ];
   }
 
