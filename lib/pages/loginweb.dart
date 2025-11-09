@@ -2,9 +2,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rrhfit_sys32/pages/mainpage.dart';
-import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
-import 'package:rrhfit_sys32/pages/mainpageweb.dart';
+import 'package:rrhfit_sys32/pages/empleados/EmpleadoMainPage.dart';
+
 class AuthWebPage extends StatefulWidget {
   const AuthWebPage({super.key});
 
@@ -15,28 +14,21 @@ class AuthWebPage extends StatefulWidget {
 class _AuthWebPageState extends State<AuthWebPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final codigoController = TextEditingController();
 
   bool loading = false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  String? _codigoCorrecto; // para validar código
-  String? _empleadoId;
-  String? _nombreEmpleado;
-  String? _areaId;
-
   Future<void> login() async {
     setState(() => loading = true);
     try {
       final email = emailController.text.trim();
       final password = passwordController.text.trim();
-      final codigoIngresado = codigoController.text.trim();
 
-      if (email.isEmpty || password.isEmpty || codigoIngresado.isEmpty) {
+      if (email.isEmpty || password.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Todos los campos son obligatorios")),
+          const SnackBar(content: Text("Email y contraseña son obligatorios")),
         );
         setState(() => loading = false);
         return;
@@ -48,55 +40,63 @@ class _AuthWebPageState extends State<AuthWebPage> {
         password: password,
       );
 
-      // Buscar empleado en Firestore
-      final empleadoSnap = await _db
-          .collection('empleados')
-          .where('correo', isEqualTo: email)
-          .limit(1)
+      // Verificar que el usuario existe en Firestore
+      final usuarioDoc = await _db
+          .collection('usuarios')
+          .doc(cred.user!.uid)
           .get();
 
-      if (empleadoSnap.docs.isEmpty) {
+      if (!usuarioDoc.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Usuario no registrado en empleados")),
+          const SnackBar(content: Text("Usuario no registrado en el sistema")),
         );
         await _auth.signOut();
         setState(() => loading = false);
         return;
       }
 
-      final empleadoData = empleadoSnap.docs.first.data();
-      _codigoCorrecto = empleadoData['codigo_empleado'] ?? '';
-      _nombreEmpleado = empleadoData['nombre'] ?? '';
-      _areaId = empleadoData['departamento_id'] ?? '';
-      _empleadoId = empleadoSnap.docs.first.id;
-
-      // Validar código
-      if (codigoIngresado != _codigoCorrecto) {
-        ScaffoldMessenger.of(
+      // Login exitoso: ir a EmpleadoMainPage
+      if (mounted) {
+        Navigator.pushReplacement(
           context,
-        ).showSnackBar(const SnackBar(content: Text("El código no coincide")));
-        await _auth.signOut();
-        setState(() => loading = false);
-        return;
-      }
-
-      // Login exitoso: ir a MainPage con datos correctos
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MainPageweb(
-            empleadoId: _empleadoId!,
-            empleadoNombre: _nombreEmpleado!,
+          MaterialPageRoute(
+            builder: (_) => const EmpleadoMainPage(),
           ),
-        ),
-      );
+        );
+      }
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Error al iniciar sesión")),
-      );
+      String mensaje = "Error al iniciar sesión";
+      if (e.code == 'user-not-found') {
+        mensaje = "Usuario no encontrado";
+      } else if (e.code == 'wrong-password') {
+        mensaje = "Contraseña incorrecta";
+      } else if (e.code == 'invalid-email') {
+        mensaje = "Correo electrónico inválido";
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(mensaje)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: ${e.toString()}")),
+        );
+      }
     } finally {
-      setState(() => loading = false);
+      if (mounted) {
+        setState(() => loading = false);
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -139,14 +139,28 @@ class _AuthWebPageState extends State<AuthWebPage> {
                             'assets/images/fittlay.png',
                             height: 120,
                             fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.business,
+                                size: 120,
+                                color: Colors.white,
+                              );
+                            },
                           ),
                         ),
-                      
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Sistema de Recursos Humanos',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-
                 Expanded(
                   flex: 2,
                   child: Center(
@@ -159,9 +173,11 @@ class _AuthWebPageState extends State<AuthWebPage> {
               ],
             )
           : Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: _buildForm(),
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: _buildForm(),
+                ),
               ),
             ),
     );
@@ -199,6 +215,7 @@ class _AuthWebPageState extends State<AuthWebPage> {
               children: [
                 TextField(
                   controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     hintText: 'Correo',
                     suffixIcon: const Icon(Icons.email_outlined, size: 18),
@@ -214,7 +231,7 @@ class _AuthWebPageState extends State<AuthWebPage> {
                   decoration: InputDecoration(
                     hintText: 'Contraseña',
                     suffixIcon: const Icon(
-                      Icons.remove_red_eye_outlined,
+                      Icons.lock_outline,
                       size: 18,
                     ),
                     border: OutlineInputBorder(
@@ -222,20 +239,11 @@ class _AuthWebPageState extends State<AuthWebPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: codigoController,
-                  decoration: InputDecoration(
-                    hintText: 'Código de empleado',
-                    suffixIcon: const Icon(Icons.vpn_key_outlined, size: 18),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 25),
                 loading
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(
+                        color: Color(0xFF2C9FB6),
+                      )
                     : ElevatedButton(
                         onPressed: login,
                         style: ElevatedButton.styleFrom(
