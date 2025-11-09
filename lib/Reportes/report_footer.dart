@@ -1,5 +1,6 @@
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart' as pdf_lib;
+import 'package:rrhfit_sys32/globals.dart';
 
 /// Reusable PDF footer builder for reports.
 ///
@@ -17,7 +18,7 @@ pw.Widget reportFooter(pw.Context context, {double hPadding = 40, double vPaddin
     child: pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Text('Generado desde RRHFIT-SYS32', style: font != null ? pw.TextStyle(font: font, fontSize: 8, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 8, color: pdf_lib.PdfColors.grey700)),
+        pw.Text('Generado por: ${Global().userName}', style: font != null ? pw.TextStyle(font: font, fontSize: 8, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 8, color: pdf_lib.PdfColors.grey700)),
         pw.Text(pageInfo, style: font != null ? pw.TextStyle(font: font, fontSize: 8, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 8, color: pdf_lib.PdfColors.grey700)),
       ],
     ),

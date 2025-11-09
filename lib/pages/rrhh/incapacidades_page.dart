@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/Reportes/reporte_incapacidades_body.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/empleados/models/area_model.dart';
 import 'package:rrhfit_sys32/globals.dart';
+import 'package:rrhfit_sys32/logic/area_functions.dart';
 import 'package:rrhfit_sys32/logic/empleados_functions.dart';
+import 'package:rrhfit_sys32/logic/models/area_model.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
@@ -12,6 +16,7 @@ import 'package:rrhfit_sys32/pages/rrhh/add_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/rrhh/incapacidades_details_page.dart';
 import 'package:rrhfit_sys32/widgets/alert_message.dart';
 import 'package:rrhfit_sys32/widgets/search_bar.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:rrhfit_sys32/widgets/summary_box.dart';
 import 'package:rrhfit_sys32/widgets/table_widget.dart';
 
@@ -208,10 +213,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     ),
                     tooltip: 'Añadir nueva solicitud de incapacidad',
                     onPressed: () async {
-                      // Abrir el formulario en un AlertDialog
                       final created = await showAddIncapacidadDialog(context);
                       if (created == true) {
-                        // recargar vista
                         setState(() {});
                       }
                     },
@@ -229,24 +232,26 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                         'Fecha Fin',
                         'Estado',
                         'Empleado',
-                        'Emisor#Documento',
+                        'Emisor y Documento',
                         'Correo',
                         'Motivo',
                         'Area',
                       ],
                       rowMapper: (inc) {
                         return [
-                          inc[0].usuario,
-                          inc[0].numCertificado,
-                          inc[0].enteEmisor,
-                          formatDate(inc[0].fechaInicioIncapacidad),
-                          formatDate(inc[0].fechaFinIncapacidad),
-                          inc[0].estado,
-                          inc[0].motivo.length > 30 ? '${inc[0].motivo.substring(0, 30)}...' : inc[0].motivo,
+                          formatDate((inc[0] as IncapacidadModel).fechaInicioIncapacidad),
+                          formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
+                          (inc[0] as IncapacidadModel).estado,
+                          (inc[0] as IncapacidadModel).usuario,
+                          "${(inc[0] as IncapacidadModel).enteEmisor}#${(inc[0] as IncapacidadModel).numCertificado}",
+                          (inc[1] as EmpleadoModel).correo,
+                          (inc[0] as IncapacidadModel).motivo.length > 30 ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...' : (inc[0] as IncapacidadModel).motivo,
+                          (inc[2] as AreaModel).nombre,
 
                         ];
                       },
-                      columnFlexes: [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+                      columnFlexes: [1.2, 1.2, 1.0, 1.5, 1.5, 1.5, 1.5],
+                      bodyContent: reporteIncapacidadesBody(),
                     ),
                   ),
                   SearchBarWidget(
@@ -276,7 +281,6 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             // Table
             Expanded(
               child: FutureBuilder<List<IncapacidadModel>>( 
@@ -294,9 +298,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     return const Center(child: Text('No hay incapacidades registradas'));
                   }
 
-                  final filtered = list.where((inc) => _matchesQuery(inc, _query)).toList();
-                  // apply sorting if selected
-                  final sorted = List<IncapacidadModel>.from(filtered);
+                  final filtered = list.where((inc) => _matchesQuery(inc, _query)).toList();                  final sorted = List<IncapacidadModel>.from(filtered);
                   if (_sortColumn != null) {
                     sorted.sort((a, b) => _compareByColumn(a, b));
                   }
@@ -311,7 +313,6 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                         DataColumn(label: Text('Tipo')),
                         DataColumn(label: Text('Ente Emisor')),
                         DataColumn(label: Text('# Certificado')),
-
                         DataColumn(label: Text('Inicio de incapacidad')),
                         DataColumn(label: Text('Fin de incapacidad')),
                         DataColumn(label: Text('Estado')),
@@ -376,7 +377,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
     List<IncapacidadModel> incapacidades = await getAllIncapacidades();
     for (var inc in incapacidades) {
       EmpleadoModel? emp = await getEmpleadoById(inc.userId);
-      results.add([inc, emp]);
+      AreaModel? area = await getAreaById(emp?.areaID);
+      results.add([inc, emp, area]);
     }
 
     return results;

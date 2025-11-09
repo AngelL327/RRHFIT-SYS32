@@ -39,8 +39,8 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
   final TextEditingController _documentoCtrl = TextEditingController();
   EmpleadoModel? _selectedEmpleado;
   List<EmpleadoModel> _empleados = [];
-  bool _loadingEmpleados = true;
-  TextEditingController? _empleadoTextCtrl;
+  Future<List<EmpleadoModel>>? _empleadosFuture;
+  String _empleadoTyped = '';
 
   @override
   void initState() {
@@ -50,37 +50,15 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
       _userIdCtrl.text = user.uid;
       _usuarioCtrl.text = user.displayName ?? user.email ?? '';
     }
-    // Preload empleados for the dropdown so the widget does not need a FutureBuilder
-    _loadEmpleados();
+    // prepare future to load empleados; UI will use a FutureBuilder
+    _empleadosFuture = getAllEmpleados();
   }
 
-  Future<void> _loadEmpleados() async {
-    setState(() => _loadingEmpleados = true);
-    try {
-      final empleados = await getAllEmpleados();
-      _empleados = empleados;
-      // try to preselect an empleado matching the current user's email if available
-      final currentEmail = Global().currentUser?.email;
-      if (currentEmail != null && _selectedEmpleado == null) {
-        final idx = _empleados.indexWhere((e) => e.correo.toLowerCase() == currentEmail.toLowerCase());
-        if (idx != -1) _selectedEmpleado = _empleados[idx];
-        // if the autocomplete controller exists, set its text
-        if (_empleadoTextCtrl != null && _selectedEmpleado != null) {
-          _empleadoTextCtrl!.text = _selectedEmpleado!.nombre;
-        }
-      }
-    } catch (e) {
-      // ignore errors here; the UI will show no empleados
-      // ignore: avoid_print
-      print('Error cargando empleados: $e');
-    } finally {
-      if (mounted) setState(() => _loadingEmpleados = false);
-    }
-  }
+  // we use [_empleadosFuture] + FutureBuilder in build instead of a manual loader
 
   @override
   void dispose() {
-    _empleadoTextCtrl?.dispose();
+    // we don't own the Autocomplete controller; nothing to dispose here
     _usuarioCtrl.dispose();
     _userIdCtrl.dispose();
     _numCertCtrl.dispose();
@@ -104,6 +82,22 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
   // _getEmpleados removed; we preload empleados in initState using _loadEmpleados
 
   Future<void> _submit() async {
+    // If user typed a name but didn't pick from the autocomplete list,
+    // try to match it to an empleado by name so we can proceed without error.
+    if (_selectedEmpleado == null) {
+      final typed = _empleadoTyped.trim();
+      if (typed.isNotEmpty) {
+        final idx = _empleados.indexWhere((e) => e.nombre.toLowerCase() == typed.toLowerCase());
+        if (idx != -1) _selectedEmpleado = _empleados[idx];
+      }
+    }
+
+    // If still null and we have empleados loaded, default to the first one.
+    if (_selectedEmpleado == null && _empleados.isNotEmpty) {
+      _selectedEmpleado = _empleados.first;
+      _empleadoTyped = _selectedEmpleado!.nombre;
+    }
+
     if (!_formKey.currentState!.validate()) return;
     if (_fechaInicio == null || _fechaFin == null) {
       errorScaffoldMsg(context, 'Por favor seleccione las fechas de inicio y fin de incapacidad');
@@ -120,6 +114,12 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
 
     if (_enteEmisorCtrl.text.trim().isEmpty) {
       errorScaffoldMsg(context, 'Por favor ingrese el ente emisor');
+      return;
+    }
+
+    if (_empleados.isNotEmpty && _selectedEmpleado == null) {
+      // if empleados exist but we couldn't resolve a selection, block submit
+      errorScaffoldMsg(context, 'El empleado seleccionado no es válido');
       return;
     }
 
@@ -164,42 +164,49 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_loadingEmpleados)
-                  const Center(child: CircularProgressIndicator())
-                else if (_empleados.isEmpty)
-                  const Text('No se encontraron empleados')
-                else
-                  Autocomplete<EmpleadoModel>(
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      if (textEditingValue.text == '') {
-                        // show all when empty
-                        return _empleados;
-                      }
-                      return _empleados.where((EmpleadoModel e) =>
-                          e.nombre.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-                    },
-                    displayStringForOption: (EmpleadoModel e) => e.nombre,
-                    fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-                      // store the controller so we can prefill it after loading
-                      _empleadoTextCtrl = textEditingController;
-                      // if we preselected an empleado earlier, ensure the controller shows it
-                      if (_selectedEmpleado != null && textEditingController.text.isEmpty) {
-                        textEditingController.text = _selectedEmpleado!.nombre;
-                      }
-                      return TextFormField(
-                        controller: textEditingController,
-                        focusNode: focusNode,
-                        decoration: const InputDecoration(labelText: 'Empleado'),
-                        validator: (v) => _selectedEmpleado == null ? 'Seleccione un empleado' : null,
-                      );
-                    },
-                    onSelected: (EmpleadoModel selection) {
-                      setState(() {
-                        _selectedEmpleado = selection;
-                        _empleadoTextCtrl?.text = selection.nombre;
-                      });
-                    },
-                  ),
+                FutureBuilder<List<EmpleadoModel>>(
+                  future: _empleadosFuture,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snap.hasError) {
+                      return Text('Error cargando empleados: ${snap.error}');
+                    }
+                    final empleados = snap.data ?? [];
+                    // keep a local copy for submit-time decisions
+                    _empleados = empleados;
+                    if (empleados.isEmpty) return const Text('No se encontraron empleados');
+                    return Autocomplete<EmpleadoModel>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        if (textEditingValue.text == '') {
+                          // show all when empty
+                          return empleados;
+                        }
+                        return empleados.where((EmpleadoModel e) =>
+                            e.nombre.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+                      },
+                      displayStringForOption: (EmpleadoModel e) => e.nombre,
+                      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+                        return TextFormField(
+                          controller: textEditingController,
+                          focusNode: focusNode,
+                          decoration: const InputDecoration(labelText: 'Empleado'),
+                          // keep track of what's typed so we can try to match on submit
+                          onChanged: (v) => _empleadoTyped = v,
+                          // allow empty here; we'll default to the first empleado on submit
+                          validator: (v) => null,
+                        );
+                      },
+                      onSelected: (EmpleadoModel selection) {
+                        setState(() {
+                          _selectedEmpleado = selection;
+                          _empleadoTyped = selection.nombre;
+                        });
+                      },
+                    );
+                  },
+                ),
                 const SizedBox(height: 8),
                 // DropdownButtonFormField<String>(
                 //   initialValue: _tipoSolicitud,

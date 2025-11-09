@@ -16,10 +16,11 @@ class GeneratePDFButton<T> extends StatelessWidget {
     required this.fetchData,
     required this.tableHeaders,
     required this.rowMapper,
-    this.logoAsset = 'assets/images/fittlay.png',
+    this.logoAsset = 'assets/images/fittlay_imagotipo.png',
     this.fallbackLogoAsset = 'images/fittlay.png',
     this.fontAsset = 'assets/fonts/Roboto-Regular.ttf',
     this.columnFlexes,
+    required this.bodyContent,
   });
 
   final String buttonLabel;
@@ -31,14 +32,15 @@ class GeneratePDFButton<T> extends StatelessWidget {
   final String fallbackLogoAsset;
   final String fontAsset;
   final List<double>? columnFlexes;
+  final pw.Widget bodyContent;
 
   Future<Uint8List> _buildPdf(pdf_lib.PdfPageFormat format) async {
     final doc = pw.Document();
     final data = await fetchData();
 
     final dateFmt = DateFormat('dd-MM-yyyy');
-    final double hPadding = 40;
-    final double vPadding = 20;
+    final double hPadding = 30;
+    final double vPadding = 10;
 
     // load logo from assets into a MemoryImage for the pdf
     Uint8List logoBytes;
@@ -96,25 +98,8 @@ class GeneratePDFButton<T> extends StatelessWidget {
                 border: pw.TableBorder.all(width: 0.5, color: pdf_lib.PdfColors.grey600),
               ),
             ),
-            // force page break -> new page starts here (keeps same header/footer)
-          pw.NewPage(),
 
-          // second page content (summary, notes, whatever)
-          pw.Padding(
-            padding: pw.EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('Resumen del reporte', style: pw.TextStyle(font: ttf, fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 10),
-                pw.Text('Total registros: ${data.length}', style: pw.TextStyle(font: ttf, fontSize: 12)),
-                pw.SizedBox(height: 8),
-                pw.Text('Notas:', style: pw.TextStyle(font: ttf, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                pw.Bullet(text: 'Aquí puedes agregar observaciones o detalles adicionales.'),
-                // add more widgets...
-              ],
-            ),
-          ),
+            bodyContent,
           ];
         },
       ),
@@ -159,9 +144,12 @@ class GeneratePDFButton<T> extends StatelessWidget {
                 width: size.width * 0.9,
                 height: size.height * 0.8,
                 child: PdfPreview(
+                  onZoomChanged: (value) => {},
+                  actionBarTheme: PdfActionBarTheme(backgroundColor: AppTheme.primary),
                   canChangeOrientation: true,
                   canDebug: false,
-                  maxPageWidth: 700,
+                  maxPageWidth: 900,
+                  pdfFileName: "${reportTitle.replaceAll(' ', '_').toLowerCase()}.pdf",
                   previewPageMargin: const EdgeInsets.all(20),
                   build: (format) => _buildPdf(format),
                 ),

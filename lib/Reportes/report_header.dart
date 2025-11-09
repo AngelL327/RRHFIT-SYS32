@@ -1,5 +1,7 @@
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart' as pdf_lib;
+import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
+import 'package:rrhfit_sys32/logic/utilities/obtener_mes_string.dart';
 
 /// Reusable PDF header builder for reports.
 ///
@@ -29,10 +31,13 @@ pw.Widget reportHeader({
 			children: [
         pw.Expanded(
 					child: pw.Column(
-						crossAxisAlignment: pw.CrossAxisAlignment.center,
+						crossAxisAlignment: pw.CrossAxisAlignment.start,
 						mainAxisSize: pw.MainAxisSize.min,
 						children: [
-              pw.Text('adios'),
+                pw.Padding(padding: pw.EdgeInsets.only(top: 20, left: 20),
+                child: pw.Text('Departamento de RRHH', 
+                  style: font != null ? pw.TextStyle(font: font, fontSize: 8, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 8, color: pdf_lib.PdfColors.grey700)),
+                ),
               ],
 					),
 				),
@@ -43,21 +48,23 @@ pw.Widget reportHeader({
 						children: [
               pw.Container(
                 width: 20,
-                height: 30,
+                height: 20,
                 child: pw.Image(logo, fit: pw.BoxFit.contain, width: 100, height: 100),
               ),
 							pw.Text(title, style: font != null ? pw.TextStyle(font: font, fontSize: 16, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-							pw.Text('Generado el: $dateString', style: font != null ? pw.TextStyle(font: font, fontSize: 9, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 9, color: pdf_lib.PdfColors.grey700)),
-						],
+							pw.Text("Al mes de ${getMonthString(DateTime.now().month)} - ${DateTime.now().year}", style: font != null ? pw.TextStyle(font: font, fontSize: 16, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+            ],
 					),
 				),
         pw.Expanded(
 					child: pw.Column(
-						crossAxisAlignment: pw.CrossAxisAlignment.center,
+						crossAxisAlignment: pw.CrossAxisAlignment.end,
 						mainAxisSize: pw.MainAxisSize.min,
 						children: [
-              pw.Text('hola'),
-              ],
+                pw.Padding(padding: pw.EdgeInsets.only(top: 20, right: 20),
+                child: pw.Text('Fecha: $dateString', style: font != null ? pw.TextStyle(font: font, fontSize: 8, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 8, color: pdf_lib.PdfColors.grey700)),
+              ),
+            ],
 					),
 				),
 					],
