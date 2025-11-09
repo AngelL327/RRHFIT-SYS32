@@ -3,7 +3,6 @@ import 'package:rrhfit_sys32/empleados/widgets/first_seccion.dart';
 import 'package:rrhfit_sys32/empleados/widgets/report_seccion.dart';
 import 'package:rrhfit_sys32/empleados/widgets/second_seccion.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
-import 'package:rrhfit_sys32/empleados/widgets/third_seccion.dart';
 
 class EmpleadosScreen extends StatefulWidget {
   const EmpleadosScreen({super.key});
@@ -53,8 +52,10 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                     const SizedBox(height: 12),
                     SecondSeccion(controller: _controller),
                     const SizedBox(height: 12),
-                    ThirdSeccion(controller: _controller),
-                    const SizedBox(height: 20),
+                    // ThirdSeccion(controller: _controller),
+                    // const SizedBox(height: 20),
+                    // const ReportAsistenciaPerfecta(),
+                    // const SizedBox(height: 20),
                   ],
                 ),
               ),

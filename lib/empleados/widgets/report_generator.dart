@@ -134,12 +134,12 @@ Future<Uint8List> generateAttendancePdf({
               child: pw.Text(
                 'Reporte de Asistencia Perfecta',
                 style: pw.TextStyle(
-                  fontSize: 14,
+                  fontSize: 10.0,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
             ),
-            pw.SizedBox(height: 8),
+            pw.SizedBox(height: 15),
             pw.Container(
               padding: const pw.EdgeInsets.all(8),
               child: pw.Row(
@@ -152,7 +152,7 @@ Future<Uint8List> generateAttendancePdf({
                         'Generado por:',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 8.0,
+                          fontSize: 10,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -160,7 +160,7 @@ Future<Uint8List> generateAttendancePdf({
                         'Fecha:',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 8.0,
+                          fontSize: 10.0,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -168,7 +168,7 @@ Future<Uint8List> generateAttendancePdf({
                         'Criterio de Excepción: ',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 8.0,
+                          fontSize: 10.0,
                         ),
                       ),
                     ],
@@ -182,7 +182,7 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 8.0,
+                          fontSize: 10.0,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -191,7 +191,7 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 8.0,
+                          fontSize: 10.0,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -200,7 +200,7 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 8.0,
+                          fontSize: 10.0,
                         ),
                       ),
                     ],
@@ -208,7 +208,7 @@ Future<Uint8List> generateAttendancePdf({
                 ],
               ),
             ),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 15),
           ],
         );
       },
@@ -252,24 +252,22 @@ Future<Uint8List> generateAttendancePdf({
           pw.SizedBox(height: 8),
           pw.Text(
             '**Total empleados destacados:** ${data.length} de X (Y%)',
-            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
           ),
           pw.SizedBox(height: 18),
         ];
 
-        // Si hay watermark, lo centramos y escalamos para cubrir el área central
         if (watermarkBytes != null) {
           return [
             pw.Stack(
               children: [
-                // Watermark centrado y escalado
+                // Marca de agua centrado y escalado
                 pw.Center(
                   child: pw.Opacity(
-                    opacity: 0.40, // Ajusta según necesites
+                    opacity: 0.40,
                     child: pw.SizedBox(
-                      width: 400, // Ancho grande para cubrir el centro
-                      height:
-                          500, // Alto grande (ajusta según tu imagen y página)
+                      width: 400,
+                      height: 500,
                       child: pw.Image(
                         pw.MemoryImage(watermarkBytes),
                         fit: pw.BoxFit.contain,
@@ -284,7 +282,6 @@ Future<Uint8List> generateAttendancePdf({
           ];
         }
 
-        // Sin watermark
         return content;
       },
     ),
