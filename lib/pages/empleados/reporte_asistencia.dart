@@ -215,7 +215,6 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
       }
     }
 
-    // Cargar fuente TTF
     pw.Font? ttf;
     pw.Font? ttfBold;
     try {
@@ -239,13 +238,10 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
         pageFormat: format,
         margin: pw.EdgeInsets.symmetric(horizontal: 28, vertical: 18),
         build: (context) {
-          // Contenido principal
           final contenido = <pw.Widget>[
-            // === HEADER (igual que Asistencia Perfecta) ===
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.center,
               children: [
-                // Departamento (izquierda)
                 pw.Expanded(
                   flex: 3,
                   child: pw.Align(
@@ -422,7 +418,6 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
             
             pw.SizedBox(height: 20),
             
-            // === TABLA DE EVENTOS (tu diseño original) ===
             if (eventos.isEmpty)
               pw.Center(
                 child: pw.Padding(
@@ -568,7 +563,7 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                 // Marca de agua centrada
                 pw.Center(
                   child: pw.Opacity(
-                    opacity: 0.15,
+                    opacity: 0.4,
                     child: pw.SizedBox(
                       width: 400,
                       height: 500,
