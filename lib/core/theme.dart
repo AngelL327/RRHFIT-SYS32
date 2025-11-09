@@ -6,6 +6,7 @@ class AppTheme {
   static const Color accent = Color(0xFFF57C00);
   static const Color bg = Color(0xFFF7F4F1);
   static const Color cream = Color(0xFFFBF8F6);
+  static const Color tableHeaderBG = Color.from(alpha: 1, red: 57, green: 181, blue: 218);
 
   static ThemeData get lightTheme {
     final base = ThemeData.light();

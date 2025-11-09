@@ -36,6 +36,17 @@ Future<List<IncapacidadModel>> getAllIncapacidades() async {
   return incapacidades;
 }
 
+Future<bool> addIncapacidad(IncapacidadModel inc) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('solicitudes')
+        .add(inc.toJson());
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 Future<bool> deleteIncapacidad(String id) async {
   try {
     await FirebaseFirestore.instance

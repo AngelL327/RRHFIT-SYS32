@@ -27,7 +27,16 @@ pw.Widget reportHeader({
 			crossAxisAlignment: pw.CrossAxisAlignment.start,
       mainAxisSize: pw.MainAxisSize.min,
 			children: [
-					pw.Expanded(
+        pw.Expanded(
+					child: pw.Column(
+						crossAxisAlignment: pw.CrossAxisAlignment.center,
+						mainAxisSize: pw.MainAxisSize.min,
+						children: [
+              pw.Text('adios'),
+              ],
+					),
+				),
+        pw.Expanded(
 					child: pw.Column(
 						crossAxisAlignment: pw.CrossAxisAlignment.center,
 						mainAxisSize: pw.MainAxisSize.min,
@@ -42,7 +51,16 @@ pw.Widget reportHeader({
 						],
 					),
 				),
-			],
+        pw.Expanded(
+					child: pw.Column(
+						crossAxisAlignment: pw.CrossAxisAlignment.center,
+						mainAxisSize: pw.MainAxisSize.min,
+						children: [
+              pw.Text('hola'),
+              ],
+					),
+				),
+					],
 		),
 	);
 }

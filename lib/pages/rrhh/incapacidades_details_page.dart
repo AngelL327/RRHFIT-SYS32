@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/core/document_preview.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
@@ -8,7 +7,6 @@ import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
 import 'package:rrhfit_sys32/widgets/alert_message.dart';
-import 'package:http/http.dart' as http;
 
 
 Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function? setState}) {
@@ -34,6 +32,7 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
                   children: [
                     Text('Empleado: ${inc.usuario}', style: AppTheme.lightTheme.textTheme.titleLarge,),
                     Text('Tipo de solicitud: ${inc.tipoSolicitud}', style: AppTheme.lightTheme.textTheme.titleLarge,),
+                    Text('Tipo de incapacidad: ${inc.tipoIncapacidad}', style: AppTheme.lightTheme.textTheme.titleLarge,),
                     Text('Fecha de Solicitud: ${formatDate(inc.fechaSolicitud)}', style: AppTheme.lightTheme.textTheme.titleLarge,),
                     Text('Fecha de Expediente: ${formatDate(inc.fechaExpediente)}', style: AppTheme.lightTheme.textTheme.titleLarge,),
                     Text('Fecha Inicio de Incapacidad: ${formatDate(inc.fechaInicioIncapacidad)}', style: AppTheme.lightTheme.textTheme.titleLarge,),
@@ -125,7 +124,7 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
       ),
     ),
     actions: [
-      if (inc.estado == EstadoSolicitud.aprobada) ...[
+      if (inc.estado == EstadoSolicitud.pendiente || inc.estado == EstadoSolicitud.aprobada) ...[
         TextButton(
           style: AppTheme.lightTheme.elevatedButtonTheme.style,
           onPressed: () async {
@@ -152,7 +151,7 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
           child: const Text('Rechazar'),
         ),
       ],
-      if (inc.estado == EstadoSolicitud.rechazada)...[
+      if (inc.estado == EstadoSolicitud.pendiente || inc.estado == EstadoSolicitud.aprobada) ...[
         TextButton(
             style: AppTheme.lightTheme.elevatedButtonTheme.style,
             onPressed: () async {

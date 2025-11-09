@@ -8,6 +8,7 @@ class IncapacidadModel {
   String userId;
   String usuario;
   String tipoSolicitud;
+  String tipoIncapacidad;
   String numCertificado;
   String enteEmisor;
   DateTime fechaSolicitud;
@@ -23,6 +24,7 @@ class IncapacidadModel {
     required this.userId,
     required this.usuario,
     required this.tipoSolicitud,
+    required this.tipoIncapacidad,
     required this.numCertificado,
     required this.enteEmisor,
     required this.fechaSolicitud,
@@ -40,6 +42,7 @@ class IncapacidadModel {
       userId: json['uid']?? 'N/A',
       usuario: json['empleado'] ?? 'N/A',
       tipoSolicitud: json['tipo'] ?? 'N/A',
+      tipoIncapacidad: json['tipoIncapacidad'] ?? 'N/A',
       numCertificado: json['numCertificado'] ?? 'N/A',
       enteEmisor: json['enteEmisor'] ?? 'N/A',
       fechaSolicitud: parseToDateTime(json['creadoEn']),
@@ -57,6 +60,7 @@ class IncapacidadModel {
       'uid': userId,
       'empleado': usuario,
       'tipo': TipoSolicitud.incapacidad,
+      'tipoIncapacidad': tipoIncapacidad,
       'numCertificado': numCertificado,
       'enteEmisor': enteEmisor,
       'creadoEn': parseToTimestamp(fechaSolicitud),

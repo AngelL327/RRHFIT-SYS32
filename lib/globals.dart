@@ -7,4 +7,6 @@ class Global {
   Global._internal();
 
   User? currentUser;
+  String? userName;
+
 }

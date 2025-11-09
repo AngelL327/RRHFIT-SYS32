@@ -1,13 +1,19 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:rrhfit_sys32/globals.dart';
+import 'package:rrhfit_sys32/logic/empleados_functions.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
 import 'package:rrhfit_sys32/pages/generate_pdf_screen.dart';
+import 'package:rrhfit_sys32/pages/rrhh/add_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/rrhh/incapacidades_details_page.dart';
+import 'package:rrhfit_sys32/widgets/alert_message.dart';
 import 'package:rrhfit_sys32/widgets/search_bar.dart';
 import 'package:rrhfit_sys32/widgets/summary_box.dart';
+import 'package:rrhfit_sys32/widgets/table_widget.dart';
 
 class IncapacidadesScreen extends StatefulWidget {
   const IncapacidadesScreen({super.key});
@@ -82,7 +88,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
   Widget build(BuildContext context) {
     print(Global().currentUser?.email ?? 'No user email');
     print(Global().currentUser?.uid ?? 'No user UID');
-    print(Global().currentUser?.displayName ?? 'No user display name');
+    print(Global().userName ?? 'No user display name');
+
 
 
     return Scaffold(
@@ -125,7 +132,6 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                 FutureBuilder<String?>(
                   future: getCountIncapacidades(),
                   builder: (context, snapshot) {
-                    //get current month
                     final text = snapshot.connectionState == ConnectionState.waiting
                         ? '...'
                         : (snapshot.data ?? '0');
@@ -182,8 +188,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Search bar
-            
+            // Search bar and PDF button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
@@ -191,9 +196,58 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  //Añadir nueva solicitud de incapacidad
+                  IconButton(
+                    style: AppTheme.lightTheme.elevatedButtonTheme.style,
+                    icon: Row(
+                      children: [
+                        const Icon(Icons.add_circle, color: AppTheme.cream ),
+                        const SizedBox(width: 8),
+                        Text('Añadir nueva solicitud', style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 16),),
+                      ],
+                    ),
+                    tooltip: 'Añadir nueva solicitud de incapacidad',
+                    onPressed: () async {
+                      // Abrir el formulario en un AlertDialog
+                      final created = await showAddIncapacidadDialog(context);
+                      if (created == true) {
+                        // recargar vista
+                        setState(() {});
+                      }
+                    },
+                  ),
+
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: GeneratePDFScreen(title: "Reporte de Incapacidades"),
+                    child: GeneratePDFButton<dynamic>(
+                      buttonLabel: 'Imprimir reporte de incapacidades',
+                      reportTitle: 'Reporte de Incapacidades',
+                      fetchData: getRegistros,
+                      tableHeaders: [
+                        'Fecha Inicio',
+                        'Fecha Fin',
+                        'Estado',
+                        'Empleado',
+                        'Emisor#Documento',
+                        'Correo',
+                        'Motivo',
+                        'Area',
+                      ],
+                      rowMapper: (inc) {
+                        return [
+                          inc[0].usuario,
+                          inc[0].numCertificado,
+                          inc[0].enteEmisor,
+                          formatDate(inc[0].fechaInicioIncapacidad),
+                          formatDate(inc[0].fechaFinIncapacidad),
+                          inc[0].estado,
+                          inc[0].motivo.length > 30 ? '${inc[0].motivo.substring(0, 30)}...' : inc[0].motivo,
+
+                        ];
+                      },
+                      columnFlexes: [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+                    ),
                   ),
                   SearchBarWidget(
                   hintText: 'Buscar por empleado, tipo, estado o fecha',
@@ -251,56 +305,61 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     return const Center(child: Text('No hay resultados que coincidan con la búsqueda'));
                   }
 
+                  const columns = [
+                        DataColumn(label: Text('Fecha Solicitud')),
+                        DataColumn(label: Text('Empleado')),
+                        DataColumn(label: Text('Tipo')),
+                        DataColumn(label: Text('Ente Emisor')),
+                        DataColumn(label: Text('# Certificado')),
+
+                        DataColumn(label: Text('Inicio de incapacidad')),
+                        DataColumn(label: Text('Fin de incapacidad')),
+                        DataColumn(label: Text('Estado')),
+                        DataColumn(label: Text('Detalles')),
+                      ];
+
+                  List<DataRow> dataRows = [];
+
+                  for (var inc in sorted) {
+                    dataRows.add(
+                      DataRow(cells: [
+                        DataCell(Text(formatDate(inc.fechaSolicitud))),
+                        DataCell(Text(inc.usuario)),
+                        DataCell(Text(inc.tipoIncapacidad)),
+                        DataCell(Text(inc.enteEmisor)),
+                        DataCell(Text(inc.numCertificado)),
+                        DataCell(Text(formatDate(inc.fechaInicioIncapacidad))),
+                        DataCell(Text(formatDate(inc.fechaFinIncapacidad))),
+                        DataCell(inc.estado == "Pendiente" ? 
+                        const Text("Pendiente", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),)
+                        : inc.estado == "Aprobada" ? 
+                        const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),)
+                        : const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),)),
+
+                        DataCell(ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Ver'),
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (context) => buildDetallesDialog(context, inc, setState: () {
+                                setState(() {});
+                              }),
+                            );
+                          },
+                        )),
+                      ]),
+                    );
+                  }
+
                   // Horizontal + vertical scrollable table
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: SingleChildScrollView(
-                      child: DataTable(
-                        border: TableBorder.all(color: Colors.black54, width: 2),
-                        headingTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
-                        dataTextStyle: TextStyle(fontSize: 13, color: Colors.black87),
-                        columns: const [
-                          DataColumn(label: Text('Empleado')),
-                          DataColumn(label: Text('Tipo')),
-                          DataColumn(label: Text('Ente Emisor')),
-                          DataColumn(label: Text('# Certificado')),
-                          DataColumn(label: Text('Fecha Solicitud')),
-                          DataColumn(label: Text('Inicio de incapacidad')),
-                          DataColumn(label: Text('Fin de incapacidad')),
-                          DataColumn(label: Text('Estado')),
-                          DataColumn(label: Text('Detalles')),
-                        ],
-                        rows: sorted.map((inc) {
-                          return DataRow(cells: [
-                            DataCell(Text(inc.usuario)),
-                            DataCell(Text(inc.tipoSolicitud)),
-                            DataCell(Text(inc.enteEmisor)),
-                            DataCell(Text(inc.numCertificado)),
-                            DataCell(Text(formatDate(inc.fechaSolicitud))),
-                            DataCell(Text(formatDate(inc.fechaInicioIncapacidad))),
-                            DataCell(Text(formatDate(inc.fechaFinIncapacidad))),
-                            DataCell(inc.estado == "Pendiente" ? const Text("Pendiente", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),)
-                            : inc.estado == "Aprobada" ? const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),)
-                            : const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),)),
-
-                            DataCell(ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: const Text('Ver'),
-                              onPressed: () {
-                                showDialog<void>(
-                                  context: context,
-                                  builder: (context) => buildDetallesDialog(context, inc, setState: () {
-                                    setState(() {});
-                                  }),
-                                );
-                              },
-                            )),
-                          ]);
-                        }).toList(),
-                      ),
+                      child: tableGenerator(sorted, context, columns, dataRows),
                     ),
                   );
                 },
@@ -310,5 +369,16 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
         ),
       ),
     );
+  }
+  Future<List<dynamic>> getRegistros() async {
+    List results = [];
+
+    List<IncapacidadModel> incapacidades = await getAllIncapacidades();
+    for (var inc in incapacidades) {
+      EmpleadoModel? emp = await getEmpleadoById(inc.userId);
+      results.add([inc, emp]);
+    }
+
+    return results;
   }
 }

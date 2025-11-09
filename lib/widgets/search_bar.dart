@@ -48,8 +48,14 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   void didUpdateWidget(covariant SearchBarWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialQuery != widget.initialQuery) {
+    // Only update the controller text when the incoming initialQuery
+    // differs from the current controller text. This avoids clobbering
+    // the user's typing (cursor jumps / resets) when the parent rebuilds
+    // and passes the same or equivalent value.
+    if (oldWidget.initialQuery != widget.initialQuery && _controller.text != widget.initialQuery) {
+      // preserve selection where possible by moving the cursor to the end
       _controller.text = widget.initialQuery;
+      _controller.selection = TextSelection.collapsed(offset: widget.initialQuery.length);
     }
   }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/screens/empleados_screen.dart';
+import 'package:rrhfit_sys32/globals.dart';
+import 'package:rrhfit_sys32/logic/utilities/obtener_username.dart';
 import 'package:rrhfit_sys32/pages/rrhh/incapacidades_page.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
@@ -42,10 +44,36 @@ class _MainPageState extends State<MainPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    try {
+      final user = Global().currentUser;
+      if (user == null) {
+        // If Global.currentUser is not set yet, try to avoid crashing.
+        return;
+      }
+      final uid = user.uid;
+      final nombreCompleto = await obtenerUsername(uid);
+      Global().userName = nombreCompleto;
+      // Refresh the UI in case any widget depends on Global().userName
+      if (mounted) setState(() {});
+    } catch (e) {
+      // Keep silent on error but log for debugging
+      // ignore: avoid_print
+      print('Error cargando nombre de usuario: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Row(
         children: [
+          
           SidebarX(
             controller: _controller,
             theme: SidebarXTheme(
