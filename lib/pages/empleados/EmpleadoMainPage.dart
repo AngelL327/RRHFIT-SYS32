@@ -43,7 +43,7 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
           setState(() {
             _empleadoId = '${nombre}_${apellido}';
             _isLoading = false;
-            _empleadoUid = data['empleado_uid'] ?? '';
+            _empleadoUid = data['uid'] ?? '';
           });
         }
       }
