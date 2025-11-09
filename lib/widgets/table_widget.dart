@@ -1,11 +1,23 @@
   import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
+import 'package:data_table_2/data_table_2.dart';
 
-DataTable tableGenerator(List<IncapacidadModel> sorted, BuildContext context, List<DataColumn> columns, List<DataRow> rows) {
-    return DataTable(
+DataTable2 tableGenerator(List<IncapacidadModel> sorted, BuildContext context, List<DataColumn> columns, List<DataRow> rows) {
+    return DataTable2(
       border: TableBorder.all(color: Colors.black54, width: 2),
-      headingTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
-      dataTextStyle: TextStyle(fontSize: 13, color: Colors.black87),
+      minWidth: 900,
+      headingTextStyle: TextStyle(
+        fontWeight: FontWeight.bold, 
+        fontSize: 15, 
+        color: Colors.black, 
+        ),
+      headingRowHeight: 50,
+      headingRowDecoration: BoxDecoration(
+        color: AppTheme.tableHeaderBG,
+      ),
+      dataTextStyle: TextStyle(fontSize: 12, color: Colors.black87 ),
+      fixedTopRows: 1,
       columns: columns,
       rows: rows,
     );

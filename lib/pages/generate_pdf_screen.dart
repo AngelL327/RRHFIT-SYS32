@@ -93,9 +93,9 @@ class GeneratePDFButton<T> extends StatelessWidget {
                 headerStyle: ttf != null ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold, fontSize: 10) : pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
                 cellStyle: ttf != null ? pw.TextStyle(font: ttf, fontSize: 9) : pw.TextStyle(fontSize: 9),
                 cellAlignment: pw.Alignment.centerLeft,
-                headerDecoration: pw.BoxDecoration(color: pdf_lib.PdfColors.grey300),
-                columnWidths: widths,
-                border: pw.TableBorder.all(width: 0.5, color: pdf_lib.PdfColors.grey600),
+                headerDecoration: pw.BoxDecoration(color: AppTheme.pdfTableHeaderBG),
+                columnWidths: widths,                
+                border: pw.TableBorder.all(width: 0.5, color: pdf_lib.PdfColors.black),
               ),
             ),
 

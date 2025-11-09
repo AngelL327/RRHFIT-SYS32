@@ -40,6 +40,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
     'Inicio': 'inicio',
     'Fin': 'fin',
     'Estado': 'estado',
+    'Ente Emisor': 'enteEmisor',
+    '# Certificado': 'numCertificado',
   };
 
   bool _matchesQuery(IncapacidadModel inc, String q) {
@@ -51,13 +53,18 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
     final fechaSolicitud = formatDate(inc.fechaSolicitud).toLowerCase();
     final inicio = formatDate(inc.fechaInicioIncapacidad).toLowerCase();
     final fin = formatDate(inc.fechaFinIncapacidad).toLowerCase();
+    final enteEmisor = inc.enteEmisor.toLowerCase();
+    final numCertificado = inc.numCertificado.toLowerCase();
+
 
     return empleado.contains(qlc) ||
         tipo.contains(qlc) ||
         estado.contains(qlc) ||
         fechaSolicitud.contains(qlc) ||
         inicio.contains(qlc) ||
-        fin.contains(qlc);
+        fin.contains(qlc) ||
+        enteEmisor.contains(qlc) ||
+        numCertificado.contains(qlc);
   }
 
   int _compareByColumn(IncapacidadModel a, IncapacidadModel b) {
@@ -69,7 +76,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
         res = a.usuario.toLowerCase().compareTo(b.usuario.toLowerCase());
         break;
       case 'tipo':
-        res = a.tipoSolicitud.toLowerCase().compareTo(b.tipoSolicitud.toLowerCase());
+        res = a.tipoIncapacidad.toLowerCase().compareTo(b.tipoIncapacidad.toLowerCase());
         break;
       case 'estado':
         res = a.estado.toLowerCase().compareTo(b.estado.toLowerCase());
@@ -82,6 +89,12 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
         break;
       case 'fin':
         res = a.fechaFinIncapacidad.compareTo(b.fechaFinIncapacidad);
+        break;
+      case 'enteEmisor':
+        res = a.enteEmisor.toLowerCase().compareTo(b.enteEmisor.toLowerCase());
+        break;
+      case 'numCertificado':
+        res = a.numCertificado.toLowerCase().compareTo(b.numCertificado.toLowerCase());
         break;
       default:
         res = 0;
@@ -221,6 +234,9 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                   ),
 
 
+
+
+                  //Reporte PDF
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: GeneratePDFButton<dynamic>(
@@ -243,17 +259,22 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                           formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
                           (inc[0] as IncapacidadModel).estado,
                           (inc[0] as IncapacidadModel).usuario,
-                          "${(inc[0] as IncapacidadModel).enteEmisor}#${(inc[0] as IncapacidadModel).numCertificado}",
+                          "${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}",
                           (inc[1] as EmpleadoModel).correo,
                           (inc[0] as IncapacidadModel).motivo.length > 30 ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...' : (inc[0] as IncapacidadModel).motivo,
                           (inc[2] as AreaModel).nombre,
 
                         ];
                       },
-                      columnFlexes: [1.2, 1.2, 1.0, 1.5, 1.5, 1.5, 1.5],
+                      columnFlexes: [1.1, 1.1, 1.0, 1.5, 1.7, 1.2, 1.5],
                       bodyContent: reporteIncapacidadesBody(),
                     ),
                   ),
+
+
+
+
+                  //Search bar
                   SearchBarWidget(
                   hintText: 'Buscar por empleado, tipo, estado o fecha',
                   initialQuery: _query,
@@ -281,6 +302,10 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
+
+
+
             // Table
             Expanded(
               child: FutureBuilder<List<IncapacidadModel>>( 
@@ -298,7 +323,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     return const Center(child: Text('No hay incapacidades registradas'));
                   }
 
-                  final filtered = list.where((inc) => _matchesQuery(inc, _query)).toList();                  final sorted = List<IncapacidadModel>.from(filtered);
+                  final filtered = list.where((inc) => _matchesQuery(inc, _query)).toList();                  
+                  final sorted = List<IncapacidadModel>.from(filtered);
                   if (_sortColumn != null) {
                     sorted.sort((a, b) => _compareByColumn(a, b));
                   }
@@ -308,15 +334,15 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                   }
 
                   const columns = [
-                        DataColumn(label: Text('Fecha Solicitud')),
-                        DataColumn(label: Text('Empleado')),
-                        DataColumn(label: Text('Tipo')),
-                        DataColumn(label: Text('Ente Emisor')),
-                        DataColumn(label: Text('# Certificado')),
-                        DataColumn(label: Text('Inicio de incapacidad')),
-                        DataColumn(label: Text('Fin de incapacidad')),
-                        DataColumn(label: Text('Estado')),
-                        DataColumn(label: Text('Detalles')),
+                        DataColumn(label: Center(child: Text('Fecha Solicitud'))),
+                        DataColumn(label: Center(child: Text('Empleado'))),
+                        DataColumn(label: Center(child: Text('Tipo'))),
+                        DataColumn(label: Center(child: Text('Ente Emisor'))),
+                        DataColumn(label: Center(child: Text('# Certificado'))),
+                        DataColumn(label: Center(child: Text('Inicio de incapacidad'))),
+                        DataColumn(label: Center(child: Text('Fin de incapacidad'))),
+                        DataColumn(label: Center(child: Text('Estado'))),
+                        DataColumn(label: Center(child: Text('Detalles'))),
                       ];
 
                   List<DataRow> dataRows = [];
@@ -324,44 +350,51 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                   for (var inc in sorted) {
                     dataRows.add(
                       DataRow(cells: [
-                        DataCell(Text(formatDate(inc.fechaSolicitud))),
+                        DataCell(Center(child: Text(formatDate(inc.fechaSolicitud)))),
                         DataCell(Text(inc.usuario)),
                         DataCell(Text(inc.tipoIncapacidad)),
                         DataCell(Text(inc.enteEmisor)),
-                        DataCell(Text(inc.numCertificado)),
-                        DataCell(Text(formatDate(inc.fechaInicioIncapacidad))),
-                        DataCell(Text(formatDate(inc.fechaFinIncapacidad))),
+                        DataCell(Center(child: Text(inc.numCertificado))),
+                        DataCell(Center(child: Text(formatDate(inc.fechaInicioIncapacidad)))),
+                        DataCell(Center(child: Text(formatDate(inc.fechaFinIncapacidad)))),
                         DataCell(inc.estado == "Pendiente" ? 
-                        const Text("Pendiente", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),)
+                        Center(child: const Text("Pendiente", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),))
                         : inc.estado == "Aprobada" ? 
-                        const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),)
-                        : const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),)),
+                        Center(child: const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),))
+                        : Center(child: const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),))),
 
-                        DataCell(ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Ver'),
-                          onPressed: () {
-                            showDialog<void>(
-                              context: context,
-                              builder: (context) => buildDetallesDialog(context, inc, setState: () {
-                                setState(() {});
-                              }),
-                            );
-                          },
-                        )),
+                        DataCell(
+                          Center(
+                            child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.blue,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Ver'),
+                            onPressed: () {
+                              showDialog<void>(
+                                context: context,
+                                builder: (context) => buildDetallesDialog(context, inc, setState: () {
+                                  setState(() {});
+                                }),
+                              );
+                            },
+                                                    ),
+                          )),
                       ]),
                     );
                   }
 
                   // Horizontal + vertical scrollable table
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SingleChildScrollView(
-                      child: tableGenerator(sorted, context, columns, dataRows),
-                    ),
+                  // return SingleChildScrollView(
+                  //   scrollDirection: Axis.horizontal,
+                  //   child: SingleChildScrollView(
+                  //     child: tableGenerator(sorted, context, columns, dataRows),
+                  //   ),
+                  // );
+                  return Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: tableGenerator(sorted, context, columns, dataRows),
                   );
                 },
               ),

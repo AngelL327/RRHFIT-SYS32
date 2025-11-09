@@ -36,7 +36,7 @@ pw.Widget reportHeader({
 						children: [
                 pw.Padding(padding: pw.EdgeInsets.only(top: 20, left: 20),
                 child: pw.Text('Departamento de RRHH', 
-                  style: font != null ? pw.TextStyle(font: font, fontSize: 8, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 8, color: pdf_lib.PdfColors.grey700)),
+                  style: font != null ? pw.TextStyle(font: font, fontSize: 12, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 12, color: pdf_lib.PdfColors.grey700)),
                 ),
               ],
 					),
@@ -51,8 +51,8 @@ pw.Widget reportHeader({
                 height: 20,
                 child: pw.Image(logo, fit: pw.BoxFit.contain, width: 100, height: 100),
               ),
-							pw.Text(title, style: font != null ? pw.TextStyle(font: font, fontSize: 16, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-							pw.Text("Al mes de ${getMonthString(DateTime.now().month)} - ${DateTime.now().year}", style: font != null ? pw.TextStyle(font: font, fontSize: 16, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+							pw.Text(title, style: font != null ? pw.TextStyle(font: font, fontSize: 12, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+							pw.Text("Al mes de ${getMonthString(DateTime.now().month)} - ${DateTime.now().year}", style: font != null ? pw.TextStyle(font: font, fontSize: 12, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
             ],
 					),
 				),
@@ -62,7 +62,7 @@ pw.Widget reportHeader({
 						mainAxisSize: pw.MainAxisSize.min,
 						children: [
                 pw.Padding(padding: pw.EdgeInsets.only(top: 20, right: 20),
-                child: pw.Text('Fecha: $dateString', style: font != null ? pw.TextStyle(font: font, fontSize: 8, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 8, color: pdf_lib.PdfColors.grey700)),
+                child: pw.Text('Fecha: $dateString', style: font != null ? pw.TextStyle(font: font, fontSize: 12, color: pdf_lib.PdfColors.grey700) : pw.TextStyle(fontSize: 12, color: pdf_lib.PdfColors.grey700)),
               ),
             ],
 					),

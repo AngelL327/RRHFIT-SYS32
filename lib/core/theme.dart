@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
 
 class AppTheme {
   static const Color primary = Color(0xFF2E8B57);
@@ -6,7 +7,9 @@ class AppTheme {
   static const Color accent = Color(0xFFF57C00);
   static const Color bg = Color(0xFFF7F4F1);
   static const Color cream = Color(0xFFFBF8F6);
-  static const Color tableHeaderBG = Color.from(alpha: 1, red: 57, green: 181, blue: 218);
+  static const Color blue = Color(0xFF39B5DA);
+  static PdfColor pdfTableHeaderBG = PdfColor.fromHex("#39b5da");
+  static Color tableHeaderBG = Color(0xFF39B5DA);
 
   static ThemeData get lightTheme {
     final base = ThemeData.light();

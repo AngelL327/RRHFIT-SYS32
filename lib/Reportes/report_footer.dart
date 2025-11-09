@@ -28,20 +28,20 @@ pw.Widget reportFooter(
           style: font != null
               ? pw.TextStyle(
                   font: font,
-                  fontSize: 10,
+                  fontSize: 12,
                   color: pdf_lib.PdfColors.grey700,
                 )
-              : pw.TextStyle(fontSize: 10, color: pdf_lib.PdfColors.grey700),
+              : pw.TextStyle(fontSize: 12, color: pdf_lib.PdfColors.grey700),
         ),
         pw.Text(
           pageInfo,
           style: font != null
               ? pw.TextStyle(
                   font: font,
-                  fontSize: 10,
+                  fontSize: 12,
                   color: pdf_lib.PdfColors.grey700,
                 )
-              : pw.TextStyle(fontSize: 10, color: pdf_lib.PdfColors.grey700),
+              : pw.TextStyle(fontSize: 12, color: pdf_lib.PdfColors.grey700),
         ),
       ],
     ),

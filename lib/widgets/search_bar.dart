@@ -43,7 +43,16 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     _controller.addListener(_onTextChanged);
   }
 
-  void _onTextChanged() => widget.onChanged(_controller.text.trim());
+  void _onTextChanged() {
+    // Notify parent after the current frame to avoid calling setState during
+    // the build phase of ancestor widgets. This schedules the callback so
+    // parent setState calls occur safely.
+    final value = _controller.text.trim();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onChanged(value);
+    });
+  }
 
   @override
   void didUpdateWidget(covariant SearchBarWidget oldWidget) {
