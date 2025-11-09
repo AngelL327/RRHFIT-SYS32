@@ -9,6 +9,7 @@ pw.Widget reportFooter(
   pw.Context context, {
   double hPadding = 40,
   double vPadding = 20,
+  double fontSize = 12,
   pw.Font? font,
 }) {
   String pageInfo;
@@ -31,17 +32,17 @@ pw.Widget reportFooter(
                   fontSize: 12,
                   color: pdf_lib.PdfColors.grey700,
                 )
-              : pw.TextStyle(fontSize: 12, color: pdf_lib.PdfColors.grey700),
+              : pw.TextStyle(fontSize: fontSize, color: pdf_lib.PdfColors.grey700),
         ),
         pw.Text(
           pageInfo,
           style: font != null
               ? pw.TextStyle(
                   font: font,
-                  fontSize: 12,
+                  fontSize: fontSize,
                   color: pdf_lib.PdfColors.grey700,
                 )
-              : pw.TextStyle(fontSize: 12, color: pdf_lib.PdfColors.grey700),
+              : pw.TextStyle(fontSize: fontSize, color: pdf_lib.PdfColors.grey700),
         ),
       ],
     ),

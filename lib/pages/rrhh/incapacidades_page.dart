@@ -119,8 +119,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        backgroundColor: const Color.fromRGBO(0, 150, 32, 1),
-        foregroundColor: const Color.fromARGB(255, 251, 255, 250),
+        backgroundColor:  AppTheme.primary,
+        foregroundColor: AppTheme.cream,
         elevation: 0,
         centerTitle: true,
 
@@ -128,7 +128,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color.fromRGBO(0, 150, 32, 1), 
+                AppTheme.primary, 
                 Color.fromRGBO(50, 200, 120, 1), 
               ],
               begin: Alignment.topLeft,

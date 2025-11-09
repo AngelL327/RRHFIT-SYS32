@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/mi_perfil_page.dart';
@@ -62,24 +63,24 @@ class _MainPageState extends State<MainPageweb> {
             controller: _controller,
             theme: SidebarXTheme(
               margin: const EdgeInsets.all(0),
-              decoration: BoxDecoration(color: Colors.green.shade700),
-              textStyle: const TextStyle(color: Colors.white),
-              selectedTextStyle: const TextStyle(color: Colors.white),
+              decoration: BoxDecoration(color: AppTheme.primary),
+              textStyle: const TextStyle(color: AppTheme.cream),
+              selectedTextStyle: const TextStyle(color: AppTheme.cream),
               itemTextPadding: const EdgeInsets.only(left: 16),
               selectedItemTextPadding: const EdgeInsets.only(left: 16),
               itemDecoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
               selectedItemDecoration: BoxDecoration(
-                color: Colors.green.shade900,
+                color: AppTheme.primaryDark,
                 borderRadius: BorderRadius.circular(8),
               ),
-              iconTheme: const IconThemeData(color: Colors.white70, size: 22),
-              selectedIconTheme: const IconThemeData(color: Colors.white, size: 22),
+              iconTheme: const IconThemeData(color: AppTheme.cream, size: 22),
+              selectedIconTheme: const IconThemeData(color: AppTheme.cream, size: 22),
               itemPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               selectedItemPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             ),
             extendedTheme: const SidebarXTheme(
               width: 220,
-              decoration: BoxDecoration(color: Color(0xFF2E7D32)),
+              decoration: BoxDecoration(color: AppTheme.primaryDark),
             ),
             headerBuilder: (context, extended) => Padding(
               padding: const EdgeInsets.all(16),
@@ -99,7 +100,7 @@ class _MainPageState extends State<MainPageweb> {
                     empleadoNombre,
                     style: const TextStyle(
                       fontSize: 18,
-                      color: Colors.white,
+                      color: AppTheme.cream,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

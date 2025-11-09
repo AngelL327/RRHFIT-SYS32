@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 
 class AppTheme {
-  static const Color primary = Color(0xFF2E8B57);
+  static const Color primary = Color(0xFF2E7D32);
   static const Color primaryDark = Color(0xFF145A32);
   static const Color accent = Color(0xFFF57C00);
   static const Color bg = Color(0xFFF7F4F1);
   static const Color cream = Color(0xFFFBF8F6);
   static const Color blue = Color(0xFF39B5DA);
+  static const Color black = Colors.black45;
   static PdfColor pdfTableHeaderBG = PdfColor.fromHex("#39b5da");
   static Color tableHeaderBG = Color(0xFF39B5DA);
 
@@ -21,14 +22,14 @@ class AppTheme {
         secondary: accent,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: AppTheme.cream,
+        foregroundColor: AppTheme.black,
         elevation: 0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: cream,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -42,7 +43,7 @@ class AppTheme {
       
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppTheme.cream,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         border: OutlineInputBorder(

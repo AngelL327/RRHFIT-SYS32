@@ -16,7 +16,7 @@ DataTable2 tableGenerator(List<IncapacidadModel> sorted, BuildContext context, L
       headingRowDecoration: BoxDecoration(
         color: AppTheme.tableHeaderBG,
       ),
-      dataTextStyle: TextStyle(fontSize: 12, color: Colors.black87 ),
+      dataTextStyle: TextStyle(fontSize: 14, color: Colors.black87 ),
       fixedTopRows: 1,
       columns: columns,
       rows: rows,

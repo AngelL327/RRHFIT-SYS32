@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:rrhfit_sys32/empleados/screens/empleados_screen.dart';
 import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/logic/utilities/obtener_username.dart';
@@ -19,7 +20,7 @@ import 'package:rrhfit_sys32/pages/empleados/EmpleadoMainPage.dart';
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
   
-   
+  
   @override
   State<MainPage> createState() => _MainPageState();
 }
@@ -27,10 +28,10 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
   String empleadoId = '';
-   String nombre= '';
-   String areaId= '';
-   String codigoEmpleado= ''; // <--- agrega esta línea
-   
+  String nombre= '';
+  String areaId= '';
+  String codigoEmpleado= ''; // <--- agrega esta línea
+  
   
 
   List<Widget> get webPages => [
@@ -107,21 +108,21 @@ class _MainPageState extends State<MainPage> {
               controller: _controller,
               theme: SidebarXTheme(
                 margin: const EdgeInsets.all(0),
-                decoration: BoxDecoration(color: Colors.green.shade700),
-                textStyle: const TextStyle(color: Colors.white),
-                selectedTextStyle: const TextStyle(color: Colors.white),
+                decoration: BoxDecoration(color: AppTheme.primary),
+                textStyle: const TextStyle(color: AppTheme.cream),
+                selectedTextStyle: const TextStyle(color: AppTheme.cream),
                 itemTextPadding: const EdgeInsets.only(left: 16),
                 selectedItemTextPadding: const EdgeInsets.only(left: 16),
                 itemDecoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                 ),
                 selectedItemDecoration: BoxDecoration(
-                  color: Colors.green.shade900,
+                  color: AppTheme.primaryDark,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                iconTheme: const IconThemeData(color: Colors.white70, size: 22),
+                iconTheme: const IconThemeData(color: AppTheme.cream, size: 22),
                 selectedIconTheme: const IconThemeData(
-                  color: Colors.white,
+                  color: AppTheme.cream,
                   size: 22,
                 ),
                 itemPadding: const EdgeInsets.symmetric(
@@ -135,7 +136,7 @@ class _MainPageState extends State<MainPage> {
               ),
               extendedTheme: const SidebarXTheme(
                 width: 220,
-                decoration: BoxDecoration(color: Color(0xFF2E7D32)),
+                decoration: BoxDecoration(color: AppTheme.primary),
               ),
               headerBuilder: (context, extended) => Padding(
                 padding: const EdgeInsets.all(16),
@@ -154,7 +155,7 @@ class _MainPageState extends State<MainPage> {
                       'Fittlay',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.white,
+                        color: AppTheme.cream,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -190,21 +191,21 @@ class _MainPageState extends State<MainPage> {
             controller: _controller,
             theme: SidebarXTheme(
               margin: const EdgeInsets.all(0),
-              decoration: BoxDecoration(color: Colors.green.shade700),
-              textStyle: const TextStyle(color: Colors.white),
-              selectedTextStyle: const TextStyle(color: Colors.white),
+              decoration: BoxDecoration(color: AppTheme.primary),
+              textStyle: const TextStyle(color: AppTheme.cream),
+              selectedTextStyle: const TextStyle(color: AppTheme.cream),
               itemTextPadding: const EdgeInsets.only(left: 16),
               selectedItemTextPadding: const EdgeInsets.only(left: 16),
               itemDecoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
               ),
               selectedItemDecoration: BoxDecoration(
-                color: Colors.green.shade900,
+                color: AppTheme.primaryDark,
                 borderRadius: BorderRadius.circular(8),
               ),
-              iconTheme: const IconThemeData(color: Colors.white70, size: 22),
+              iconTheme: const IconThemeData(color: AppTheme.cream, size: 22),
               selectedIconTheme: const IconThemeData(
-                color: Colors.white,
+                color: AppTheme.cream,
                 size: 22,
               ),
               itemPadding: const EdgeInsets.symmetric(
@@ -218,7 +219,7 @@ class _MainPageState extends State<MainPage> {
             ),
             extendedTheme: const SidebarXTheme(
               width: 220,
-              decoration: BoxDecoration(color: Color(0xFF2E7D32)),
+              decoration: BoxDecoration(color: AppTheme.primary),
             ),
             headerBuilder: (context, extended) => Padding(
               padding: const EdgeInsets.all(16),
@@ -237,7 +238,7 @@ class _MainPageState extends State<MainPage> {
                     'Fittlay',
                     style: TextStyle(
                       fontSize: 18,
-                      color: Colors.white,
+                      color: AppTheme.cream,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
