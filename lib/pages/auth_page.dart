@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rrhfit_sys32/pages/mainpage.dart';
 import 'package:rrhfit_sys32/pages/registro_page.dart';
 
+
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
 

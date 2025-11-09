@@ -400,7 +400,7 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        "merariarguetajdn2021@gmail.com",//Por mientras
+                        "jdn2021@gmail.com",//Por mientras
                         style: ttf != null
                             ? pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.normal, fontSize: 11)
                             : pw.TextStyle(fontWeight: pw.FontWeight.normal, fontSize: 11),

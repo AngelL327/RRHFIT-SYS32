@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:rrhfit_sys32/pages/empleados/reporte_vouncher.dart';
 
 class MiPerfilPage extends StatefulWidget {
   final String empleadoId;
@@ -100,14 +101,80 @@ class _MiPerfilPageState extends State<MiPerfilPage> {
   }
 
   Future<void> _descargarVoucher() async {
-    // Despues implemento eso
+  try {
+    // Mostrar loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(color: Color(0xFF2E7D32)),
+        );
+      },
+    );
+
+    // Obtener el usuario actual
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Usuario no autenticado'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Calcular el período de la última quincena
+    final ahora = DateTime.now();
+    DateTime fechaInicio;
+    DateTime fechaFin;
+
+    // Determinar si estamos en la primera o segunda quincena del mes
+    if (ahora.day <= 15) {
+      // Primera quincena del mes actual (1-15)
+      fechaInicio = DateTime(ahora.year, ahora.month, 1);
+      fechaFin = DateTime(ahora.year, ahora.month, 15);
+    } else {
+      // Segunda quincena del mes actual (16-fin del mes)
+      fechaInicio = DateTime(ahora.year, ahora.month, 16);
+      // Último día del mes
+      fechaFin = DateTime(ahora.year, ahora.month + 1, 0);
+    }
+
+    // Cerrar el loading dialog
+    Navigator.pop(context);
+
+    // Navegar a la pantalla de generación de PDF
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GenerateNominaPDFScreen(
+          title: 'Voucher de Pago',
+          empleadoId: widget.empleadoId,
+          fechaInicio: fechaInicio,
+          fechaFin: fechaFin,
+          uid: user.uid,
+        ),
+      ),
+    );
+
+  } catch (e) {
+    // Cerrar loading dialog si existe
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    
+    print('Error al descargar voucher: $e');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Función de descarga pendiente de implementar'),
-        backgroundColor: Colors.blue,
+      SnackBar(
+        content: Text('Error al generar voucher: ${e.toString()}'),
+        backgroundColor: Colors.red,
       ),
     );
   }
+}
 
   Widget _buildDataRow(IconData icon, String label, String value) {
     return Padding(
