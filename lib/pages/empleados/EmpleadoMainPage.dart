@@ -16,6 +16,7 @@ class EmpleadoMainPage extends StatefulWidget {
 class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
   String _empleadoId = '';
+  String _empleadoUid = '';
   bool _isLoading = true;
 
   @override
@@ -42,6 +43,7 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
           setState(() {
             _empleadoId = '${nombre}_${apellido}';
             _isLoading = false;
+            _empleadoUid = data['empleado_uid'] ?? '';
           });
         }
       }
@@ -61,7 +63,7 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
 
   List<Widget> _getPages() {
     return [
-      TrackerPage(empleadoId: _empleadoId),
+      TrackerPage(empleadoId: _empleadoId,empleadoUid: _empleadoUid),
       SolicitudesEmpleadoPage(empleadoId: _empleadoId, empleadoNombre: ''),
       MiPerfilPage(empleadoId: _empleadoId),
     ];
