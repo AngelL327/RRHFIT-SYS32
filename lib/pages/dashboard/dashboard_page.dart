@@ -232,7 +232,7 @@ class _DashboardPageState extends State<DashboardPage> {
   icon: const Icon(Icons.insert_drive_file),
   label: const Text('Generar Reporte de Planilla'),
   style: ElevatedButton.styleFrom(
-    backgroundColor: AppTheme.accent,
+    backgroundColor: AppTheme.primary,
     foregroundColor: AppTheme.cream,
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
