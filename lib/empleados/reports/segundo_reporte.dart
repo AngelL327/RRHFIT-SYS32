@@ -108,7 +108,7 @@ class SegundoReporte extends StatelessWidget {
                         color: Colors.green,
                       ),
                       actionBarTheme: PdfActionBarTheme(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Color(0xFF39B5DA),
                         iconColor: Colors.white,
                       ),
                       canChangeOrientation: false,

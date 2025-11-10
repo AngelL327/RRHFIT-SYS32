@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:rrhfit_sys32/Reportes/report_footer.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 
 Future<Uint8List> generateAttendancePdf({
   Uint8List? logoBytes,
@@ -231,7 +232,9 @@ Future<Uint8List> generateAttendancePdf({
               fontWeight: pw.FontWeight.normal,
               fontSize: 8,
             ),
-            headerDecoration: const pw.BoxDecoration(color: PdfColors.blue300),
+            headerDecoration: const pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFF39B5DA),
+            ),
             cellStyle: const pw.TextStyle(fontSize: 8),
             cellDecoration: (rowIndex, cellData, colIndex) {
               return const pw.BoxDecoration(color: PdfColors.white);
