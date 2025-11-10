@@ -9,7 +9,14 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show rootBundle;
-
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart' as pdf_lib;
+import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
+import 'package:rrhfit_sys32/logic/utilities/obtener_mes_string.dart';
+import 'package:rrhfit_sys32/Reportes/report_header.dart';
 
 /// Página que recibe los docs (de Firestore) y genera el PDF.
 /// Idea: renderizamos las gráficas con fl_chart dentro de RepaintBoundary
@@ -259,10 +266,19 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
         ),
         build: (context) => [
           // Encabezado con título
-          pw.Row(
+          pw.Column(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
 
             children: [
+              pw.Text(
+                'Departamento de RRHH                                                                                                                              Fecha: 10-11-2025',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  color: pdf_lib.PdfColors.grey700,
+                ),
+              ),
+
+              pw.SizedBox(height: 4),
               pw.Center(
                 child: pw.Container(
                   width: 40, // ajusta el tamaño del logo
@@ -281,18 +297,13 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
               ),
 
               pw.Text(
-                'Departamento de RRHH',
-                style: pw.TextStyle(fontSize: 12),
+                'Reporte general y por áreas de las solicitudes',
+                style: pw.TextStyle(fontSize: 14),
+                textAlign: pw.TextAlign.center,
               ),
             ],
           ),
 
-          pw.SizedBox(height: 4),
-          pw.Text(
-            'Reporte general y por áreas de las solicitudes',
-            style: pw.TextStyle(fontSize: 14),
-            textAlign: pw.TextAlign.center,
-          ),
           pw.SizedBox(height: 12),
 
           // Primera fila: dos imágenes de dona
