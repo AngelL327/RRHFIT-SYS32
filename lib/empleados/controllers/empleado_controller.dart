@@ -1,3 +1,4 @@
+// lib/empleados/controllers/empleado_controller.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
@@ -7,38 +8,32 @@ import 'package:rrhfit_sys32/empleados/models/puesto_model.dart';
 import 'package:rrhfit_sys32/empleados/services/firestore_service.dart';
 
 class EmpleadoController with ChangeNotifier {
-  final FirestoreService _service;
+  final FirestoreService service;
 
   EmpleadoController({FirestoreService? service})
-    : _service = service ?? FirestoreService() {
+    : service = service ?? FirestoreService() {
     empleadosController = StreamController<List<Empleado>>.broadcast(
-      onListen: () {
-        empleadosController.add(List<Empleado>.from(_lastEmpleados));
-      },
+      onListen: () => empleadosController.add(List.from(_lastEmpleados)),
     );
-
     departamentosController = StreamController<List<Departamento>>.broadcast(
-      onListen: () {
-        departamentosController.add(
-          List<Departamento>.from(_lastDepartamentos),
-        );
-      },
+      onListen: () =>
+          departamentosController.add(List.from(_lastDepartamentos)),
     );
-
     areasController = StreamController<List<Area>>.broadcast(
-      onListen: () {
-        areasController.add(List<Area>.from(lastAreas));
-      },
+      onListen: () => areasController.add(List.from(lastAreas)),
     );
-
     puestosController = StreamController<List<Puesto>>.broadcast(
-      onListen: () {
-        puestosController.add(List<Puesto>.from(_lastPuestos));
-      },
+      onListen: () => puestosController.add(List.from(_lastPuestos)),
     );
-
     _init();
   }
+
+  final Completer<void> _readyCompleter = Completer<void>();
+  List<Map<String, dynamic>> _reportData = [];
+  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
+  DateTime _endDate = DateTime.now();
+
+  Future<void> get ready => _readyCompleter.future;
 
   late final StreamController<List<Empleado>> empleadosController;
   late final StreamController<List<Departamento>> departamentosController;
@@ -63,79 +58,144 @@ class EmpleadoController with ChangeNotifier {
   String searchTerm = '';
   String filterField = 'Nombre';
 
-  final Completer<void> _readyCompleter = Completer<void>();
-  Future<void> get ready => _readyCompleter.future;
-
   Stream<List<Empleado>> get empleadosStream => empleadosController.stream;
   Stream<List<Departamento>> get departamentosStream =>
       departamentosController.stream;
   Stream<List<Area>> get areasStream => areasController.stream;
   Stream<List<Puesto>> get puestosStream => puestosController.stream;
 
+  //---------------------------------------------------------------------------------------------
+
+  // Método principal para generar datos del reporte
+  Future<List<Map<String, dynamic>>> computeWeeklyAttendanceRows({
+    bool includeWeekends = false,
+    DateTime? customStartDate,
+    DateTime? customEndDate,
+    bool soloAsistenciaPerfecta = true,
+    int ind = 0,
+  }) async {
+    await ready;
+
+    final start = customStartDate ?? _startDate;
+    final end = customEndDate ?? _endDate;
+
+    try {
+      _reportData = await service.getReporteAsistenciaData(
+        startDate: start,
+        endDate: end,
+        ind: ind,
+      );
+
+      // Filtrar solo asistencia perfecta si se solicita
+      final filteredData = soloAsistenciaPerfecta
+          ? _reportData
+                .where((emp) => emp['asistencia_perfecta'] == true)
+                .toList()
+          : _reportData;
+
+      // Formatear datos para la tabla
+      final rows = filteredData.asMap().entries.map((entry) {
+        final index = entry.key;
+        final empleado = entry.value;
+        final asistencias =
+            empleado['asistencias'] as List<Map<String, dynamic>>;
+
+        return {
+          'ranking': (index + 1).toString(),
+          'codigo': empleado['codigo_empleado'],
+          'empleado': empleado['nombre'],
+          'puesto': empleado['puesto'],
+          'departamento': empleado['departamento'],
+          'fecha_contratacion': empleado['fecha_contratacion'],
+          'periodo': '${_formatDate(start)} - ${_formatDate(end)}',
+          'indice': empleado['indice_formateado'],
+          'dias': '${empleado['dias_asistidos']} / ${empleado['total_dias']}',
+          'area': empleado['area'],
+          'detalle_asistencias': asistencias,
+          'empleado_id': empleado['empleado_id'],
+        };
+      }).toList();
+
+      debugPrint(
+        'Reporte generado: ${rows.length} empleados con asistencia perfecta',
+      );
+      return rows;
+    } catch (e, st) {
+      debugPrint('Error generando reporte: $e\n$st');
+      return [];
+    }
+  }
+
+  // Método para obtener datos detallados de un empleado
+  Future<Map<String, dynamic>?> getDetalleEmpleado(String empleadoId) async {
+    await ready;
+    return _reportData.firstWhere(
+      (emp) => emp['empleado_id'] == empleadoId,
+      orElse: () => {},
+    );
+  }
+
+  // Métodos para configurar fechas
+  void setDateRange(DateTime start, DateTime end) {
+    _startDate = start;
+    _endDate = end;
+    notifyListeners();
+  }
+
+  DateTime get startDate => _startDate;
+  DateTime get endDate => _endDate;
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  //---------------------------------------------------------------------------------------------
+
   Future<void> _init() async {
     try {
-      await _service.ensureAndSeedReferenceData();
+      await service.ensureAndSeedReferenceData();
 
-      deptoSub = _service.streamDepartamentos().listen(
-        (list) {
-          _lastDepartamentos = List<Departamento>.from(list);
-          departamentoMapa.clear();
-          for (final d in list) {
-            if (d.id != null && d.nombre != null)
-              departamentoMapa[d.id!] = d.nombre!;
+      deptoSub = service.streamDepartamentos().listen((list) {
+        _lastDepartamentos = List.from(list);
+        departamentoMapa.clear();
+        for (final d in list) {
+          if (d.id != null && d.nombre != null) {
+            departamentoMapa[d.id!] = d.nombre!;
           }
-          departamentosController.add(List<Departamento>.from(list));
-          notifyListeners();
-        },
-        onError: (e) {
-          debugPrint('EmployeeController: error departamentos stream: $e');
-        },
-      );
+        }
+        departamentosController.add(List.from(list));
+        notifyListeners();
+      });
 
-      areaSub = _service.streamAreas().listen(
-        (list) {
-          lastAreas = List<Area>.from(list);
-          areaMapa.clear();
-          for (final a in list) {
-            if (a.id != null && a.nombre != null) areaMapa[a.id!] = a.nombre!;
-          }
-          areasController.add(List<Area>.from(list));
-          notifyListeners();
-        },
-        onError: (e) {
-          debugPrint('EmployeeController: error areas stream: $e');
-        },
-      );
+      areaSub = service.streamAreas().listen((list) {
+        lastAreas = List.from(list);
+        areaMapa.clear();
+        for (final a in list) {
+          if (a.id != null && a.nombre != null) areaMapa[a.id!] = a.nombre!;
+        }
+        areasController.add(List.from(list));
+        notifyListeners();
+      });
 
-      puestoSub = _service.streamPuestos().listen(
-        (list) {
-          _lastPuestos = List<Puesto>.from(list);
-          puestoMapa.clear();
-          for (final p in list) {
-            if (p.id != null && p.nombre != null) puestoMapa[p.id!] = p.nombre!;
-          }
-          puestosController.add(List<Puesto>.from(list));
-          notifyListeners();
-        },
-        onError: (e) {
-          debugPrint('EmployeeController: error puestos stream: $e');
-        },
-      );
+      puestoSub = service.streamPuestos().listen((list) {
+        _lastPuestos = List.from(list);
+        puestoMapa.clear();
+        for (final p in list) {
+          if (p.id != null && p.nombre != null) puestoMapa[p.id!] = p.nombre!;
+        }
+        puestosController.add(List.from(list));
+        notifyListeners();
+      });
 
-      empleadosSub = _service.streamEmpleados().listen(
-        (list) {
-          _lastEmpleados = List<Empleado>.from(list);
-          allEmployees = list;
-          _applyFilter();
-        },
-        onError: (e) {
-          debugPrint('EmployeeController: error empleados stream: $e');
-        },
-      );
+      empleadosSub = service.streamEmpleados().listen((list) {
+        _lastEmpleados = List.from(list);
+        allEmployees = list;
+        _applyFilter();
+      });
 
       if (!_readyCompleter.isCompleted) _readyCompleter.complete();
     } catch (e, s) {
-      debugPrint('EmployeeController _init error: $e\n$s');
+      debugPrint('EmpleadoController _init error: $e\n$s');
       if (!_readyCompleter.isCompleted) _readyCompleter.completeError(e);
     }
   }
@@ -152,7 +212,7 @@ class EmpleadoController with ChangeNotifier {
 
   void _applyFilter() {
     if (searchTerm.isEmpty) {
-      empleadosController.add(List<Empleado>.from(allEmployees));
+      empleadosController.add(List.from(allEmployees));
       return;
     }
     final q = searchTerm.toLowerCase();
@@ -171,17 +231,11 @@ class EmpleadoController with ChangeNotifier {
         case 'Estado':
           return (e.estado ?? '').toLowerCase().contains(q);
         case 'Departamento':
-          final dn = getDepartamentoNombre(e.departamentoId);
-          return (dn ?? '').toLowerCase().contains(q);
+          return (getDepartamentoNombre(e.departamentoId) ?? '')
+              .toLowerCase()
+              .contains(q);
         case 'Puesto':
-          final pn = getPuestoNombre(e.puestoId);
-          return (pn ?? '').toLowerCase().contains(q);
-        case 'Fecha de Contratacion':
-          final f = e.fechaContratacion;
-          final s = f == null
-              ? ''
-              : f.toLocal().toIso8601String().split('T')[0];
-          return s.toLowerCase().contains(q);
+          return (getPuestoNombre(e.puestoId) ?? '').toLowerCase().contains(q);
         default:
           return (e.nombre ?? '').toLowerCase().contains(q);
       }
@@ -189,35 +243,120 @@ class EmpleadoController with ChangeNotifier {
     empleadosController.add(filtered);
   }
 
-  String? getDepartamentoNombre(String? id) {
-    if (id == null) return '-';
-    return departamentoMapa[id] ?? '-';
-  }
-
-  String? getAreaNombre(String? id) {
-    if (id == null) return '-';
-    return areaMapa[id] ?? '-';
-  }
-
-  String? getPuestoNombre(String? id) {
-    if (id == null) return '-';
-    return puestoMapa[id] ?? '-';
-  }
+  String? getDepartamentoNombre(String? id) =>
+      id == null ? '-' : departamentoMapa[id] ?? '-';
+  String? getAreaNombre(String? id) => id == null ? '-' : areaMapa[id] ?? '-';
+  String? getPuestoNombre(String? id) =>
+      id == null ? '-' : puestoMapa[id] ?? '-';
 
   Future<void> createEmployee(Empleado e) async {
-    await _readyCompleter.future;
-    await _service.createEmployee(e);
+    await ready;
+    await service.createEmployee(e);
   }
 
   Future<void> updateEmployee(Empleado e) async {
-    await _readyCompleter.future;
-    await _service.updateEmployee(e);
+    await ready;
+    await service.updateEmployee(e);
   }
 
   Future<void> deleteEmployee(String id) async {
-    await _readyCompleter.future;
-    await _service.deleteEmployee(id);
+    await ready;
+    await service.deleteEmployee(id);
   }
+
+  // REPORTE SEMANAL POR UID
+
+  // Future<List<Map<String, dynamic>>> computeWeeklyAttendanceRows({
+  //   bool includeWeekends = false,
+  // }) async {
+  //   await ready;
+
+  //   final DateTime start = DateTime(2025, 10, 31);
+  //   final DateTime end = DateTime(2025, 11, 9);
+
+  //   // Calcular totalDays laborables
+  //   int totalDays = 0;
+  //   DateTime current = start;
+  //   while (!current.isAfter(end)) {
+  //     if (includeWeekends ||
+  //         (current.weekday >= DateTime.monday &&
+  //             current.weekday <= DateTime.friday)) {
+  //       totalDays++;
+  //     }
+  //     current = current.add(const Duration(days: 1));
+  //   }
+  //   if (totalDays == 0) totalDays = 1;
+
+  //   final List<Map<String, dynamic>> rows = [];
+  //   debugPrint('DEBUG: Empleados cargados: ${allEmployees.length}');
+
+  //   for (final e in allEmployees) {
+  //     if (e.asistenciaDocId == null || e.asistenciaDocId!.isEmpty) {
+  //       debugPrint(
+  //         'DEBUG: Empleado sin asistenciaDocId, saltando: ${e.nombre}',
+  //       );
+  //       continue;
+  //     }
+
+  //     // Obtener registros usando el asistenciaDocId (nombre normalizado)
+  //     final registros = await service.fetchRegistrosByAsistenciaDocId(
+  //       e.asistenciaDocId!,
+  //       start,
+  //       end,
+  //     );
+
+  //     final int asistencias = registros.length;
+  //     final double indice = totalDays > 0 ? (asistencias / totalDays) * 100 : 0;
+
+  //     final String indiceStr = '${indice.toStringAsFixed(1)}%';
+  //     final String periodoLabel = '${_formatDate(start)} - ${_formatDate(end)}';
+
+  //     // Preparar datos detallados de registros para el PDF
+  //     final registrosDetallados = registros.map((registro) {
+  //       return {
+  //         'fecha': registro['_docId'],
+  //         'entrada': registro['entrada'] ?? '-',
+  //         'salida': registro['salida'] ?? '-',
+  //         'almuerzo_inicio': registro['almuerzoInicio'] ?? '-',
+  //         'almuerzo_fin': registro['almuerzoFin'] ?? '-',
+  //         'horas_trabajadas': registro['horasTrabajadas'] ?? '-',
+  //       };
+  //     }).toList();
+
+  //     rows.add({
+  //       'ranking': '',
+  //       'codigo': e.codigoEmpleado ?? '-',
+  //       'empleado': e.nombre ?? '-',
+  //       'puesto': getPuestoNombre(e.puestoId) ?? '-',
+  //       'fecha_contratacion': e.fechaContratacion == null
+  //           ? '-'
+  //           : '${e.fechaContratacion!.day.toString().padLeft(2, '0')} / ${e.fechaContratacion!.month.toString().padLeft(2, '0')} / ${e.fechaContratacion!.year}',
+  //       'periodo': periodoLabel,
+  //       'indice': indiceStr,
+  //       'dias': '$asistencias / $totalDays',
+  //       'rawIndice': indice,
+  //       'registros': registrosDetallados, // Incluir registros detallados
+  //       'asistenciaDocId': e.asistenciaDocId, // Para debugging
+  //     });
+  //   }
+
+  //   // Ordenar por índice descendente
+  //   rows.sort(
+  //     (a, b) => (b['rawIndice'] as double).compareTo(a['rawIndice'] as double),
+  //   );
+
+  //   // Asignar ranking
+  //   for (int i = 0; i < rows.length; i++) {
+  //     rows[i]['ranking'] = (i + 1).toString();
+  //     rows[i].remove('rawIndice');
+  //   }
+
+  //   debugPrint('DEBUG: Rows generadas: ${rows.length}');
+  //   return rows;
+  // }
+
+  // String _formatDate(DateTime d) =>
+  //     '${d.day.toString().padLeft(2, '0')} / ${d.month.toString().padLeft(2, '0')} / ${d.year}';
 
   @override
   void dispose() {

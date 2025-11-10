@@ -42,9 +42,9 @@ pw.Widget reportFooter(
                   fontSize: fontSize,
                   color: pdf_lib.PdfColors.grey700,
                 )
+<<<<<<< Updated upstream
               : pw.TextStyle(fontSize: fontSize, color: pdf_lib.PdfColors.grey700),
+=======
+              : pw.TextStyle(fontSize: 9, color: pdf_lib.PdfColors.grey700),
         ),
-      ],
-    ),
-  );
 }

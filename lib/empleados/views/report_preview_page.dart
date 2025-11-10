@@ -2,24 +2,24 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
-import 'package:rrhfit_sys32/empleados/widgets/report_generator.dart';
+import 'package:rrhfit_sys32/empleados/reports/report_generator.dart';
 
 class AttendanceReportPreview extends StatelessWidget {
   final Uint8List? logoBytes;
   final String departamento;
   final String generadoPor;
-  final String fechaGenerado;
   final String criterioExcepcion;
   final List<Map<String, dynamic>>? rows;
+  final String periodo; // Nuevo parámetro
 
   const AttendanceReportPreview({
     super.key,
     this.logoBytes,
     required this.departamento,
     required this.generadoPor,
-    required this.fechaGenerado,
     required this.criterioExcepcion,
     this.rows,
+    required this.periodo,
   });
 
   @override
@@ -35,8 +35,8 @@ class AttendanceReportPreview extends StatelessWidget {
             logoBytes: logoBytes,
             departamento: departamento,
             generadoPor: generadoPor,
-            fechaGenerado: fechaGenerado,
             criterioExcepcion: criterioExcepcion,
+            periodo: periodo,
             rows: rows,
           );
         },

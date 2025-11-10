@@ -13,6 +13,7 @@ class Empleado {
   String? numeroCuenta;
   String? departamentoId;
   String? areaId;
+  String? asistenciaDocId;
   String? puestoId;
   DateTime? fechaContratacion;
 
@@ -29,6 +30,7 @@ class Empleado {
     this.numeroCuenta,
     this.departamentoId,
     this.areaId,
+    this.asistenciaDocId,
     this.puestoId,
     this.fechaContratacion,
   });
@@ -55,6 +57,7 @@ class Empleado {
       numeroCuenta: mapa['numero_cuenta'] as String?,
       departamentoId: mapa['departamento_id'] as String?,
       areaId: mapa['area_id'] as String?,
+      asistenciaDocId: mapa['asistenciaDocId'] as String?,
       puestoId: mapa['puesto_id'] as String?,
       fechaContratacion: fromTimestamp(mapa['fecha_contratacion']),
     );
@@ -80,6 +83,7 @@ class Empleado {
       'numero_cuenta': numeroCuenta,
       'departamento_id': departamentoId,
       'area_id': areaId,
+      'asistenciaDocId': asistenciaDocId,
       'puesto_id': puestoId,
       'fecha_contratacion': toTimestamp(fechaContratacion),
     };

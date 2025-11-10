@@ -46,9 +46,9 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    FirstSeccion(controller: _controller),
-                    const SizedBox(height: 12),
                     ReportSeccion(),
+                    const SizedBox(height: 2),
+                    FirstSeccion(controller: _controller),
                     const SizedBox(height: 12),
                     SecondSeccion(controller: _controller),
                     const SizedBox(height: 12),
