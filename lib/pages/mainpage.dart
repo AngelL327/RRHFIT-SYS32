@@ -16,6 +16,8 @@ import 'package:rrhfit_sys32/pages/empleados/tracker_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/EmpleadoMainPage.dart';
 import 'package:rrhfit_sys32/Reportes/planillareport.dart';
+import 'package:rrhfit_sys32/pages/nomina.dart';
+import 'package:rrhfit_sys32/pages/voucherscreen.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -50,6 +52,7 @@ class _MainPageState extends State<MainPage> {
     SidebarXItem(icon: Icons.assignment, label: 'Solicitudes'),
     SidebarXItem(icon: Icons.healing, label: 'Incapacidades'),
     SidebarXItem(icon: Icons.dock_sharp, label: 'Vouchers'),
+    SidebarXItem(icon: Icons.dock_sharp, label: 'Nomina'),
     SidebarXItem(icon: Icons.exit_to_app, label: 'Configuracion'),
   ];
     final List<SidebarXItem> _sidebarItems2 = const [
@@ -64,7 +67,8 @@ class _MainPageState extends State<MainPage> {
     const AsistenciaScreen(),
     const SolicitudesScreen(),
     const IncapacidadesScreen(),
-    ReportePlanillaFirestore(),
+    VoucherScreen(),
+    PlanillasScreen(),
     const PerfilPage(),
   ];
 
