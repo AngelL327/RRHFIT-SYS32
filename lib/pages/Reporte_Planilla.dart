@@ -7,6 +7,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:flutter/services.dart';
 
 void main() async {
@@ -136,10 +137,22 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Vista General Reporte Planilla'),
-        backgroundColor: Colors.blueAccent,
-        centerTitle: true,
+  backgroundColor: AppTheme.primary, // Color del AppBar
+  title: Align(
+    alignment: Alignment.centerLeft, // Alinear a la izquierda
+    child: Padding(
+      padding: const EdgeInsets.only(left: 16), // margen opcional
+      child: const Text(
+        'Vista General Reporte Planilla',
+        style: TextStyle(
+          color: Colors.white, // Cambia el color aquí
+        ),
       ),
+    ),
+  ),
+),
+
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(50),
         child: Stack(
