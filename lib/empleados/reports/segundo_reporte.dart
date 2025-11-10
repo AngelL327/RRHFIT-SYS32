@@ -28,7 +28,7 @@ class SegundoReporte extends StatelessWidget {
               Uint8List? logo;
               try {
                 final bytes = await rootBundle.load(
-                  'assets/images/fittlay.png',
+                  'assets/images/fittlay_imagotipo.png',
                 );
                 logo = bytes.buffer.asUint8List();
               } catch (_) {
@@ -102,7 +102,18 @@ class SegundoReporte extends StatelessWidget {
                       initialPageFormat: PdfPageFormat.a4.landscape,
                       maxPageWidth: 1400,
                       allowPrinting: true,
-                      allowSharing: true,
+                      allowSharing: false,
+                      loadingWidget: CircularProgressIndicator(
+                        backgroundColor: Colors.white,
+                        color: Colors.green,
+                      ),
+                      actionBarTheme: PdfActionBarTheme(
+                        backgroundColor: Colors.blue,
+                        iconColor: Colors.white,
+                      ),
+                      canChangeOrientation: false,
+                      canChangePageFormat: false,
+
                       build: (format) async {
                         return await generateAsistenciaPerfectaPdf(
                           logoBytes: logo,

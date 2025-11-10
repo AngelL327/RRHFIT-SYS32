@@ -1,11 +1,12 @@
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:rrhfit_sys32/Reportes/report_footer.dart';
 
 Future<Uint8List> generateAttendancePdf({
   Uint8List? logoBytes,
-  required String departamento,
+  // required String departamento,
   required String generadoPor,
   required String criterioExcepcion,
   required String periodo,
@@ -41,6 +42,8 @@ Future<Uint8List> generateAttendancePdf({
   }).toList();
 
   final baseFont = customFont;
+  final String fechaHoy =
+      DateFormat('dd-MM-yy').format(DateTime.now()) as String;
 
   Uint8List? watermarkBytes = logoBytes;
   if (watermarkBytes == null) {
@@ -56,7 +59,6 @@ Future<Uint8List> generateAttendancePdf({
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 18),
-
       header: (pw.Context ctx) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -69,9 +71,9 @@ Future<Uint8List> generateAttendancePdf({
                   child: pw.Align(
                     alignment: pw.Alignment.centerLeft,
                     child: pw.Text(
-                      departamento,
+                      "Departamento RRHH",
                       style: pw.TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         color: PdfColors.grey900,
                       ),
                     ),
@@ -95,19 +97,19 @@ Future<Uint8List> generateAttendancePdf({
                           ),
                   ),
                 ),
-                // pw.Expanded(
-                //   flex: 3,
-                //   child: pw.Align(
-                //     alignment: pw.Alignment.centerRight,
-                //     child: pw.Text(
-                //       'Fecha: $fechaGenerado',
-                //       style: pw.TextStyle(
-                //         fontSize: 10,
-                //         color: PdfColors.grey900,
-                //       ),
-                //     ),
-                //   ),
-                // ),
+                pw.Expanded(
+                  flex: 3,
+                  child: pw.Align(
+                    alignment: pw.Alignment.centerRight,
+                    child: pw.Text(
+                      'Fecha: $fechaHoy',
+                      style: pw.TextStyle(
+                        fontSize: 12,
+                        color: PdfColors.grey900,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
             pw.SizedBox(height: 8),
@@ -115,7 +117,7 @@ Future<Uint8List> generateAttendancePdf({
               child: pw.Text(
                 'Reporte de Asistencia Perfecta',
                 style: pw.TextStyle(
-                  fontSize: 10.0,
+                  fontSize: 12.0,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
@@ -133,7 +135,7 @@ Future<Uint8List> generateAttendancePdf({
                         'Generado por:',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                       ),
                       // pw.SizedBox(height: 6),
@@ -149,7 +151,7 @@ Future<Uint8List> generateAttendancePdf({
                         'Criterio de Excepción: ',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 10.0,
+                          fontSize: 12.0,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -157,7 +159,7 @@ Future<Uint8List> generateAttendancePdf({
                         'Período Evaluado:',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 10.0,
+                          fontSize: 12.0,
                         ),
                       ),
                     ],
@@ -171,7 +173,7 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 10.0,
+                          fontSize: 12.0,
                         ),
                       ),
                       // pw.SizedBox(height: 6),
@@ -189,7 +191,7 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 10.0,
+                          fontSize: 12.0,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -198,7 +200,7 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 10.0,
+                          fontSize: 12.0,
                         ),
                       ),
                     ],
@@ -259,7 +261,7 @@ Future<Uint8List> generateAttendancePdf({
           pw.SizedBox(height: 8),
           pw.Text(
             '**Total empleados evaluados:** ${data.length}',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+            style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
           ),
           pw.SizedBox(height: 18),
         ];

@@ -17,7 +17,7 @@ class AsistenciaPerfectaItem {
     required this.porcentaje,
   });
 
-  /// Constructor de fábrica que crea un item a partir de un Map (útil para migración).
+  /// Constructor factory que crea un item a partir de un Map
   factory AsistenciaPerfectaItem.fromMap(Map<String, dynamic> map) {
     return AsistenciaPerfectaItem(
       rankingLabel: map['rankingLabel'] as String? ?? 'N/A',

@@ -32,6 +32,7 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Scrollbar(
           controller: _scrollController,

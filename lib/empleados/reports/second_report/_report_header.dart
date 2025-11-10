@@ -19,7 +19,7 @@ pw.Widget buildReportHeader({
               alignment: pw.Alignment.centerLeft,
               child: pw.Text(
                 departamento,
-                style: pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
+                style: pw.TextStyle(fontSize: 12, color: PdfColors.grey800),
               ),
             ),
           ),
@@ -43,7 +43,7 @@ pw.Widget buildReportHeader({
               alignment: pw.Alignment.centerRight,
               child: pw.Text(
                 'Fecha: $fechaGenerado',
-                style: pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
+                style: pw.TextStyle(fontSize: 12, color: PdfColors.grey800),
               ),
             ),
           ),
@@ -53,7 +53,7 @@ pw.Widget buildReportHeader({
       pw.Center(
         child: pw.Text(
           'Reporte de Asistencia Perfecta',
-          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
         ),
       ),
       pw.SizedBox(height: 15),

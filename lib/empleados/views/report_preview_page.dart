@@ -6,7 +6,7 @@ import 'package:rrhfit_sys32/empleados/reports/report_generator.dart';
 
 class AttendanceReportPreview extends StatelessWidget {
   final Uint8List? logoBytes;
-  final String departamento;
+  // final String departamento;
   final String generadoPor;
   final String criterioExcepcion;
   final List<Map<String, dynamic>>? rows;
@@ -15,7 +15,7 @@ class AttendanceReportPreview extends StatelessWidget {
   const AttendanceReportPreview({
     super.key,
     this.logoBytes,
-    required this.departamento,
+    // required this.departamento,
     required this.generadoPor,
     required this.criterioExcepcion,
     this.rows,
@@ -33,7 +33,7 @@ class AttendanceReportPreview extends StatelessWidget {
         build: (format) async {
           return await generateAttendancePdf(
             logoBytes: logoBytes,
-            departamento: departamento,
+            // departamento: departamento,
             generadoPor: generadoPor,
             criterioExcepcion: criterioExcepcion,
             periodo: periodo,

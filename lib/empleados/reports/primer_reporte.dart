@@ -70,7 +70,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
         ind: counter,
       );
 
-      final departamento = 'Departamento de RRHH';
+      // final departamento = 'Departamento de RRHH';
       final generadoPor = Global().userName.toString();
       // final fechaGenerado = DateFormat('dd/MM/yyyy').format(DateTime.now());
       final criterio = 'Índice de Asistencia > $counter';
@@ -82,7 +82,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
         MaterialPageRoute(
           builder: (_) => AttendanceReportPreview(
             logoBytes: logo,
-            departamento: departamento,
+            // departamento: departamento,
             generadoPor: generadoPor,
             criterioExcepcion: criterio,
             rows: rows,
@@ -124,7 +124,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.yellow,
+      // color: Colors.white,
       width: 400.0,
       height: 200.0,
       alignment: Alignment.center,
