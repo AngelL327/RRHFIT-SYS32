@@ -162,7 +162,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
               child: Opacity(
                 opacity: 0.08,
                 child: Image.asset(
-                  'assets/images/fittlay.png',
+                  'assets/images/fittlay_imagotipo.png',
                   fit: BoxFit.contain,
                   alignment: Alignment.center,
                 ),
@@ -342,6 +342,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
                 ),
                 const SizedBox(height: 80),
 
+              
                 // ---------------- GRAFICAS MEJORADAS ----------------
                 SizedBox(
                   height: maxBarHeight + 80,
