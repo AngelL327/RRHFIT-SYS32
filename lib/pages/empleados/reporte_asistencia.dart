@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart' as pdf_lib;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 
 // Modelo para los eventos de asistencia del día
 class EventoAsistencia {
@@ -444,7 +445,7 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
             else
               pw.Container(
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: pdf_lib.PdfColors.teal, width: 2),
+                  border: pw.Border.all(color: AppTheme.pdfTableHeaderBG, width: 2),
                   borderRadius: pw.BorderRadius.circular(8),
                 ),
                 child: pw.Column(
@@ -453,7 +454,7 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                     pw.Container(
                       padding: pw.EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: pw.BoxDecoration(
-                        color: pdf_lib.PdfColors.teal,
+                        color: AppTheme.pdfTableHeaderBG,
                         borderRadius: pw.BorderRadius.only(
                           topLeft: pw.Radius.circular(6),
                           topRight: pw.Radius.circular(6),
@@ -463,34 +464,36 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                         children: [
                           pw.Expanded(
                             child: pw.Text(
+                              textAlign: pw.TextAlign.center,
                               'Evento',
                               style: ttfBold != null
                                   ? pw.TextStyle(
                                       font: ttfBold,
                                       fontSize: 11,
-                                      color: pdf_lib.PdfColors.white,
+                                      color: pdf_lib.PdfColors.black,
                                       fontWeight: pw.FontWeight.bold,
                                     )
                                   : pw.TextStyle(
                                       fontSize: 11,
-                                      color: pdf_lib.PdfColors.white,
+                                      color: pdf_lib.PdfColors.black,
                                       fontWeight: pw.FontWeight.bold,
                                     ),
                             ),
                           ),
                           pw.Expanded(
                             child: pw.Text(
+                              textAlign: pw.TextAlign.center,
                               'Hora',
                               style: ttfBold != null
                                   ? pw.TextStyle(
                                       font: ttfBold,
                                       fontSize: 11,
-                                      color: pdf_lib.PdfColors.white,
+                                      color: pdf_lib.PdfColors.black,
                                       fontWeight: pw.FontWeight.bold,
                                     )
                                   : pw.TextStyle(
                                       fontSize: 11,
-                                      color: pdf_lib.PdfColors.white,
+                                      color: pdf_lib.PdfColors.black,
                                       fontWeight: pw.FontWeight.bold,
                                     ),
                             ),
@@ -544,11 +547,11 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
             pw.Spacer(),
             
             // Footer
-            pw.Divider(thickness: 1, color: pdf_lib.PdfColors.grey400),
             pw.SizedBox(height: 6),
-            pw.Center(
+            pw.Align(
+              alignment: pw.Alignment.centerLeft,
               child: pw.Text(
-                'Página 1 de 1',
+                'Generado por ${datosUsuario.nombreCompleto}',
                 style: ttf != null
                     ? pw.TextStyle(font: ttf, fontSize: 9)
                     : pw.TextStyle(fontSize: 9),
@@ -641,7 +644,6 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
         final eventos = snapshot.data![0] as List<EventoAsistencia>;
         
         print('Renderizando vista previa con ${eventos.length} eventos');
-        
         if (eventos.isEmpty) {
           return Center(
             child: Padding(
