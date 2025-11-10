@@ -83,7 +83,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       children: [
         Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800, minWidth: 200),
+            constraints: const BoxConstraints(maxWidth: 300, minWidth: 200),
             child: TextField(
               controller: _controller,
               decoration: InputDecoration(

@@ -144,6 +144,10 @@ class GeneratePDFButton<T> extends StatelessWidget {
                 height: size.height * 0.8,
                 child: PdfPreview(
                   onZoomChanged: (value) => {},
+                  pageFormats: const {
+                    'A4': pdf_lib.PdfPageFormat.a4,
+                    'Letter': pdf_lib.PdfPageFormat.letter,
+                  },
                   actionBarTheme: PdfActionBarTheme(backgroundColor: AppTheme.primary),
                   canChangeOrientation: true,
                   canDebug: false,

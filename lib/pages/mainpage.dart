@@ -87,6 +87,7 @@ class _MainPageState extends State<MainPage> {
       }
       final uid = user.uid;
       final nombreCompleto = await obtenerUsername(uid);
+      Global().empleadoID = await obtenerEmpleadoID(uid);
       Global().userName = nombreCompleto;
       // Refresh the UI in case any widget depends on Global().userName
       if (mounted) setState(() {});

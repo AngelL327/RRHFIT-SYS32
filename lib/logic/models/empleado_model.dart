@@ -35,15 +35,15 @@ class EmpleadoModel {
     return EmpleadoModel(
       empleadoID: json['empleado_id'] ?? 'N/A',
       areaID: json['area_id'] ?? 'N/A',
-      codEmpleado: json['cod_empleado'] ?? 'N/A',
+      codEmpleado: json['codigo_empleado'] ?? 'N/A',
       correo: json['correo'] ?? 'N/A',
-      depID: json['dep_id'] ?? 'N/A',
+      depID: json['departamento_id'] ?? 'N/A',
       direccion: json['direccion'] ?? 'N/A',
       estado: json['estado'] ?? 'N/A',
       fechaContratacion:  parseToDateTime(json['fecha_contratacion']),
       fechaNacimiento: parseToDateTime(json['fecha_nacimiento']),
       nombre: json['nombre'] ?? 'N/A',
-      numCuenta: json['num_cuenta'] ?? 'N/A',
+      numCuenta: json['numero_cuenta'] ?? 'N/A',
       puestoID: json['puesto_id'] ?? 'N/A',
       telefono: json['telefono'] ?? 'N/A',
     );

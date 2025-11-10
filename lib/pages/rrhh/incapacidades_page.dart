@@ -260,9 +260,11 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                           (inc[0] as IncapacidadModel).estado,
                           (inc[0] as IncapacidadModel).usuario,
                           "${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}",
-                          (inc[1] as EmpleadoModel).correo,
+                          //(inc[1] as EmpleadoModel).correo,
+                          "Correo@gmail.com",
                           (inc[0] as IncapacidadModel).motivo.length > 30 ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...' : (inc[0] as IncapacidadModel).motivo,
-                          (inc[2] as AreaModel).nombre,
+                          //(inc[2] as AreaModel).nombre,
+                          "No asignada",
 
                         ];
                       },
@@ -409,11 +411,14 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
 
     List<IncapacidadModel> incapacidades = await getAllIncapacidades();
     for (var inc in incapacidades) {
+      print("Incapacidad: ${inc.toJson()}");
       EmpleadoModel? emp = await getEmpleadoById(inc.userId);
+      print("Empleado: ${emp?.toJson()}");
+      
       AreaModel? area = await getAreaById(emp?.areaID);
       results.add([inc, emp, area]);
     }
-    print("EmpleadoID: ${Global().empleadoID}" );
+
     return results;
   }
 }
