@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:rrhfit_sys32/widgets/type.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';
 import 'package:rrhfit_sys32/pages/mainpage.dart';
+import 'package:rrhfit_sys32/pages/solicitudes.dart';
 
 class SolicitudesEmpleadoPage extends StatefulWidget {
   final String empleadoId; // ID del empleado actual
@@ -39,16 +40,14 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
     "Vacaciones",
     "Permiso médico",
     "Cambio de turno",
-
   ];
 
   final List<String> _departamentos = [
+    "Producción",
     "Recursos Humanos",
-    "Administración",
-    "Operaciones",
     "Ventas",
-    "IT",
-    
+    "Administración",
+    "Sistemas",
   ];
 
   @override
@@ -85,8 +84,10 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
         "fecha": _fechaSeleccionada,
         "estado": "Pendiente",
         "creadoEn": FieldValue.serverTimestamp(),
-        "codigo": _codigoCtrl.text,
-        "puesto": _puestoCtrl.text,
+
+      
+        "codigo": _codigoCtrl.text.isEmpty ? "Sin código" : _codigoCtrl.text,
+        "puesto": _puestoCtrl.text.isEmpty ? "Empleado" : _puestoCtrl.text,
       });
 
       if (mounted) {

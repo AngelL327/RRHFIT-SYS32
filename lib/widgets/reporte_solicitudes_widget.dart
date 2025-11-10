@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
 import 'package:rrhfit_sys32/widgets/barras_con_tabla.dart';
-import 'package:rrhfit_sys32/widgets/barras_con_tabla.dart';
+import 'package:rrhfit_sys32/Reportes/reportesolicitudes.dart';
 
 class ReporteSolicitudesWidget extends StatelessWidget {
   const ReporteSolicitudesWidget({super.key});
@@ -40,6 +43,20 @@ class ReporteSolicitudesWidget extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GenerarReportePage(docs: docs),
+                    ),
+                  );
+                },
+
+                icon: const Icon(Icons.picture_as_pdf),
+                label: const Text("Generar Reporte PDF"),
+              ),
+              const SizedBox(height: 20),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -268,6 +285,7 @@ class ReporteSolicitudesWidget extends StatelessWidget {
 
   // -------------------------------------------------------------------------------
 }
+// ---------------- PDF ----------------
 
 class _DonaItem {
   final String label;
