@@ -1,18 +1,23 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rrhfit_sys32/widgets/type.dart';
 import 'package:rrhfit_sys32/widgets/reporte_solicitudes_widget.dart';
+import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 
 class SolicitudesScreen extends StatefulWidget {
   const SolicitudesScreen({super.key});
+  
 
   @override
   State<SolicitudesScreen> createState() => _SolicitudesScreenState();
+  
 }
 
 class _SolicitudesScreenState extends State<SolicitudesScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  Map<String, dynamic>? _empleadoSeleccionado;
+
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   int _currentIndex = 0;
@@ -34,39 +39,50 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   String _tipoFiltro = "Todos";
 
   Future<void> _guardarSolicitud() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    if (_empleadoCtrl.text.isEmpty ||
-        _departamentoCtrl.text.isEmpty ||
-        _descripcionCtrl.text.isEmpty ||
-        _fechaSeleccionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, llena todos los campos")),
-      );
-      return;
-    }
-
-    await _db.collection("solicitudes").add({
-      "uid": user.uid,
-      "empleado": _empleadoCtrl.text,
-      "departamento": _departamentoCtrl.text,
-      "descripcion": _descripcionCtrl.text,
-      "tipo": _tipoSolicitud,
-      "fecha": _fechaSeleccionada,
-      "estado": "Pendiente",
-      "creadoEn": FieldValue.serverTimestamp(),
-    });
-
-    setState(() {
-      _currentIndex = 0;
-      _empleadoCtrl.clear();
-      _departamentoCtrl.clear();
-      _descripcionCtrl.clear();
-      _fechaSeleccionada = null;
-      _tipoSolicitud = "Vacaciones";
-    });
+  if (_empleadoSeleccionado == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Por favor selecciona un empleado")),
+    );
+    return;
   }
+
+  if (_empleadoCtrl.text.isEmpty ||
+      _departamentoCtrl.text.isEmpty ||
+      _descripcionCtrl.text.isEmpty ||
+      _fechaSeleccionada == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Por favor, llena todos los campos")),
+    );
+    return;
+  }
+
+  await _db.collection("solicitudes").add({
+    "uid": _empleadoSeleccionado!["uid"], // ✅ UID del empleado seleccionado
+    "empleado": _empleadoSeleccionado!["nombre"], // Nombre del empleado
+    "departamento": _departamentoCtrl.text,
+    "descripcion": _descripcionCtrl.text,
+    "tipo": _tipoSolicitud,
+    "fecha": _fechaSeleccionada,
+    "estado": "Pendiente",
+    "creadoEn": FieldValue.serverTimestamp(),
+    "codigo": _codigoCtrl.text.isEmpty ? "Sin código" : _codigoCtrl.text,
+    "puesto": _puestoCtrl.text.isEmpty ? "Empleado" : _puestoCtrl.text,
+  });
+
+  setState(() {
+    _empleadoCtrl.clear();
+    _departamentoCtrl.clear();
+    _descripcionCtrl.clear();
+    _fechaSeleccionada = null;
+    _tipoSolicitud = "Vacaciones";
+    _empleadoSeleccionado = null;
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Solicitud creada correctamente")),
+  );
+}
+
 
   Future<void> _actualizarEstado(String docId, String nuevoEstado) async {
     await _db.collection("solicitudes").doc(docId).update({
@@ -131,8 +147,9 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   }
 
   Widget _buildListScreen() {
-    final user = _auth.currentUser;
-    if (user == null) return const Center(child: Text("Usuario no logueado"));
+    
+    String _estadoFiltro = "Pendiente";
+
 
     return DefaultTabController(
       length: 4,
@@ -141,7 +158,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
           StreamBuilder<QuerySnapshot>(
             stream: _db
                 .collection("solicitudes")
-                .where("uid", isEqualTo: user.uid)
+                .where("estado", isEqualTo: _estadoFiltro)
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
@@ -361,9 +378,9 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
           Expanded(
             child: TabBarView(
               children: [
-                _buildSolicitudList(user.uid, "Pendiente"),
-                _buildSolicitudList(user.uid, "Aprobada"),
-                _buildSolicitudList(user.uid, "Rechazada"),
+                _buildSolicitudList("", "Pendiente"),
+                _buildSolicitudList("", "Aprobada"),
+                _buildSolicitudList("", "Rechazada"),
                 ReporteSolicitudesWidget(),
               ],
             ),
@@ -376,9 +393,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   Widget _buildSolicitudList(String uid, String estado) {
     final stream = _db
         .collection("solicitudes")
-        .where("uid", isEqualTo: uid)
         .where("estado", isEqualTo: estado)
-        .orderBy("creadoEn", descending: _fechaFiltro == "Más recientes")
         .snapshots();
 
     return StreamBuilder<QuerySnapshot>(

@@ -561,7 +561,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                                   textAlign: pw.TextAlign.center,
                                 ),
                               ),
-                              
+
                               // Contenido Egresos
                               pw.Padding(
                                 padding: pw.EdgeInsets.all(12),
@@ -778,7 +778,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(
-                        'Generado por: Sistema Fittlay',
+                        'Generado por: ${datosUsuario.nombreCompleto}',
                         style: ttf != null
                             ? pw.TextStyle(font: ttf, fontSize: 9)
                             : pw.TextStyle(fontSize: 9),

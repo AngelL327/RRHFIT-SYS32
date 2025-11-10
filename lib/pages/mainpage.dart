@@ -27,6 +27,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
   String empleadoId = '';
+  String empleadoUid = '';
   String nombre= '';
   String areaId= '';
   String codigoEmpleado= ''; // <--- agrega esta línea
@@ -34,10 +35,10 @@ class _MainPageState extends State<MainPage> {
   
 
   List<Widget> get webPages => [
-    TrackerPage(empleadoId: empleadoId),
+    TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
     SolicitudesEmpleadoPage(empleadoId: empleadoId, empleadoNombre: ''),
     MiPerfilPage(empleadoId: empleadoId),
-    TrackerPage(empleadoId: empleadoId),
+    TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
     EmpleadoMainPage(),
   ];
 

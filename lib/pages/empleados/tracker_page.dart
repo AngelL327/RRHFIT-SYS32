@@ -7,8 +7,9 @@ import 'reporte_asistencia.dart';
 
 class TrackerPage extends StatefulWidget {
   final String empleadoId; // ID del empleado actual
+  final String empleadoUid;
 
-  const TrackerPage({super.key, required this.empleadoId});
+  const TrackerPage({super.key, required this.empleadoId, required this.empleadoUid});
 
   @override
   State<TrackerPage> createState() => _TrackerPageState();
@@ -100,6 +101,7 @@ class _TrackerPageState extends State<TrackerPage> {
       
       final Map<String, dynamic> datos = {
         'empleadoId': widget.empleadoId,
+        'empleadoUid': widget.empleadoUid,
         'fecha': DateFormat('yyyy-MM-dd').format(ahora),
         'ultimaActualizacion': FieldValue.serverTimestamp(),
       };
@@ -332,7 +334,8 @@ class _TrackerPageState extends State<TrackerPage> {
       });
       
       print('Horas guardadas: ${_formatearDuracion(total)} (${horasDecimales.toStringAsFixed(2)}h)');
-      
+      print(widget.empleadoUid);
+
     } catch (e) {
       print('Error al calcular horas totales: $e');
     }
