@@ -36,6 +36,40 @@ Future<List<IncapacidadModel>> getAllIncapacidades() async {
   return incapacidades;
 }
 
+Future<List<IncapacidadModel>> getIncapacidadesByEmpleadoId(String empleadoID) async {
+  List<IncapacidadModel> incapacidades = [];
+      await FirebaseFirestore.instance.collection('solicitudes')
+      .where("tipo", isEqualTo: TipoSolicitud.incapacidad)
+      .where("uid", isEqualTo: empleadoID)
+      .get()
+      .then((value) {
+        for (var doc in value.docs) {
+          incapacidades.add(IncapacidadModel.fromJson(doc.id, doc.data()));
+        }
+        incapacidades.sort((a, b) => b.fechaSolicitud.compareTo(a.fechaSolicitud));
+        incapacidades.sort((a, b) {
+          // Priorizar estados: Pendiente > Aprobada > Rechazada
+          int getEstadoPriority(String estado) {
+            switch (estado) {
+              case "Pendiente":
+                return 3;
+              case "Aprobada":
+                return 2;
+              case "Rechazada":
+                return 1;
+              default:
+                return 0;
+            }
+          }
+          return getEstadoPriority(b.estado).compareTo(getEstadoPriority(a.estado));
+        });
+      })
+      .catchError((error) {
+      });
+  return incapacidades;
+}
+
+
 Future<bool> addIncapacidad(IncapacidadModel inc) async {
   try {
     await FirebaseFirestore.instance

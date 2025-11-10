@@ -8,5 +8,6 @@ class Global {
 
   User? currentUser;
   String? userName;
+  String? empleadoID;
 
 }

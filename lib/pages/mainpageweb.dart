@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/globals.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/mi_perfil_page.dart';
@@ -55,6 +56,8 @@ class _MainPageState extends State<MainPageweb> {
         body: Center(child: Text("Esta página es solo para web")),
       );
     }
+
+    print("EmpleadoID en MainPageweb: ${Global().empleadoID}");
 
     return Scaffold(
       body: Row(

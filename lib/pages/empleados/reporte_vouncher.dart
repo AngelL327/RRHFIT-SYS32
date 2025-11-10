@@ -237,11 +237,11 @@ class GenerateNominaPDFScreen extends StatelessWidget {
     pw.Font? ttf;
     pw.Font? ttfBold;
     try {
-      final fontData = await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+      final fontData = await rootBundle.load('/fonts/Roboto-Regular.ttf');
       ttf = pw.Font.ttf(fontData.buffer.asByteData());
       
       try {
-        final fontBoldData = await rootBundle.load('assets/fonts/Roboto-Bold.ttf');
+        final fontBoldData = await rootBundle.load('/fonts/Roboto-Bold.ttf');
         ttfBold = pw.Font.ttf(fontBoldData.buffer.asByteData());
       } catch (e) {
         ttfBold = ttf;

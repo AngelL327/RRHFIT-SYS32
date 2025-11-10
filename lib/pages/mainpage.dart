@@ -9,7 +9,6 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';
 import 'package:rrhfit_sys32/pages/Usuario_page.dart';
-import 'package:rrhfit_sys32/pages/generate_pdf_screen.dart';
 import 'package:rrhfit_sys32/pages/rrhh/asistencia.dart';
 import 'package:rrhfit_sys32/pages/subirpdf.dart';
 import 'package:rrhfit_sys32/pages/empleados/mi_perfil_page.dart';
@@ -83,6 +82,7 @@ class _MainPageState extends State<MainPage> {
       final uid = user.uid;
       final nombreCompleto = await obtenerUsername(uid);
       Global().userName = nombreCompleto;
+      Global().empleadoID = await obtenerEmpleadoID(uid);
       // Refresh the UI in case any widget depends on Global().userName
       if (mounted) setState(() {});
     } catch (e) {

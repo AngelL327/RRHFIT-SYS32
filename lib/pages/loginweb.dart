@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rrhfit_sys32/globals.dart';
+import 'package:rrhfit_sys32/logic/utilities/obtener_username.dart';
 import 'package:rrhfit_sys32/pages/empleados/EmpleadoMainPage.dart';
 
 class AuthWebPage extends StatefulWidget {
@@ -33,7 +35,6 @@ class _AuthWebPageState extends State<AuthWebPage> {
         setState(() => loading = false);
         return;
       }
-
       // Login con Firebase Auth
       UserCredential cred = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -45,6 +46,11 @@ class _AuthWebPageState extends State<AuthWebPage> {
           .collection('usuarios')
           .doc(cred.user!.uid)
           .get();
+      
+      Global().currentUser = cred.user;
+      Global().userName = await obtenerUsername(cred.user!.uid);
+      Global().empleadoID = await obtenerEmpleadoID(cred.user!.uid);
+
 
       if (!usuarioDoc.exists) {
         ScaffoldMessenger.of(context).showSnackBar(

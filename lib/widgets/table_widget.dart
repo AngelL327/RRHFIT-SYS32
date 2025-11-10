@@ -12,9 +12,10 @@ DataTable2 tableGenerator(List<IncapacidadModel> sorted, BuildContext context, L
         fontSize: 15, 
         color: Colors.black, 
         ),
-      headingRowHeight: 50,
+      headingRowHeight: 70,
       headingRowDecoration: BoxDecoration(
         color: AppTheme.tableHeaderBG,
+        
       ),
       dataTextStyle: TextStyle(fontSize: 14, color: Colors.black87 ),
       fixedTopRows: 1,
