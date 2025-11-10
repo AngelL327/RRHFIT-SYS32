@@ -37,7 +37,9 @@ class ReportePlanillaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fechaReporte = DateFormat.yMMMM('es_HN').format(DateTime.now());
+final fechaReporte = toBeginningOfSentenceCase(
+  DateFormat('MMMM yyyy', 'es_HN').format(DateTime.now())
+)!;
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
