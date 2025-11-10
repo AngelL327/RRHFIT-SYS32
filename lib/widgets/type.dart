@@ -87,7 +87,7 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
 
         const SizedBox(height: 10),
 
-        /// 🔹 CAMPO DE CÓDIGO (VALIDACIÓN MANUAL)
+        ///  CAMPO DE CÓDIGO (VALIDACIÓN MANUAL)
         TextField(
           controller: widget.codigoCtrl,
           decoration: const InputDecoration(
@@ -98,8 +98,8 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
             fillColor: Colors.white,
           ),
           onChanged: (value) {
-            if (_codigoCorrecto != null && value.isNotEmpty) {
-              if (value.trim() == _codigoCorrecto) {
+            if (_codigoCorrecto != null ) {
+              if (value.trim() != _codigoCorrecto) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(" Código verificado correctamente"),
@@ -107,15 +107,7 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
                     duration: Duration(seconds: 2),
                   ),
                 );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(" El código no coincide con el empleado seleccionado"),
-                    backgroundColor: Colors.red,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
+              } 
             }
           },
         ),

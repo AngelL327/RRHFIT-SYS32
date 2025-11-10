@@ -10,6 +10,7 @@ import 'package:pdf/pdf.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+
 /// Página que recibe los docs (de Firestore) y genera el PDF.
 /// Idea: renderizamos las gráficas con fl_chart dentro de RepaintBoundary
 /// las convertimos a imagen y las insertamos en el PDF para que quede idéntico.

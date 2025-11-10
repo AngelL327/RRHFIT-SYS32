@@ -21,9 +21,18 @@ class BarrasConTabla extends StatelessWidget {
     //  Generar los datos agrupados
     for (var d in docs) {
       final m = d.data() as Map<String, dynamic>;
-      final cat = modo == BarrasModo.estadoPorDepto
-          ? (m["departamento"] ?? "Sin depto").toString()
-          : (m["tipo"] ?? "Sin tipo").toString();
+
+      String? cat;
+      if (modo == BarrasModo.estadoPorDepto) {
+        final dep = m["departamento"]?.toString().trim();
+        if (dep == null || dep.isEmpty) continue; // ignorar si null o vacío
+        cat = dep;
+      } else {
+        final tipo = m["tipo"]?.toString().trim();
+        if (tipo == null || tipo.isEmpty) continue; // ignorar si null o vacío
+        cat = tipo;
+      }
+
       final est = (m["estado"] ?? "Pendiente").toString();
 
       data.putIfAbsent(

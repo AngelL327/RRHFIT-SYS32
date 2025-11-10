@@ -16,7 +16,7 @@ class SolicitudesScreen extends StatefulWidget {
 
 class _SolicitudesScreenState extends State<SolicitudesScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  Map<String, dynamic>? _empleadoSeleccionado;
+ 
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -39,10 +39,10 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   String _tipoFiltro = "Todos";
 
   Future<void> _guardarSolicitud() async {
-  if (_empleadoSeleccionado == null) {
+  if (_empleadoCtrl == null) {  
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Por favor selecciona un empleado")),
-    );
+    );    
     return;
   }
 
@@ -57,8 +57,8 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   }
 
   await _db.collection("solicitudes").add({
-    "uid": _empleadoSeleccionado!["uid"], // ✅ UID del empleado seleccionado
-    "empleado": _empleadoSeleccionado!["nombre"], // Nombre del empleado
+
+    "empleado": _empleadoCtrl.text,
     "departamento": _departamentoCtrl.text,
     "descripcion": _descripcionCtrl.text,
     "tipo": _tipoSolicitud,
@@ -75,7 +75,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
     _descripcionCtrl.clear();
     _fechaSeleccionada = null;
     _tipoSolicitud = "Vacaciones";
-    _empleadoSeleccionado = null;
+
   });
 
   ScaffoldMessenger.of(context).showSnackBar(
@@ -158,7 +158,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
           StreamBuilder<QuerySnapshot>(
             stream: _db
                 .collection("solicitudes")
-                .where("estado", isEqualTo: _estadoFiltro)
+              
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
@@ -222,7 +222,7 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                   padding: const EdgeInsets.all(12.0),
                   child: Row(
                     children: [
-                      // 🔹 Campo de búsqueda
+                      //Campo de búsqueda
                       Expanded(
                         flex: 3,
                         child: TextField(

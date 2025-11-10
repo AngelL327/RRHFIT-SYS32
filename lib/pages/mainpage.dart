@@ -16,6 +16,7 @@ import 'package:rrhfit_sys32/pages/empleados/mi_perfil_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/tracker_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/EmpleadoMainPage.dart';
+import 'package:rrhfit_sys32/Reportes/planillareport.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -64,7 +65,7 @@ class _MainPageState extends State<MainPage> {
     const AsistenciaScreen(),
     const SolicitudesScreen(),
     const IncapacidadesScreen(),
-    const PdfStorageWidget(),
+    ReportePlanillaFirestore(),
     const PerfilPage(),
   ];
 

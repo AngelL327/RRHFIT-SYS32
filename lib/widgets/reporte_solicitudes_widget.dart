@@ -32,11 +32,14 @@ class ReporteSolicitudesWidget extends StatelessWidget {
         final totalGlobal = totalPend + totalApr + totalRec;
 
         final Map<String, int> porDepto = {};
-        for (var d in docs) {
+        docs.forEach((d) {
           final data = d.data() as Map<String, dynamic>;
-          final depto = (data["departamento"] ?? "Sin especificar").toString();
-          porDepto[depto] = (porDepto[depto] ?? 0) + 1;
-        }
+          final depto = data["departamento"]?.toString();
+          if (depto != null && depto.isNotEmpty) {
+            porDepto[depto] = (porDepto[depto] ?? 0) + 1;
+          }
+        });
+
         final totalDeptos = porDepto.values.fold<int>(0, (a, b) => a + b);
 
         return SingleChildScrollView(
