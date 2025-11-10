@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart' as pdf_lib;
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/utilities/obtener_mes_string.dart';
 
+
 /// Reusable PDF header builder for reports.
 ///
 /// Usage:
