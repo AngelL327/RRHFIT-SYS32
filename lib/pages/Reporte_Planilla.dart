@@ -24,20 +24,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Vista General Reporte Planilla',
-      home: const ReportePlanillaFirestore(),
+      home: const ReportePlanillaFirestore1(),
     );
   }
 }
 
-class ReportePlanillaFirestore extends StatefulWidget {
-  const ReportePlanillaFirestore({super.key});
+class ReportePlanillaFirestore1 extends StatefulWidget {
+  const ReportePlanillaFirestore1({super.key});
 
   @override
-  State<ReportePlanillaFirestore> createState() =>
+  State<ReportePlanillaFirestore1> createState() =>
       _ReportePlanillaFirestoreState();
 }
 
-class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore> {
+class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Map<String, List<Map<String, dynamic>>> departamentos = {};

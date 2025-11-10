@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:rrhfit_sys32/Reportes/planillareport.dart';
+import 'package:rrhfit_sys32/pages/Reporte_Planilla.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -225,7 +226,7 @@ class _DashboardPageState extends State<DashboardPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ReportePlanillaFirestore(),
+        builder: (_) => const ReportePlanillaFirestore1(),
       ),
     );
   },
