@@ -282,7 +282,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore> {
 
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 12.0,
+                                    horizontal: 18.0,
                                   ),
                                   child: Column(
                                     children: [
@@ -295,8 +295,8 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore> {
                                           ),
                                         ),
                                         child: Container(
-                                          width: 300,
-                                          padding: const EdgeInsets.all(16),
+                                          width: 200,
+                                          padding: const EdgeInsets.all(8),
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.end,

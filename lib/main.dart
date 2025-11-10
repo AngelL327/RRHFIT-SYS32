@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:rrhfit_sys32/globals.dart';
-import 'package:rrhfit_sys32/logic/utilities/obtener_username.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rrhfit_sys32/pages/auth_page.dart';
@@ -64,7 +63,6 @@ class AuthWrapper extends StatelessWidget {
           }
 
           if (snapshot.hasData) {
-            print("Usuario web activo UID: ${snapshot.data!.uid}");
             Global().currentUser = snapshot.data;
             // Redirige a tu página web de solicitudes
             return const AuthWebPage(); // o directamente SolicitudesEmpleadoPage si quieres
@@ -94,6 +92,7 @@ class AuthWrapper extends StatelessWidget {
 
             if (snapshot.hasData) {
               print("Usuario activo  UID: ${snapshot.data!.uid}");
+              print(snapshot.data.toString());
               Global().currentUser = snapshot.data;
               return const MainPage();
             } else {

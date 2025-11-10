@@ -14,10 +14,10 @@ Future<List<EmpleadoModel>> getAllEmpleados() async {
   return empleados;
 }
 
-Future<EmpleadoModel?> getEmpleadoById(String uid) async {
+Future<EmpleadoModel?> getEmpleadoById(String empleadoID) async {
   final snapshot = await FirebaseFirestore.instance
       .collection('empleados')
-      .where('empleado_id', isEqualTo: uid)
+      .where('empleado_id', isEqualTo: empleadoID)
       .limit(1)
       .get();
 

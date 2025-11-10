@@ -13,3 +13,18 @@ Future<String> obtenerUsername(String uid) async {
   }
   return 'Usuario Desconocido';
 }
+
+Future<String> obtenerEmpleadoID(String userID) async {
+  final doc = await FirebaseFirestore.instance
+  .collection('usuarios')
+  .doc(userID)
+  .get();
+  if (doc.exists) {
+    final data = doc.data();
+    if (data != null && data.containsKey('uid')) {
+      String empleadoId = data['uid'];
+      return empleadoId;
+    }
+  }
+  return '';
+}

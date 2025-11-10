@@ -237,11 +237,11 @@ class GenerateNominaPDFScreen extends StatelessWidget {
     pw.Font? ttf;
     pw.Font? ttfBold;
     try {
-      final fontData = await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+      final fontData = await rootBundle.load('/fonts/Roboto-Regular.ttf');
       ttf = pw.Font.ttf(fontData.buffer.asByteData());
       
       try {
-        final fontBoldData = await rootBundle.load('assets/fonts/Roboto-Bold.ttf');
+        final fontBoldData = await rootBundle.load('/fonts/Roboto-Bold.ttf');
         ttfBold = pw.Font.ttf(fontBoldData.buffer.asByteData());
       } catch (e) {
         ttfBold = ttf;
@@ -561,7 +561,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                                   textAlign: pw.TextAlign.center,
                                 ),
                               ),
-                              
+
                               // Contenido Egresos
                               pw.Padding(
                                 padding: pw.EdgeInsets.all(12),
@@ -778,7 +778,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(
-                        'Generado por: Sistema Fittlay',
+                        'Generado por: ${datosUsuario.nombreCompleto}',
                         style: ttf != null
                             ? pw.TextStyle(font: ttf, fontSize: 9)
                             : pw.TextStyle(fontSize: 9),

@@ -1,8 +1,14 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/Reportes/historial_incapacidades_empleado_body.dart';
 import 'package:rrhfit_sys32/core/document_preview.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/globals.dart';
+import 'package:rrhfit_sys32/logic/area_functions.dart';
+import 'package:rrhfit_sys32/logic/empleados_functions.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
+import 'package:rrhfit_sys32/logic/models/area_model.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
@@ -123,90 +129,183 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
         ),
       ),
     ),
+    
     actions: [
-      if (inc.estado == EstadoSolicitud.pendiente || inc.estado == EstadoSolicitud.aprobada) ...[
-        TextButton(
-          style: AppTheme.lightTheme.elevatedButtonTheme.style,
-          onPressed: () async {
-            // Rechazar
-            try {
-              await updateEstadoIncapacidad(inc.id, EstadoSolicitud.rechazada)
-              .then((val){
-                if (val) {
+      Row(
+      children: [
+        Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+          width: size.width * 0.25,
+          child: GenerateHistoriaIncapacidades(
+            buttonLabel: "Descargar Historial de Incapacidad del Empleado",
+            reportTitle: "Historial de Incapacidades",
+            fetchData: () => _getHistIncRegistros(inc.userId),
+            userData: () => _getUserData(inc.userId),
+            tableHeaders: [
+            'Fecha Solicitud',
+            'Tipo Incapacidad',
+            'Emisor y Documento',
+            'Fecha Inicio',
+            'Fecha Fin',
+            'Motivo',
+            'Estado',
+            ],
+            rowMapper: (inc) {
+            return [
+              formatDate((inc[0] as IncapacidadModel).fechaSolicitud),
+              (inc[0] as IncapacidadModel).tipoIncapacidad,
+              '${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}',
+              formatDate((inc[0] as IncapacidadModel).fechaInicioIncapacidad),
+              formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
+              (inc[0] as IncapacidadModel).motivo.length > 30
+                ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...'
+                : (inc[0] as IncapacidadModel).motivo,
+              (inc[0] as IncapacidadModel).estado,
+            ];
+            },
+          ),
+          ),
+        ],
+        ),
+        Expanded(child: Container()),
+        if (inc.estado == EstadoSolicitud.pendiente || inc.estado == EstadoSolicitud.aprobada) ...[
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(
+              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              onPressed: () async {
+                // Rechazar
+                try {
+                await updateEstadoIncapacidad(inc.id, EstadoSolicitud.rechazada)
+                  .then((val) {
+                  if (val) {
                   Navigator.pop(context);
                   successScaffoldMsg(context, 'Solicitud rechazada exitosamente');
                   if (setState != null) {
                     setState();
                   }
-                } else {
+                  } else {
                   Navigator.pop(context);
                   successScaffoldMsg(context, 'Error al rechazar la solicitud');
-                }
-              });
-            } catch (e) {
-              Navigator.pop(context);
-              successScaffoldMsg(context, 'Error al rechazar: $e');
-            }
-          },
-          child: const Text('Rechazar'),
-        ),
-      ],
-      if (inc.estado == EstadoSolicitud.pendiente || inc.estado == EstadoSolicitud.aprobada) ...[
-        TextButton(
-            style: AppTheme.lightTheme.elevatedButtonTheme.style,
-            onPressed: () async {
-              // Aprobar
-              try {
-                await updateEstadoIncapacidad(inc.id, EstadoSolicitud.aprobada)
-                .then((value) {
-                  if (value) {
-                    successScaffoldMsg(context, 'Solicitud aprobada exitosamente');
-                    Navigator.pop(context);
-                    if (setState != null) {
-                      setState();
-                    }
-                  }else {
-                    Navigator.pop(context);
-                    successScaffoldMsg(context, 'Error al aprobar la solicitud');
                   }
                 });
-              } catch (e) {
+                } catch (e) {
+                Navigator.pop(context);
+                successScaffoldMsg(context, 'Error al rechazar: $e');
+                }
+              },
+              child: const Text('Rechazar'),
+              ),
+            ],
+          ),
+        ],
+        SizedBox(width: 8),
+        if (inc.estado == EstadoSolicitud.pendiente || inc.estado == EstadoSolicitud.aprobada) ...[
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(
+              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              onPressed: () async {
+                // Aprobar
+                try {
+                await updateEstadoIncapacidad(inc.id, EstadoSolicitud.aprobada)
+                  .then((value) {
+                  if (value) {
+                  successScaffoldMsg(context, 'Solicitud aprobada exitosamente');
+                  Navigator.pop(context);
+                  if (setState != null) {
+                    setState();
+                  }
+                  } else {
+                  Navigator.pop(context);
+                  successScaffoldMsg(context, 'Error al aprobar la solicitud');
+                  }
+                });
+                } catch (e) {
                 Navigator.pop(context);
                 successScaffoldMsg(context, 'Error al aprobar: $e');
-              }
-            },
-            child: const Text('Aprobar'),
+                }
+              },
+              child: const Text('Aprobar'),
+              ),
+            ],
           ),
-      ],
-      TextButton.icon(
-          style: AppTheme.lightTheme.elevatedButtonTheme.style,
-          onPressed: () async {
-            await deleteIncapacidad(inc.id)
-            .then((value) {
-              if (value) {
+          SizedBox(width: 8),
+
+        ],
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton.icon(
+              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              onPressed: () async {
+              await deleteIncapacidad(inc.id)
+                .then((value) {
+                if (value) {
                 Navigator.pop(context);
                 successScaffoldMsg(context, 'Solicitud eliminada exitosamente');
                 if (setState != null) {
                   setState();
                 }
-              } else {
+                } else {
                 Navigator.pop(context);
                 successScaffoldMsg(context, 'Error al eliminar la solicitud');
-              }
-            })
-            .catchError((e) {
-              Navigator.pop(context);
-              successScaffoldMsg(context, 'Error al eliminar: $e');
-            });
-          },
-          label: const Text('Eliminar'),
-          icon: const Icon(Icons.delete, color: Colors.red),
+                }
+              })
+                .catchError((e) {
+                Navigator.pop(context);
+                successScaffoldMsg(context, 'Error al eliminar: $e');
+              });
+              },
+              label: const Text('Eliminar'),
+              icon: const Icon(Icons.delete, color: Colors.red),
+            ),
+          ],
         ),
-      TextButton(
-          style: AppTheme.lightTheme.elevatedButtonTheme.style,
-        onPressed: () => Navigator.pop(context),
-        child: const Text('Cerrar'),
+          const SizedBox(width: 8),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        ),
+      ],
       ),
     ],
+    
   );
 }
+
+  Future<List<dynamic>> _getHistIncRegistros(String empleadoID) async {
+    List<dynamic> resultados = [];
+
+    List<IncapacidadModel> incapacidades = await getIncapacidadesByEmpleadoId(empleadoID);
+    for (var inc in incapacidades) {
+      EmpleadoModel? empleado = await getEmpleadoById(inc.userId);
+      if (empleado != null) {
+        resultados.add([inc, empleado]);
+      }
+    }
+
+    return resultados;
+  }
+
+  Future<List<dynamic>> _getUserData(String empleadoID) async {
+    List<dynamic> resultados = [];
+    EmpleadoModel? empleado = await getEmpleadoById(empleadoID);
+    if (empleado != null) {
+      AreaModel? area = await getAreaById(empleado.areaID);
+      resultados.add(empleado);
+      resultados.add(area);
+    }
+    return resultados;
+  }

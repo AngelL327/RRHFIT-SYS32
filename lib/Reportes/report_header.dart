@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart' as pdf_lib;
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
@@ -17,6 +21,8 @@ import 'package:rrhfit_sys32/logic/utilities/obtener_mes_string.dart';
 
 pw.Widget reportHeader({
   required String title,
+  pw.Widget? headerWidgets,
+  bool includeDate = true,
 	required pw.ImageProvider logo,
 	required String dateString,
 	double hPadding = 40,
@@ -24,7 +30,8 @@ pw.Widget reportHeader({
   double fontSize = 12,
   pw.Font? font,
 }) {
-	return pw.Container(
+  
+  return pw.Container(
 		padding: pw.EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding / 2),
 		child: pw.Row(
 			crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -53,7 +60,12 @@ pw.Widget reportHeader({
                 child: pw.Image(logo, fit: pw.BoxFit.contain, width: 100, height: 100),
               ),
 							pw.Text(title, style: font != null ? pw.TextStyle(font: font, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold)),
-							pw.Text("Al mes de ${getMonthString(DateTime.now().month)} - ${DateTime.now().year}", style: font != null ? pw.TextStyle(font: font, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold)),
+
+              includeDate ?
+                pw.Text("Al mes de ${getMonthString(DateTime.now().month)} - ${DateTime.now().year}", 
+                style: font != null ? pw.TextStyle(font: font, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold)) : pw.SizedBox(),
+
+              ?headerWidgets,
             ],
 					),
 				),

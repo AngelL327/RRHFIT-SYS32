@@ -1,8 +1,9 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:math';
+
+import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/Reportes/reporte_incapacidades_body.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
-import 'package:rrhfit_sys32/empleados/models/area_model.dart';
 import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/logic/area_functions.dart';
 import 'package:rrhfit_sys32/logic/empleados_functions.dart';
@@ -11,12 +12,9 @@ import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
-import 'package:rrhfit_sys32/pages/generate_pdf_screen.dart';
 import 'package:rrhfit_sys32/pages/rrhh/add_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/rrhh/incapacidades_details_page.dart';
-import 'package:rrhfit_sys32/widgets/alert_message.dart';
 import 'package:rrhfit_sys32/widgets/search_bar.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:rrhfit_sys32/widgets/summary_box.dart';
 import 'package:rrhfit_sys32/widgets/table_widget.dart';
 
@@ -246,6 +244,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                       tableHeaders: [
                         'Fecha Inicio',
                         'Fecha Fin',
+                        'Tipo',
                         'Estado',
                         'Empleado',
                         'Emisor y Documento',
@@ -257,6 +256,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                         return [
                           formatDate((inc[0] as IncapacidadModel).fechaInicioIncapacidad),
                           formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
+                          (inc[0] as IncapacidadModel).tipoIncapacidad,
                           (inc[0] as IncapacidadModel).estado,
                           (inc[0] as IncapacidadModel).usuario,
                           "${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}",
@@ -266,8 +266,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
 
                         ];
                       },
-                      columnFlexes: [1.1, 1.1, 1.0, 1.5, 1.7, 1.2, 1.5],
-                      bodyContent: reporteIncapacidadesBody(),
+                      columnFlexes: [1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4, 1.2],
+                      bodyContent: null,
                     ),
                   ),
 
@@ -334,15 +334,15 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                   }
 
                   const columns = [
-                        DataColumn(label: Center(child: Text('Fecha Solicitud'))),
-                        DataColumn(label: Center(child: Text('Empleado'))),
-                        DataColumn(label: Center(child: Text('Tipo'))),
-                        DataColumn(label: Center(child: Text('Ente Emisor'))),
-                        DataColumn(label: Center(child: Text('# Certificado'))),
-                        DataColumn(label: Center(child: Text('Inicio de incapacidad'))),
-                        DataColumn(label: Center(child: Text('Fin de incapacidad'))),
-                        DataColumn(label: Center(child: Text('Estado'))),
-                        DataColumn(label: Center(child: Text('Detalles'))),
+                        DataColumn2(label: Center(child: Text('Fecha Solicitud')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Empleado')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Tipo')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Ente Emisor')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('# Certificado')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Inicio de incapacidad')), size: ColumnSize.L),
+                        DataColumn2(label: Center(child: Text('Fin de incapacidad')), size: ColumnSize.L),
+                        DataColumn2(label: Center(child: Text('Estado')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Detalles')), size: ColumnSize.S),
                       ];
 
                   List<DataRow> dataRows = [];
@@ -413,7 +413,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
       AreaModel? area = await getAreaById(emp?.areaID);
       results.add([inc, emp, area]);
     }
-
+    print("EmpleadoID: ${Global().empleadoID}" );
     return results;
   }
 }

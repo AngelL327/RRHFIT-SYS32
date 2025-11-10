@@ -2,7 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:rrhfit_sys32/Reportes/historial_incapacidades_empleado_body.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/logic/area_functions.dart';
+import 'package:rrhfit_sys32/logic/empleados_functions.dart';
+import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
+import 'package:rrhfit_sys32/logic/models/area_model.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
+import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
+import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'dart:io';
+import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/pages/empleados/reporte_vouncher.dart';
 
 class MiPerfilPage extends StatefulWidget {
@@ -486,6 +496,7 @@ class _MiPerfilPageState extends State<MiPerfilPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        //Comprobante de pago
                         Row(
                           children: [
                             Icon(Icons.receipt_long, color: Colors.green[700], size: 24),
@@ -529,6 +540,66 @@ class _MiPerfilPageState extends State<MiPerfilPage> {
                             ),
                           ),
                         ),
+                      
+                        const SizedBox(height: 24),
+                      //Historial de incapacidades
+                        Row(
+                          children: [
+                            Icon(Icons.receipt_long, color: Colors.green[700], size: 24),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Historial de Incapacidades',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Descarga tu historial de incapacidades',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child:GenerateHistoriaIncapacidades(
+                            buttonLabel: "Descargar Historial de Incapacidades", 
+                            reportTitle: "Historial de Incapacidades", 
+                            fetchData: _getHistIncRegistros,
+                            userData: _getUserData,
+                            tableHeaders: [
+                              'Fecha Solicitud',
+                              'Tipo Incapacidad',
+                              'Emisor y Documento',
+                              'Fecha Inicio',
+                              'Fecha Fin',
+                              'Motivo',
+                              'Estado',
+                            ],
+                            rowMapper: (inc) {
+                              return [
+                                formatDate((inc[0] as IncapacidadModel).fechaSolicitud),
+                                (inc[0] as IncapacidadModel).tipoIncapacidad,
+                                '${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}',
+                                formatDate((inc[0] as IncapacidadModel).fechaInicioIncapacidad),
+                                formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
+                                (inc[0] as IncapacidadModel).motivo.length > 30
+                                    ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...'
+                                    : (inc[0] as IncapacidadModel).motivo,
+                                (inc[0] as IncapacidadModel).estado,
+                              ];
+                            },
+                        ),
+                        )
+                      
+                      
+                      
                       ],
                     ),
                   ),
@@ -539,5 +610,31 @@ class _MiPerfilPageState extends State<MiPerfilPage> {
         ),
       ),
     );
+  }
+
+  Future<List<dynamic>> _getHistIncRegistros() async {
+    List<dynamic> resultados = [];
+    
+    List<IncapacidadModel> incapacidades = await getIncapacidadesByEmpleadoId(Global().empleadoID!);
+    for (var inc in incapacidades) {
+      EmpleadoModel? empleado = await getEmpleadoById(inc.userId);
+      if (empleado != null) {
+        resultados.add([inc, empleado]);
+      }
+    }
+
+    return resultados;
+  }
+
+  Future<List<dynamic>> _getUserData() async {
+    List<dynamic> resultados = [];
+    
+    EmpleadoModel? empleado = await getEmpleadoById(Global().empleadoID!);
+    if (empleado != null) {
+      AreaModel? area = await getAreaById(empleado.areaID);
+      resultados.add(empleado);
+      resultados.add(area);
+    }
+    return resultados;
   }
 }

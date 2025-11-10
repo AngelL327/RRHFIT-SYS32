@@ -18,3 +18,4 @@ Future<AreaModel?> getAreaById(String? id) async {
     return null; // No area found with the given id
   }
 }
+

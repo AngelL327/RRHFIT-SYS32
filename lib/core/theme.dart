@@ -27,12 +27,12 @@ class AppTheme {
         elevation: 0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
+        
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: cream,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       textTheme: base.textTheme.copyWith(

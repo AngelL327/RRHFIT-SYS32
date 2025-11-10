@@ -8,8 +8,10 @@ import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:rrhfit_sys32/Reportes/report_header.dart';
 import 'package:rrhfit_sys32/Reportes/report_footer.dart';
-class GeneratePDFButton<T> extends StatelessWidget {
-  const GeneratePDFButton({
+import 'package:rrhfit_sys32/logic/models/area_model.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
+class GenerateHistoriaIncapacidades<T> extends StatelessWidget {
+  const GenerateHistoriaIncapacidades({
     super.key,
     required this.buttonLabel,
     required this.reportTitle,
@@ -20,7 +22,13 @@ class GeneratePDFButton<T> extends StatelessWidget {
     this.fallbackLogoAsset = 'images/fittlay.png',
     this.fontAsset = 'assets/fonts/Roboto-Regular.ttf',
     this.columnFlexes,
-    required this.bodyContent,
+    this.bodyContent,
+    required this.userData,
+    // required this.empleadoNombre,
+    // required this.empleadoCorreo,
+    // required this.empleadoArea,
+    // required this.empleadoTelefono,
+
   });
 
   final String buttonLabel;
@@ -32,15 +40,19 @@ class GeneratePDFButton<T> extends StatelessWidget {
   final String fallbackLogoAsset;
   final String fontAsset;
   final List<double>? columnFlexes;
-  final pw.Widget bodyContent;
+  final pw.Widget? bodyContent;
+  final Future<List<T>> Function() userData;
 
   Future<Uint8List> _buildPdf(pdf_lib.PdfPageFormat format) async {
     final doc = pw.Document();
     final data = await fetchData();
+    final userInfo = await userData();
+    
 
     final dateFmt = DateFormat('dd-MM-yyyy');
     final double hPadding = 30;
     final double vPadding = 10;
+    final double fontSize = 12;
 
     // load logo from assets into a MemoryImage for the pdf
     Uint8List logoBytes;
@@ -66,6 +78,7 @@ class GeneratePDFButton<T> extends StatelessWidget {
         margin: pw.EdgeInsets.zero,
         header: (context) => reportHeader(
           title: reportTitle,
+          includeDate: false,
           logo: logoImage,
           dateString: dateFmt.format(DateTime.now()),
           hPadding: 0,
@@ -85,6 +98,74 @@ class GeneratePDFButton<T> extends StatelessWidget {
           }
 
           return [
+            pw.SizedBox(height: 20),
+            pw.Row(
+              mainAxisSize: pw.MainAxisSize.max,
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Expanded(child:
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Text(
+                      'Empleado:${(userInfo[0] as EmpleadoModel).nombre}',
+                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.SizedBox(height: 15)
+                  ],
+                ),
+                ),
+
+                pw.Expanded(child:
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Text(
+                      'Correo:${(userInfo[0] as EmpleadoModel).correo}',
+                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize) : pw.TextStyle(fontSize: fontSize),
+                    ),
+                    pw.SizedBox(height: 15)
+                  ],
+                )
+                ),
+              ],
+
+            ),
+
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              mainAxisSize: pw.MainAxisSize.max,
+              children: [
+                pw.Expanded(child: 
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Text(
+                      'Área:${(userInfo[1] as AreaModel).nombre}',
+                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.SizedBox(height: 15)
+
+                  ],
+                ),
+                ),
+
+                pw.Expanded(child:
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Text(
+                      'Teléfono:${(userInfo[0] as EmpleadoModel).telefono}',
+                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.SizedBox(height: 15)
+                  ],
+                )
+                ),
+              ],
+            ),
+
+
             pw.Padding(
               padding: pw.EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
               child: pw.TableHelper.fromTextArray(
@@ -98,8 +179,6 @@ class GeneratePDFButton<T> extends StatelessWidget {
                 border: pw.TableBorder.all(width: 0.5, color: pdf_lib.PdfColors.black),
               ),
             ),
-
-            bodyContent,
           ];
         },
       ),
