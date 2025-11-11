@@ -411,11 +411,12 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
 
     List<IncapacidadModel> incapacidades = await getAllIncapacidades();
     for (var inc in incapacidades) {
-      print("Incapacidad: ${inc.toJson()}");
       EmpleadoModel? emp = await getEmpleadoById(inc.userId);
-      print("Empleado: ${emp?.toJson()}");
-      
+      if (emp == null) continue;
+
       AreaModel? area = await getAreaById(emp?.areaID);
+      if (area == null) continue;
+      
       results.add([inc, emp, area]);
     }
 
