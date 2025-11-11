@@ -9,6 +9,7 @@ import 'package:rrhfit_sys32/logic/area_functions.dart';
 import 'package:rrhfit_sys32/logic/empleados_functions.dart';
 import 'package:rrhfit_sys32/logic/models/area_model.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
+import 'package:rrhfit_sys32/logic/models/incapacidad_row.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
@@ -102,12 +103,6 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(Global().currentUser?.email ?? 'No user email');
-    print(Global().currentUser?.uid ?? 'No user UID');
-    print(Global().userName ?? 'No user display name');
-
-
-
     return Scaffold(
       appBar: AppBar(
             title: const Align(
@@ -140,174 +135,165 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
         child: Column(
           children: [
             // Summary
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-
-                //Total de solicitudes
-                FutureBuilder<String?>(
-                  future: getCountIncapacidades(),
-                  builder: (context, snapshot) {
-                    final text = snapshot.connectionState == ConnectionState.waiting
-                        ? '...'
-                        : (snapshot.data ?? '0');
-                    return SummaryBox(
-                      title: 'Total de solicitudes:',
-                      number: text,
-                      color: Colors.blueGrey,
-                    );
-                  },
-                ),
-                //Total de solicitudes revisadas
-                FutureBuilder<String?>(
-                  future: getCountIncapacidadesRevisadas(),
-                  builder: (context, snapshot) {
-                    final text = snapshot.connectionState == ConnectionState.waiting
-                        ? '...'
-                        : (snapshot.data ?? '0');
-                    return SummaryBox(
-                      title: 'Solicitudes revisadas:',
-                      number: text,
-                      color: Colors.green,
-                    );
-                  },
-                ),
-                //Total de solicitudes pendientes
-                FutureBuilder<String?>(
-                  future: getCountIncapacidadesPendientes(),
-                  builder: (context, snapshot) {
-                    final text = snapshot.connectionState == ConnectionState.waiting
-                        ? '...'
-                        : (snapshot.data ?? '0');
-                    return SummaryBox(
-                      title: 'Solicitudes pendientes:',
-                      number: text,
-                      color: Colors.orange,
-                    );
-                  },
-                ),
-                //Total de solicitudes rechazadas
-                FutureBuilder<String?>(
-                  future: getCountIncapacidadesRechazadas(),
-                  builder: (context, snapshot) {
-                    final text = snapshot.connectionState == ConnectionState.waiting
-                        ? '...'
-                        : (snapshot.data ?? '0');
-                    return SummaryBox(
-                      title: 'Solicitudes rechazadas:',
-                      number: text,
-                      color: Colors.red,
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Search bar and PDF button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  //Añadir nueva solicitud de incapacidad
-                  IconButton(
-                    style: AppTheme.lightTheme.elevatedButtonTheme.style,
-                    icon: Row(
-                      children: [
-                        const Icon(Icons.add_circle, color: AppTheme.cream ),
-                        const SizedBox(width: 8),
-                        Text('Añadir nueva solicitud', style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 16),),
-                      ],
-                    ),
-                    tooltip: 'Añadir nueva solicitud de incapacidad',
-                    onPressed: () async {
-                      final created = await showAddIncapacidadDialog(context);
-                      if (created == true) {
-                        setState(() {});
-                      }
+                
+                  //Total de solicitudes
+                  FutureBuilder<String?>(
+                    future: getCountIncapacidades(),
+                    builder: (context, snapshot) {
+                      final text = snapshot.connectionState == ConnectionState.waiting
+                          ? '...'
+                          : (snapshot.data ?? '0');
+                      return SummaryBox(
+                        title: 'Total de solicitudes:',
+                        number: text,
+                        color: Colors.blueGrey,
+                      );
                     },
                   ),
-
-
-
-
-                  //Reporte PDF
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: GeneratePDFButton<dynamic>(
-                      buttonLabel: 'Imprimir reporte de incapacidades',
-                      reportTitle: 'Reporte de Incapacidades',
-                      fetchData: getRegistros,
-                      tableHeaders: [
-                        'Fecha Inicio',
-                        'Fecha Fin',
-                        'Tipo',
-                        'Estado',
-                        'Empleado',
-                        'Emisor y Documento',
-                        'Correo',
-                        'Motivo',
-                        'Area',
-                      ],
-                      rowMapper: (inc) {
-                        return [
-                          formatDate((inc[0] as IncapacidadModel).fechaInicioIncapacidad),
-                          formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
-                          (inc[0] as IncapacidadModel).tipoIncapacidad,
-                          (inc[0] as IncapacidadModel).estado,
-                          (inc[0] as IncapacidadModel).usuario,
-                          "${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}",
-                          //(inc[1] as EmpleadoModel).correo,
-                          "Correo@gmail.com",
-                          (inc[0] as IncapacidadModel).motivo.length > 30 ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...' : (inc[0] as IncapacidadModel).motivo,
-                          //(inc[2] as AreaModel).nombre,
-                          "No asignada",
-
-                        ];
-                      },
-                      columnFlexes: [1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4, 1.2],
-                      bodyContent: null,
-                    ),
-                  ),
-
-
-
-
-                  //Search bar
-                  SearchBarWidget(
-                  hintText: 'Buscar por empleado, tipo, estado o fecha',
-                  initialQuery: _query,
-                  onChanged: (value) => value.isNotEmpty ? setState(() => _query = value.toLowerCase()) : null,
-                  onClear: () => setState(() => _query = ''),
-                  sortColumns: _sortColumns,
-                  currentSortColumn: _sortColumn,
-                  currentSortAsc: _sortAsc,
-                  onSortSelected: (key) {
-                    setState(() {
-                      if (key == null) {
-                        _sortColumn = null;
-                        _sortAsc = true;
-                      } else if (_sortColumn == key) {
-                        _sortAsc = !_sortAsc;
-                      } else {
-                        _sortColumn = key;
-                        _sortAsc = true;
-                      }
+                  //Total de solicitudes revisadas
+                  FutureBuilder<String?>(
+                    future: getCountIncapacidadesRevisadas(),
+                    builder: (context, snapshot) {
+                      final text = snapshot.connectionState == ConnectionState.waiting
+                          ? '...'
+                          : (snapshot.data ?? '0');
+                      return SummaryBox(
+                        title: 'Solicitudes revisadas:',
+                        number: text,
+                        color: Colors.green,
+                      );
                     },
-                    );
-                  },
-                ),
+                  ),
+                  //Total de solicitudes pendientes
+                  FutureBuilder<String?>(
+                    future: getCountIncapacidadesPendientes(),
+                    builder: (context, snapshot) {
+                      final text = snapshot.connectionState == ConnectionState.waiting
+                          ? '...'
+                          : (snapshot.data ?? '0');
+                      return SummaryBox(
+                        title: 'Solicitudes pendientes:',
+                        number: text,
+                        color: Colors.orange,
+                      );
+                    },
+                  ),
+                  //Total de solicitudes rechazadas
+                  FutureBuilder<String?>(
+                    future: getCountIncapacidadesRechazadas(),
+                    builder: (context, snapshot) {
+                      final text = snapshot.connectionState == ConnectionState.waiting
+                          ? '...'
+                          : (snapshot.data ?? '0');
+                      return SummaryBox(
+                        title: 'Solicitudes rechazadas:',
+                        number: text,
+                        color: Colors.red,
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-
-
-
-
+            
+            // Search bar and PDF button
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //Añadir nueva solicitud de incapacidad
+                    IconButton(
+                      style: AppTheme.lightTheme.elevatedButtonTheme.style,
+                      icon: Row(
+                        children: [
+                          const Icon(Icons.add_circle, color: AppTheme.cream ),
+                          const SizedBox(width: 8),
+                          Text('Añadir nueva solicitud', style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 16),),
+                        ],
+                      ),
+                      tooltip: 'Añadir nueva solicitud de incapacidad',
+                      onPressed: () async {
+                        final created = await showAddIncapacidadDialog(context);
+                        if (created == true) {
+                          setState(() {});
+                        }
+                      },
+                    ),
+              
+              
+              
+              
+                    //Reporte PDF
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: GeneratePDFButton<IncapacidadRow>(
+                        buttonLabel: 'Imprimir reporte de incapacidades',
+                        reportTitle: 'Reporte de Incapacidades',
+                        fetchData: getRegistros,
+                        tableHeaders: [
+                          'Fecha Inicio',
+                          'Fecha Fin',
+                          'Tipo',
+                          'Estado',
+                          'Empleado',
+                          'Emisor y Documento',
+                          'Correo',
+                          'Motivo',
+                          'Area',
+                        ],
+                        rowMapper: (row) => row.toStringList(),
+                        columnFlexes: [1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4, 1.2],
+                        bodyContent: null,
+                      ),
+                    ),
+              
+              
+              
+              
+                    //Search bar
+                    SearchBarWidget(
+                    hintText: 'Buscar por empleado, tipo, estado o fecha',
+                    initialQuery: _query,
+                    onChanged: (value) => value.isNotEmpty ? setState(() => _query = value.toLowerCase()) : null,
+                    onClear: () => setState(() => _query = ''),
+                    sortColumns: _sortColumns,
+                    currentSortColumn: _sortColumn,
+                    currentSortAsc: _sortAsc,
+                    onSortSelected: (key) {
+                      setState(() {
+                        if (key == null) {
+                          _sortColumn = null;
+                          _sortAsc = true;
+                        } else if (_sortColumn == key) {
+                          _sortAsc = !_sortAsc;
+                        } else {
+                          _sortColumn = key;
+                          _sortAsc = true;
+                        }
+                      },
+                      );
+                    },
+                  ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+              
+              
+              
+              
             // Table
             Expanded(
               child: FutureBuilder<List<IncapacidadModel>>( 
@@ -320,21 +306,21 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
                   final list = snapshot.data ?? [];
-
+              
                   if (list.isEmpty) {
                     return const Center(child: Text('No hay incapacidades registradas'));
                   }
-
+              
                   final filtered = list.where((inc) => _matchesQuery(inc, _query)).toList();                  
                   final sorted = List<IncapacidadModel>.from(filtered);
                   if (_sortColumn != null) {
                     sorted.sort((a, b) => _compareByColumn(a, b));
                   }
-
+              
                   if (filtered.isEmpty) {
                     return const Center(child: Text('No hay resultados que coincidan con la búsqueda'));
                   }
-
+              
                   const columns = [
                         DataColumn2(label: Center(child: Text('Fecha Solicitud')), size: ColumnSize.M),
                         DataColumn2(label: Center(child: Text('Empleado')), size: ColumnSize.M),
@@ -346,17 +332,18 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                         DataColumn2(label: Center(child: Text('Estado')), size: ColumnSize.M),
                         DataColumn2(label: Center(child: Text('Detalles')), size: ColumnSize.S),
                       ];
-
+              
                   List<DataRow> dataRows = [];
-
+              
                   for (var inc in sorted) {
                     dataRows.add(
-                      DataRow(cells: [
+                      DataRow2(
+                        cells: [
                         DataCell(Center(child: Text(formatDate(inc.fechaSolicitud)))),
                         DataCell(Text(inc.usuario)),
                         DataCell(Text(inc.tipoIncapacidad)),
                         DataCell(Text(inc.enteEmisor)),
-                        DataCell(Center(child: Text(inc.numCertificado))),
+                        DataCell(Text(inc.numCertificado)),
                         DataCell(Center(child: Text(formatDate(inc.fechaInicioIncapacidad)))),
                         DataCell(Center(child: Text(formatDate(inc.fechaFinIncapacidad)))),
                         DataCell(inc.estado == "Pendiente" ? 
@@ -364,29 +351,32 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                         : inc.estado == "Aprobada" ? 
                         Center(child: const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),))
                         : Center(child: const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),))),
-
+              
                         DataCell(
                           Center(
-                            child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.blue,
-                              foregroundColor: Colors.white,
+                            child: FittedBox(
+                              fit: BoxFit.fitWidth,
+                              child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.blue,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Ver'),
+                              onPressed: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (context) => buildDetallesDialog(context, inc, setState: () {
+                                    setState(() {});
+                                  }),
+                                );
+                              },
+                                                        ),
                             ),
-                            child: const Text('Ver'),
-                            onPressed: () {
-                              showDialog<void>(
-                                context: context,
-                                builder: (context) => buildDetallesDialog(context, inc, setState: () {
-                                  setState(() {});
-                                }),
-                              );
-                            },
-                                                    ),
                           )),
                       ]),
                     );
                   }
-
+              
                   // Horizontal + vertical scrollable table
                   // return SingleChildScrollView(
                   //   scrollDirection: Axis.horizontal,
@@ -406,20 +396,39 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
       ),
     );
   }
-  Future<List<dynamic>> getRegistros() async {
-    List results = [];
+  Future<List<IncapacidadRow>> getRegistros() async {
+    final incapacidades = await getAllIncapacidades();
 
-    List<IncapacidadModel> incapacidades = await getAllIncapacidades();
-    for (var inc in incapacidades) {
-      EmpleadoModel? emp = await getEmpleadoById(inc.userId);
-      if (emp == null) continue;
+    // Obtener empleados en paralelo (manteniendo el orden)
+    final empleados = await Future.wait(
+      incapacidades.map((inc) => getEmpleadoById(inc.userId)),
+    );
 
-      AreaModel? area = await getAreaById(emp?.areaID);
-      if (area == null) continue;
-      
-      results.add([inc, emp, area]);
+    // Recolectar IDs de area únicos para pedirlos una sola vez
+    final uniqueAreaIds = empleados
+        .where((e) => e != null)
+        .map((e) => e!.areaID)
+        .toSet()
+        .toList();
+
+    // Pedir áreas en paralelo
+    final areasList = await Future.wait(uniqueAreaIds.map((id) => getAreaById(id)));
+
+    // Map id -> AreaModel?
+    final areaMap = <String?, AreaModel?>{};
+    for (var i = 0; i < uniqueAreaIds.length; i++) {
+      areaMap[uniqueAreaIds[i]] = areasList[i];
     }
 
-    return results;
+    // Construir filas en orden
+    final rows = <IncapacidadRow>[];
+    for (var i = 0; i < incapacidades.length; i++) {
+      final inc = incapacidades[i];
+      final emp = empleados[i];
+      final area = (emp != null) ? areaMap[emp.areaID] : null;
+      rows.add(IncapacidadRow(incapacidad: inc, empleado: emp, area: area));
+    }
+
+    return rows;
   }
 }

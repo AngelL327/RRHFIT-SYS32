@@ -154,16 +154,23 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
             'Estado',
             ],
             rowMapper: (inc) {
+            IncapacidadModel? incModel;
+            if (inc is IncapacidadModel) {
+              incModel = inc;
+            } else if (inc is List && inc.isNotEmpty && inc[0] is IncapacidadModel) {
+              incModel = inc[0] as IncapacidadModel;
+            }
+
+            if (incModel == null) return List<String>.filled(7, '');
+
             return [
-              formatDate((inc[0] as IncapacidadModel).fechaSolicitud),
-              (inc[0] as IncapacidadModel).tipoIncapacidad,
-              '${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}',
-              formatDate((inc[0] as IncapacidadModel).fechaInicioIncapacidad),
-              formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
-              (inc[0] as IncapacidadModel).motivo.length > 30
-                ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...'
-                : (inc[0] as IncapacidadModel).motivo,
-              (inc[0] as IncapacidadModel).estado,
+              formatDate(incModel.fechaSolicitud),
+              incModel.tipoIncapacidad,
+              '${incModel.enteEmisor}\n#${incModel.numCertificado}',
+              formatDate(incModel.fechaInicioIncapacidad),
+              formatDate(incModel.fechaFinIncapacidad),
+              incModel.motivo.length > 30 ? '${incModel.motivo.substring(0, 30)}...' : incModel.motivo,
+              incModel.estado,
             ];
             },
           ),

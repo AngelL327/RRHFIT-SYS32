@@ -5,8 +5,10 @@ import 'package:data_table_2/data_table_2.dart';
 
 DataTable2 tableGenerator(List<IncapacidadModel> sorted, BuildContext context, List<DataColumn> columns, List<DataRow> rows) {
     return DataTable2(
-      border: TableBorder.all(color: Colors.black54, width: 2),
-      minWidth: 900,
+        border: TableBorder.all(color: Colors.black54, width: 2),
+        minWidth: 900,
+        horizontalMargin: 8,
+        columnSpacing: 8,
       headingTextStyle: TextStyle(
         fontWeight: FontWeight.bold, 
         fontSize: 15, 

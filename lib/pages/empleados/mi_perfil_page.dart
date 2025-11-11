@@ -9,7 +9,9 @@ import 'package:rrhfit_sys32/logic/empleados_functions.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
 import 'package:rrhfit_sys32/logic/models/area_model.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_row.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
+import 'package:rrhfit_sys32/logic/models/incapacidad_row.dart'; // <-- agregado
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'dart:io';
 import 'package:rrhfit_sys32/globals.dart';
@@ -582,17 +584,18 @@ class _MiPerfilPageState extends State<MiPerfilPage> {
                               'Motivo',
                               'Estado',
                             ],
-                            rowMapper: (inc) {
+                            rowMapper: (row) {
+                              final inc = row.incapacidad;
                               return [
-                                formatDate((inc[0] as IncapacidadModel).fechaSolicitud),
-                                (inc[0] as IncapacidadModel).tipoIncapacidad,
-                                '${(inc[0] as IncapacidadModel).enteEmisor}\n#${(inc[0] as IncapacidadModel).numCertificado}',
-                                formatDate((inc[0] as IncapacidadModel).fechaInicioIncapacidad),
-                                formatDate((inc[0] as IncapacidadModel).fechaFinIncapacidad),
-                                (inc[0] as IncapacidadModel).motivo.length > 30
-                                    ? '${(inc[0] as IncapacidadModel).motivo.substring(0, 30)}...'
-                                    : (inc[0] as IncapacidadModel).motivo,
-                                (inc[0] as IncapacidadModel).estado,
+                                formatDate(inc.fechaSolicitud),
+                                inc.tipoIncapacidad,
+                                '${inc.enteEmisor}\n#${inc.numCertificado}',
+                                formatDate(inc.fechaInicioIncapacidad),
+                                formatDate(inc.fechaFinIncapacidad),
+                                inc.motivo.length > 30
+                                    ? '${inc.motivo.substring(0, 30)}...'
+                                    : inc.motivo,
+                                inc.estado,
                               ];
                             },
                         ),
@@ -612,29 +615,24 @@ class _MiPerfilPageState extends State<MiPerfilPage> {
     );
   }
 
-  Future<List<dynamic>> _getHistIncRegistros() async {
-    List<dynamic> resultados = [];
-    
-    List<IncapacidadModel> incapacidades = await getIncapacidadesByEmpleadoId(Global().empleadoID!);
+  Future<List<IncapacidadRow>> _getHistIncRegistros() async {
+    final resultados = <IncapacidadRow>[];
+
+    final incapacidades = await getIncapacidadesByEmpleadoId(Global().empleadoID!);
+    final empleado = await getEmpleadoById(Global().empleadoID!);
+    final area = (empleado != null) ? await getAreaById(empleado.areaID) : null;
+
     for (var inc in incapacidades) {
-      EmpleadoModel? empleado = await getEmpleadoById(inc.userId);
-      if (empleado != null) {
-        resultados.add([inc, empleado]);
-      }
+      resultados.add(IncapacidadRow(incapacidad: inc, empleado: empleado, area: area));
     }
 
     return resultados;
   }
 
-  Future<List<dynamic>> _getUserData() async {
-    List<dynamic> resultados = [];
-    
-    EmpleadoModel? empleado = await getEmpleadoById(Global().empleadoID!);
-    if (empleado != null) {
-      AreaModel? area = await getAreaById(empleado.areaID);
-      resultados.add(empleado);
-      resultados.add(area);
-    }
-    return resultados;
+  Future<EmpleadoRow?> _getUserData() async {
+    final empleado = await getEmpleadoById(Global().empleadoID!);
+    if (empleado == null) return null;
+    final area = await getAreaById(empleado.areaID);
+    return EmpleadoRow(empleado: empleado, area: area);
   }
 }

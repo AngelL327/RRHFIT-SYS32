@@ -25,7 +25,6 @@ Future<EmpleadoModel?> getEmpleadoById(String empleadoID) async {
   if (snapshot.docs.isNotEmpty) {
     final doc = snapshot.docs.first;
     final data = doc.data();
-    print("Empleado Data: $data");
     return EmpleadoModel.fromJson(data);
   } else {
     return null; // No employee found with the given uid

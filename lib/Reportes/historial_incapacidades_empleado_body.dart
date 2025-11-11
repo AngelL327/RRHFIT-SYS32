@@ -10,44 +10,40 @@ import 'package:rrhfit_sys32/Reportes/report_header.dart';
 import 'package:rrhfit_sys32/Reportes/report_footer.dart';
 import 'package:rrhfit_sys32/logic/models/area_model.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_row.dart';
+
 class GenerateHistoriaIncapacidades<T> extends StatelessWidget {
   const GenerateHistoriaIncapacidades({
-    super.key,
+    Key? key,
     required this.buttonLabel,
     required this.reportTitle,
     required this.fetchData,
     required this.tableHeaders,
     required this.rowMapper,
+    required this.userData,
     this.logoAsset = 'assets/images/fittlay_imagotipo.png',
     this.fallbackLogoAsset = 'images/fittlay.png',
     this.fontAsset = 'assets/fonts/Roboto-Regular.ttf',
     this.columnFlexes,
     this.bodyContent,
-    required this.userData,
-    // required this.empleadoNombre,
-    // required this.empleadoCorreo,
-    // required this.empleadoArea,
-    // required this.empleadoTelefono,
-
-  });
+  }) : super(key: key);
 
   final String buttonLabel;
   final String reportTitle;
   final Future<List<T>> Function() fetchData;
   final List<String> tableHeaders;
   final List<String> Function(T item) rowMapper;
+  final Future<EmpleadoRow?> Function() userData;
   final String logoAsset;
   final String fallbackLogoAsset;
   final String fontAsset;
   final List<double>? columnFlexes;
   final pw.Widget? bodyContent;
-  final Future<List<T>> Function() userData;
 
   Future<Uint8List> _buildPdf(pdf_lib.PdfPageFormat format) async {
     final doc = pw.Document();
     final data = await fetchData();
     final userInfo = await userData();
-    
 
     final dateFmt = DateFormat('dd-MM-yyyy');
     final double hPadding = 30;
@@ -97,74 +93,76 @@ class GenerateHistoriaIncapacidades<T> extends StatelessWidget {
             widths[i] = pw.FlexColumnWidth(flex);
           }
 
+          // Extract user info from the typed DTO returned by userData()
+          EmpleadoModel? _empleado = userInfo?.empleado;
+          AreaModel? _area = userInfo?.area;
+
           return [
             pw.SizedBox(height: 20),
+
             pw.Row(
               mainAxisSize: pw.MainAxisSize.max,
               mainAxisAlignment: pw.MainAxisAlignment.center,
               children: [
-                pw.Expanded(child:
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    pw.Text(
-                      'Empleado:${(userInfo[0] as EmpleadoModel).nombre}',
-                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.SizedBox(height: 15)
-                  ],
-                ),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Text(
+                        'Empleado: ${_empleado?.nombre ?? ''}',
+                        style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.SizedBox(height: 15),
+                    ],
+                  ),
                 ),
 
-                pw.Expanded(child:
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    pw.Text(
-                      'Correo:${(userInfo[0] as EmpleadoModel).correo}',
-                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize) : pw.TextStyle(fontSize: fontSize),
-                    ),
-                    pw.SizedBox(height: 15)
-                  ],
-                )
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Text(
+                        'Correo: ${_empleado?.correo ?? ''}',
+                        style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize) : pw.TextStyle(fontSize: fontSize),
+                      ),
+                      pw.SizedBox(height: 15),
+                    ],
+                  ),
                 ),
               ],
-
             ),
 
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.center,
               mainAxisSize: pw.MainAxisSize.max,
               children: [
-                pw.Expanded(child: 
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    pw.Text(
-                      'Área:${(userInfo[1] as AreaModel).nombre}',
-                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.SizedBox(height: 15)
-
-                  ],
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Text(
+                        'Área: ${_area?.nombre ?? ''}',
+                        style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.SizedBox(height: 15),
+                    ],
+                  ),
                 ),
-                ),
 
-                pw.Expanded(child:
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    pw.Text(
-                      'Teléfono:${(userInfo[0] as EmpleadoModel).telefono}',
-                      style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.SizedBox(height: 15)
-                  ],
-                )
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Text(
+                        'Teléfono: ${_empleado?.telefono ?? ''}',
+                        style: ttf != null ? pw.TextStyle(font: ttf, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.SizedBox(height: 15),
+                    ],
+                  ),
                 ),
               ],
             ),
-
 
             pw.Padding(
               padding: pw.EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
@@ -175,7 +173,7 @@ class GenerateHistoriaIncapacidades<T> extends StatelessWidget {
                 cellStyle: ttf != null ? pw.TextStyle(font: ttf, fontSize: 9) : pw.TextStyle(fontSize: 9),
                 cellAlignment: pw.Alignment.centerLeft,
                 headerDecoration: pw.BoxDecoration(color: AppTheme.pdfTableHeaderBG),
-                columnWidths: widths,                
+                columnWidths: widths,
                 border: pw.TableBorder.all(width: 0.5, color: pdf_lib.PdfColors.black),
               ),
             ),
