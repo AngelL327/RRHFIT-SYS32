@@ -9,6 +9,7 @@ import 'package:rrhfit_sys32/logic/empleados_functions.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
 import 'package:rrhfit_sys32/logic/models/area_model.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_row.dart';
 import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
@@ -143,7 +144,7 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
             buttonLabel: "Descargar Historial de Incapacidad del Empleado",
             reportTitle: "Historial de Incapacidades",
             fetchData: () => _getHistIncRegistros(inc.userId),
-            userData: () => _getUserData(inc.userId),
+              userData: () => _getUserDataRow(inc.userId),
             tableHeaders: [
             'Fecha Solicitud',
             'Tipo Incapacidad',
@@ -315,4 +316,12 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
       resultados.add(area);
     }
     return resultados;
+  }
+
+  // Adapter that returns a typed EmpleadoRow? for consumers that expect it
+  Future<EmpleadoRow?> _getUserDataRow(String empleadoID) async {
+    final empleado = await getEmpleadoById(empleadoID);
+    if (empleado == null) return null;
+    final area = await getAreaById(empleado.areaID);
+    return EmpleadoRow(empleado: empleado, area: area);
   }

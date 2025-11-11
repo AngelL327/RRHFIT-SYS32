@@ -1,7 +1,6 @@
 
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:printing/printing.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 
 Future<List<EmpleadoModel>> getAllEmpleados() async {
@@ -27,6 +26,6 @@ Future<EmpleadoModel?> getEmpleadoById(String empleadoID) async {
     final data = doc.data();
     return EmpleadoModel.fromJson(data);
   } else {
-    return null; // No employee found with the given uid
+    return null;
   }
 }
