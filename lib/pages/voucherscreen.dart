@@ -18,174 +18,223 @@ class _VoucherScreenState extends State<VoucherScreen> {
     initializeDateFormatting('es_HN', null);
   }
 
-  @override
-Widget build(BuildContext context) {
-  final fechaReporte =
-      '${toBeginningOfSentenceCase(['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][DateTime.now().month - 1])} ${DateTime.now().year}';
+  // === MARCAR COMO ENVIADO ===
+  Future<void> _marcarComoEnviado(String docId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('vouchers')
+          .doc(docId)
+          .update({
+        'estado': 'Enviado',
+        'fecha_enviado': FieldValue.serverTimestamp(),
+      });
 
-  return Scaffold(
-    backgroundColor: Colors.grey[50],
-    appBar: AppBar(
-      title: const Text('Reporte de Vouchers'),
-      centerTitle: true,
-      backgroundColor: Colors.blueAccent,
-      elevation: 0,
-    ),
-
-    body: Stack(
-      children: [
-        // MARCA DE AGUA
-        Positioned.fill(
-          child: Opacity(
-            opacity: 0.05,
-            child: Image.asset('assets/images/fittlay.png', fit: BoxFit.contain),
-          ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Voucher marcado como Enviado"),
+          backgroundColor: Colors.green,
         ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
 
-        // CONTENIDO
-        SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Text(
-                  'Reporte: $fechaReporte',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 30),
+  @override
+  Widget build(BuildContext context) {
+    final fechaReporte =
+        '${toBeginningOfSentenceCase(['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][DateTime.now().month - 1])} ${DateTime.now().year}';
 
-                // CARD DE INDICADORES
-                StreamBuilder(
-                  stream: FirebaseFirestore.instance.collection('vouchers').snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('Reporte de Vouchers'),
+        centerTitle: true,
+        backgroundColor: Colors.blueAccent,
+        elevation: 0,
+      ),
 
-                    final docs = snapshot.data!.docs;
-                    final generados = docs.where((d) => d['estado'] == 'Generado').length;
-                    final enviados = docs.where((d) => d['estado'] == 'Enviado').length;
-                    final pendientes = docs.where((d) => d['estado'] == 'Pendiente').length;
+      body: Stack(
+        children: [
+          // MARCA DE AGUA
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.05,
+              child: Image.asset('assets/images/fittlay.png', fit: BoxFit.contain),
+            ),
+          ),
 
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildSmallCard(color: Colors.orange, value: generados, label: 'Generados'),
-                          _buildSmallCard(color: Colors.green, value: enviados, label: 'Enviados'),
-                          _buildSmallCard(color: Colors.blue, value: pendientes, label: 'Pendientes'),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 30),
-
-                // TABLA DE VOUCHERS
-                Container(
-                  width: double.infinity,
-                  height: 350,
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
-                    ],
+          // CONTENIDO
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    'Reporte: $fechaReporte',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
-                  child: StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection("vouchers")
-                        .orderBy("fecha_creado", descending: true)
-                        .snapshots(),
+                  const SizedBox(height: 30),
+
+                  // CARD DE INDICADORES
+                  StreamBuilder(
+                    stream: FirebaseFirestore.instance.collection('vouchers').snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
 
                       final docs = snapshot.data!.docs;
+                      final totalGenerados = docs.length;
+                      final enviados = docs.where((d) => d['estado'] == 'Enviado').length;
+                      final pendientes = totalGenerados - enviados;
 
-                      if (docs.isEmpty) {
-                        return const Center(child: Text("No hay vouchers aún"));
-                      }
-
-                      return ListView(
-                        children: docs.map((d) {
-                          final fecha = (d["fecha_creado"] as Timestamp?)?.toDate();
-                          return ListTile(
-                            leading: const Icon(Icons.receipt_long_outlined),
-                            title: Text("${d["nombre"]} - DNI: ${d["dni"]}"),
-                            subtitle: Text(
-                              "${d["estado"]} - ${fecha != null ? DateFormat('dd/MM/yyyy').format(fecha) : ''}",
-                            ),
-                            trailing: ElevatedButton(
-                              onPressed: () {
-                                // Aquí puedes abrir el PDF o lo que necesites
-                              },
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.lightBlue),
-                              child: const Text("Ver", style: TextStyle(color: Colors.white)),
-                            ),
-                          );
-                        }).toList(),
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildSmallCard(color: Colors.orange, value: totalGenerados, label: 'Generados'),
+                            _buildSmallCard(color: Colors.green, value: enviados, label: 'Enviados'),
+                            _buildSmallCard(color: Colors.blue, value: pendientes, label: 'Pendientes'),
+                          ],
+                        ),
                       );
                     },
                   ),
-                ),
 
-                const SizedBox(height: 80),
-              ],
-            ),
-          ),
-        ),
+                  const SizedBox(height: 30),
 
-        // BOTÓN VERDE ARRIBA A LA DERECHA
-        Positioned(
-          top: 16,
-          right: 16,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              // AQUÍ VA TU REPORTE GENERAL (el que ya tienes)
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ReportePlanillaScreen(), // Cambia por tu pantalla real
-                ),
-              );
-            },
-            icon: const Icon(Icons.picture_as_pdf, size: 20),
-            label: const Text(
-              "GENERAR REPORTE",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green.shade600,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+                  // TABLA DE VOUCHERS
+                  Container(
+                    width: double.infinity,
+                    height: 350,
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
+                      ],
+                    ),
+                    child: StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection("vouchers")
+                          .orderBy("fecha_creado", descending: true)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+
+                        final docs = snapshot.data!.docs;
+
+                        if (docs.isEmpty) {
+                          return const Center(child: Text("No hay vouchers aún"));
+                        }
+
+                        return ListView.builder(
+                          itemCount: docs.length,
+                          itemBuilder: (context, index) {
+                            final d = docs[index];
+                            final docId = d.id;
+                            final estado = d["estado"] as String? ?? 'Generado';
+                            final fecha = (d["fecha_creado"] as Timestamp?)?.toDate();
+
+                            return ListTile(
+                              leading: const Icon(Icons.receipt_long_outlined),
+                              title: Text("${d["nombre"]} - DNI: ${d["dni"]}"),
+                              subtitle: Text(
+                                "$estado - ${fecha != null ? DateFormat('dd/MM/yyyy').format(fecha) : ''}",
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // BOTÓN VER
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Ver voucher (próximamente)")),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.lightBlue,
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    ),
+                                    child: const Text("Ver", style: TextStyle(color: Colors.white, fontSize: 12)),
+                                  ),
+                                  const SizedBox(width: 8),
+
+                                  // BOTÓN ENVIAR → SOLO SI NO ESTÁ ENVIADO
+                                  if (estado != 'Enviado')
+                                    ElevatedButton(
+                                      onPressed: () => _marcarComoEnviado(docId),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      ),
+                                      child: const Text("Enviar", style: TextStyle(color: Colors.white, fontSize: 12)),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 80),
+                ],
               ),
-              elevation: 10,
-              shadowColor: Colors.green.withOpacity(0.6),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
 
-  // Mini cards dentro del card grande
+          // BOTÓN VERDE ARRIBA A LA DERECHA
+          Positioned(
+            top: 16,
+            right: 16,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ReportePlanillaScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.picture_as_pdf, size: 20),
+              label: const Text(
+                "GENERAR REPORTE",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                elevation: 10,
+                shadowColor: Colors.green.withOpacity(0.6),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Mini cards
   Widget _buildSmallCard({
     required Color color,
     required int value,
