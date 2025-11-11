@@ -48,11 +48,11 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
   final double deduccionFija = 10000.0;
 
   final List<Color> cardColors = [
-    Colors.blue.shade300,
-    Colors.green.shade300,
-    Color(0xFFFFB74D),
-    const Color.fromARGB(255, 69, 168, 217),
-    const Color.fromARGB(255, 72, 206, 193),
+    Color(0xFF2E7D32),
+    Color(0xFF39B5DA),
+    Color(0xFFF57C00),
+     Color(0xFF145A32),
+    Color(0xFF39B5DA),
   ];
 
   @override
@@ -432,7 +432,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
                                         width: 12,
                                         height: 12,
                                         decoration: const BoxDecoration(
-                                            color: Colors.green,
+                                            color: Color(0xFF145A32),
                                             shape: BoxShape.circle)),
                                     const SizedBox(width: 6),
                                     const Text('Salarios',
@@ -446,7 +446,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
                                         width: 12,
                                         height: 12,
                                         decoration: const BoxDecoration(
-                                            color: Color(0xFFFFB74D),
+                                            color: Color(0xFFF57C00),
                                             shape: BoxShape.circle)),
                                     const SizedBox(width: 6),
                                     const Text('Deducciones',
@@ -467,7 +467,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
                                   sectionsSpace: 2,
                                   sections: [
                                     PieChartSectionData(
-                                      color: Colors.green,
+                                      color: Color(0xFF145A32),
                                       value: totalSueldoPorDepto.values
                                           .fold<double>(0.0, (a, b) => a + b),
                                       title:
@@ -478,7 +478,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
                                           color: Colors.white),
                                     ),
                                     PieChartSectionData(
-                                      color: const Color(0xFFFFB74D),
+                                      color: const Color(0xFFF57C00),
                                       value: totalDeduccionesPorDepto.values
                                           .fold<double>(0.0, (a, b) => a + b),
                                       title:

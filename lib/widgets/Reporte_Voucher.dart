@@ -191,7 +191,7 @@ final fechaReporte = toBeginningOfSentenceCase(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             // --- Dona ---
                             Expanded(
@@ -239,64 +239,63 @@ final fechaReporte = toBeginningOfSentenceCase(
 
                             // --- Card intermedia ---
                             Expanded(
-                              child: Container(
-                                height: 250,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primary,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.white,
-                                            shape: BoxShape.circle,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end, // empuja al fondo
+                              children: [
+                                Container(
+                                  height: 150, // altura de la card
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(Icons.attach_money, color: Colors.black, size: 24),
                                           ),
-                                          child: const Icon(
-                                              Icons.attach_money,
-                                              color: Colors.black,
-                                              size: 24),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'TOTAL PAGOS',
-                                            style: TextStyle(
-                                              color: Colors.greenAccent
-                                                  .shade100,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              letterSpacing: 1.5,
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'TOTAL PAGOS',
+                                              style: TextStyle(
+                                                color: Colors.greenAccent.shade100,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                letterSpacing: 1.5,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: Text(
-                                        'L 182,000.00',
-                                        style: const TextStyle(
-                                          fontSize: 42,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: Text(
+                                          'L 182,000.00',
+                                          style: const TextStyle(
+                                            fontSize: 42,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
+                          ),
+
                             const SizedBox(width: 12),
 
                             // --- Pastel ---
