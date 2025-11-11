@@ -88,7 +88,7 @@ class ReporteSolicitudesWidget extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(width: 180), // Espacio entre las dos donas
+                   const Spacer(), // Espacio entre las dos donas
                   //  Segunda dona con su título arriba
                   Column(
                     children: [
@@ -128,12 +128,12 @@ class ReporteSolicitudesWidget extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              _titulo("Solicitudes por estado y departamento (máximo 4)"),
+              _titulo("Solicitudes por estado y departamento "),
               BarrasConTabla(docs: docs, modo: BarrasModo.estadoPorDepto),
 
               const SizedBox(height: 30),
 
-              _titulo("Tipos de solicitudes (máximo 4)"),
+              _titulo("Tipos de solicitudes "),
               BarrasConTabla(docs: docs, modo: BarrasModo.tipo),
 
               const SizedBox(height: 30),

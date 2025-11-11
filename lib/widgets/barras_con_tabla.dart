@@ -109,10 +109,10 @@ class BarrasConTabla extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(width: 100), // separación horizontal
+        const Spacer(), // separación horizontal
         // --- TABLA ---
         SizedBox(
-          width: 500, // ajusta este valor a tu gusto (entre 250 y 320 va bien)
+          width: 320, // ajusta este valor a tu gusto (entre 250 y 320 va bien)
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -129,11 +129,11 @@ class BarrasConTabla extends StatelessWidget {
                     const Flexible(
                       flex: 2,
                       child: Text(
-                        "Categoría                                    ",
+                        "Categoría            ",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 4),
                     Flexible(
                       flex: 1,
                       child: Row(
