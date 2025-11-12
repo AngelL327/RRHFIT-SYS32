@@ -1,5 +1,6 @@
 // lib/empleados/controllers/empleado_controller.dart
 import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
@@ -206,12 +207,52 @@ class EmpleadoController with ChangeNotifier {
           'fecha_contratacion': empleado['fecha_contratacion'],
           'periodo': '${_formatDate(start)} - ${_formatDate(end)}',
           'indice': indiceStr,
+          'indice_valor_numerico': indiceDouble,
           'dias': '$asistenciasLaborables / $totalWorkingDays',
           'area': empleado['area'],
           'detalle_asistencias': asistencias,
           'empleado_id': empleado['empleado_id'],
         };
       }).toList();
+
+      rows.sort((a, b) {
+        // Ordenamos de mayor a menor porcentaje
+        return (b['indice_valor_numerico'] as double).compareTo(
+          (a['indice_valor_numerico'] as double),
+        );
+      });
+
+      double parseIndicePorcentaje(String indiceStr) {
+        // Elimina el símbolo de '%'
+        final cleanString = indiceStr.replaceAll('%', '');
+
+        // Intenta parsear a double, si falla devuelve 0.0 para evitar errores
+        return double.tryParse(cleanString) ?? 0.0;
+      }
+
+      for (int i = 0; i < rows.length; i++) {
+        // i es el índice basado en 0, así que el ranking es i + 1
+        rows[i]['ranking'] = (i + 1).toString();
+      }
+
+      rows.sort((a, b) {
+        // Obtenemos los strings de índice de los mapas a y b
+        final indiceAStr = a['indice'] as String;
+        final indiceBStr = b['indice'] as String;
+
+        // Parseamos los strings a doubles usando nuestra función auxiliar
+        final indiceADouble = parseIndicePorcentaje(indiceAStr);
+        final indiceBDouble = parseIndicePorcentaje(indiceBStr);
+
+        // Comparamos los valores numéricos
+        // Esto ordena de forma ascendente (de menor a mayor índice)
+        return indiceBDouble.compareTo(indiceADouble);
+      });
+
+      for (int i = 0; i < rows.length; i++) {
+        // i es el índice basado en 0, así que el ranking es i + 1
+        rows[i]['ranking'] = (i + 1).toString();
+      }
 
       return rows;
     } catch (e, st) {
