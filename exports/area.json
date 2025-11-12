@@ -1,0 +1,32 @@
+{
+  "0GohnXBFCehhQjMwMgiM": {
+    "departamento_id": "wir7mpTi0bbZExvjVr1T",
+    "nombre": "Desarrollo",
+    "codigo": "A004",
+    "area_id": "0GohnXBFCehhQjMwMgiM"
+  },
+  "OIRyj9EGFkn9nx8j5PAT": {
+    "departamento_id": "wir7mpTi0bbZExvjVr1T",
+    "nombre": "Soporte",
+    "codigo": "A005",
+    "area_id": "OIRyj9EGFkn9nx8j5PAT"
+  },
+  "jtpjZBYWwd8CjuYVaLw9": {
+    "departamento_id": "cSp2PYb3nOT9hV49qF4D",
+    "nombre": "Reclutamiento",
+    "codigo": "A001",
+    "area_id": "jtpjZBYWwd8CjuYVaLw9"
+  },
+  "rWG1gJUBP3mYL5ECX870": {
+    "departamento_id": "cSp2PYb3nOT9hV49qF4D",
+    "nombre": "Capacitación",
+    "codigo": "A002",
+    "area_id": "rWG1gJUBP3mYL5ECX870"
+  },
+  "usdJy8QJVKEllYk9ku5M": {
+    "departamento_id": "uh8jHSxUmUXufhbmGjTQ",
+    "nombre": "Finanzas",
+    "codigo": "A003",
+    "area_id": "usdJy8QJVKEllYk9ku5M"
+  }
+}

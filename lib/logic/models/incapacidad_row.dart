@@ -17,6 +17,7 @@ class IncapacidadRow {
   // Opcional: ayuda para convertir a lista si el PDF espera List<String>
   List<String> toStringList() {
     return [
+      formatDate(incapacidad.fechaSolicitud),
       formatDate(incapacidad.fechaInicioIncapacidad),
       formatDate(incapacidad.fechaFinIncapacidad),
       incapacidad.tipoIncapacidad,

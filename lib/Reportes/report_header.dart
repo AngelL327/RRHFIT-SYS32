@@ -21,15 +21,18 @@ import 'package:rrhfit_sys32/logic/utilities/obtener_mes_string.dart';
 /// Then pass to `MultiPage.header: (_) => header` or `header: (ctx) => header`.
 
 pw.Widget reportHeader({
-  required String title,
-  pw.Widget? headerWidgets,
-  bool includeDate = true,
+	required String title,
+	pw.Widget? headerWidgets,
+	bool includeDate = true,
 	required pw.ImageProvider logo,
 	required String dateString,
 	double hPadding = 40,
 	double vPadding = 20,
-  double fontSize = 12,
-  pw.Font? font,
+	double fontSize = 12,
+	pw.Font? font,
+	// Optional selected period to display in the header
+	int? selectedMonth,
+	int? selectedYear,
 }) {
   
   return pw.Container(
@@ -62,11 +65,19 @@ pw.Widget reportHeader({
               ),
 							pw.Text(title, style: font != null ? pw.TextStyle(font: font, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold)),
 
-              includeDate ?
-                pw.Text("Al mes de ${getMonthString(DateTime.now().month)} - ${DateTime.now().year}", 
-                style: font != null ? pw.TextStyle(font: font, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold)) : pw.SizedBox(),
+							includeDate
+									? pw.Text(
+											// Prefer explicit selected period when provided
+											(selectedMonth != null && selectedYear != null)
+													? "Al mes de ${getMonthString(selectedMonth)} - $selectedYear"
+													: (selectedYear != null)
+															? "Año $selectedYear"
+															: "Al mes de ${getMonthString(DateTime.now().month)} - ${DateTime.now().year}",
+											style: font != null ? pw.TextStyle(font: font, fontSize: fontSize, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+										)
+									: pw.SizedBox(),
 
-              ?headerWidgets,
+							if (headerWidgets != null) headerWidgets,
             ],
 					),
 				),

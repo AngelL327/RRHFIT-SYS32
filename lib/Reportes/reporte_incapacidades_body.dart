@@ -16,6 +16,8 @@ class GeneratePDFButton<T> extends StatelessWidget {
     required this.fetchData,
     required this.tableHeaders,
     required this.rowMapper,
+    this.reportMonth,
+    this.reportYear,
     this.logoAsset = 'assets/images/fittlay_imagotipo.png',
     this.fallbackLogoAsset = 'images/fittlay.png',
     this.fontAsset = 'assets/fonts/Roboto-Regular.ttf',
@@ -33,6 +35,9 @@ class GeneratePDFButton<T> extends StatelessWidget {
   final String fontAsset;
   final List<double>? columnFlexes;
   final pw.Widget? bodyContent;
+  // Optional period to be displayed in the report header
+  final int? reportMonth;
+  final int? reportYear;
 
   Future<Uint8List> _buildPdf(pdf_lib.PdfPageFormat format) async {
     final doc = pw.Document();
@@ -71,6 +76,8 @@ class GeneratePDFButton<T> extends StatelessWidget {
           hPadding: 0,
           vPadding: 0,
           font: ttf,
+          selectedMonth: reportMonth,
+          selectedYear: reportYear,
         ),
         footer: (context) => reportFooter(context, hPadding: hPadding, vPadding: vPadding, font: ttf),
         build: (context) {
@@ -143,10 +150,12 @@ class GeneratePDFButton<T> extends StatelessWidget {
                 height: size.height * 0.8,
                 child: PdfPreview(
                   onZoomChanged: (value) => {},
+
                   pageFormats: const {
                     'A4': pdf_lib.PdfPageFormat.a4,
                     'Letter': pdf_lib.PdfPageFormat.letter,
                   },
+                  
                   actionBarTheme: PdfActionBarTheme(backgroundColor: AppTheme.primary),
                   canChangeOrientation: true,
                   canDebug: false,

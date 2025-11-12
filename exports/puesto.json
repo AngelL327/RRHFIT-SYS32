@@ -1,0 +1,22 @@
+{
+  "C5isw6REQztLdGMMuZsu": {
+    "nombre": "Soporte Técnico",
+    "codigo": "P004",
+    "puesto_id": "C5isw6REQztLdGMMuZsu"
+  },
+  "IOuV54tWEdlxr265O0jL": {
+    "nombre": "Gerente",
+    "codigo": "P001",
+    "puesto_id": "IOuV54tWEdlxr265O0jL"
+  },
+  "JdQ8edf40fJU5xo0z4jA": {
+    "nombre": "Desarrollador",
+    "codigo": "P003",
+    "puesto_id": "JdQ8edf40fJU5xo0z4jA"
+  },
+  "qN7NaE6hzegdcPgMhY50": {
+    "nombre": "Analista",
+    "codigo": "P002",
+    "puesto_id": "qN7NaE6hzegdcPgMhY50"
+  }
+}

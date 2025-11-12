@@ -11,6 +11,7 @@ import 'package:rrhfit_sys32/Reportes/report_footer.dart';
 import 'package:rrhfit_sys32/logic/models/area_model.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_row.dart';
+import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
 
 class GenerateHistoriaIncapacidades<T> extends StatelessWidget {
   const GenerateHistoriaIncapacidades({
@@ -43,6 +44,44 @@ class GenerateHistoriaIncapacidades<T> extends StatelessWidget {
   Future<Uint8List> _buildPdf(pdf_lib.PdfPageFormat format) async {
     final doc = pw.Document();
     final data = await fetchData();
+
+    // Ensure the rows are ordered from most recent to oldest by the document's creadoEn
+    // The data items may be one of:
+    // - IncapacidadModel
+    // - List where index 0 is IncapacidadModel (e.g., [inc, empleado])
+    try {
+      data.sort((a, b) {
+        DateTime? da;
+        DateTime? db;
+
+        IncapacidadModel? ia;
+        IncapacidadModel? ib;
+
+        if (a is IncapacidadModel) {
+          ia = a;
+        } else if (a is List && a.isNotEmpty && a[0] is IncapacidadModel) {
+          ia = a[0] as IncapacidadModel;
+        }
+
+        if (b is IncapacidadModel) {
+          ib = b;
+        } else if (b is List && b.isNotEmpty && b[0] is IncapacidadModel) {
+          ib = b[0] as IncapacidadModel;
+        }
+
+        da = ia?.fechaSolicitud;
+        db = ib?.fechaSolicitud;
+
+        if (da == null && db == null) return 0;
+        if (da == null) return 1; // push nulls to the end (older)
+        if (db == null) return -1;
+
+        // For descending order (most recent first), compare b to a
+        return db.compareTo(da);
+      });
+    } catch (_) {
+      // If sorting fails for unexpected data shapes, ignore and proceed without sorting
+    }
     final userInfo = await userData();
 
     final dateFmt = DateFormat('dd-MM-yyyy');

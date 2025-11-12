@@ -1,0 +1,90 @@
+{
+  "0hapYMfZvbVp6Xvq8IBoLEJ8psO2": {
+    "apellido": "Espinal",
+    "email": "correo@correo.com",
+    "fechaRegistro": "2025-11-08T13:12:00.367Z",
+    "nombre": "Jeffry",
+    "uid": "s1FFKlku6g1SO5CHxE97"
+  },
+  "2WiAlhdUvZYJmbaeqy1rboWQ2VF2": {
+    "apellido": "Ronaldo",
+    "fechaRegistro": "2025-11-09T23:36:15.932Z",
+    "nombre": "Cristiano",
+    "email": "claudiop884835@gmail.com",
+    "uid": "ItOKv019KqQSFXO1DI4ATwPl9io1"
+  },
+  "3YLtzoRwQTNhsqSduSPG83FjT7O2": {
+    "apellido": "Martin",
+    "email": "gerardmartin@correo.com",
+    "fechaRegistro": "2025-11-09T23:36:57.276Z",
+    "nombre": "Gerard",
+    "uid": "d4n6W3a4p6s1Zm5de0dN"
+  },
+  "3x7L8NoZydNMsixuRBI8IpqgUiY2": {
+    "email": "byronmolcar.2001@gmail.com",
+    "nombre": "Byron",
+    "apellido": "Molina",
+    "fechaRegistro": "2025-11-08T14:36:45.502Z",
+    "uid": "IrjCzWvAiCHgAhw92EUr"
+  },
+  "DZHeNfVYA1YAAivUKYQSvCF7Wm13": {
+    "apellido": "Argueta",
+    "email": "merariarguetajdn@gmail.com",
+    "fechaRegistro": "2025-10-26T02:31:19.314Z",
+    "nombre": "Merari",
+    "Departamento": "IT",
+    "telefono": 97643734,
+    "puesto": "Programador",
+    "salarioBase": 10000,
+    "uid": "CJG4gNGu8yVXJLdFyOq5"
+  },
+  "QJmAgLCK2TWnTxmDkwBh6IJzANA3": {
+    "email": "jeffryvalle@gmail.com",
+    "nombre": "jeffry",
+    "apellido": "valle",
+    "fechaRegistro": "2025-10-25T17:47:52.606Z",
+    "uid": "s1FFKlku6g1SO5CHxE97"
+  },
+  "VFIfHfMzccZwgVsGDZGXhGMrAE02": {
+    "apellido": "Musk",
+    "email": "elonmusk@correo.com",
+    "fechaRegistro": "2025-11-09T23:34:22.473Z",
+    "nombre": "Elon",
+    "uid": "NWwUoNx5hRaoyEjCcn1N"
+  },
+  "heQVVflBI0Oiz9wcBNjcwqGsF153": {
+    "email": "a@g.com",
+    "nombre": "Andres",
+    "apellido": "Leiva",
+    "fechaRegistro": "2025-10-04T16:27:27.663Z",
+    "uid": "4Kz8Y7fKYFjdxl6245jR"
+  },
+  "kaOgwToIhAOm9caFw06nIGVMjt02": {
+    "apellido": "mendoza",
+    "email": "maria.mendoza@gmail.com",
+    "fechaRegistro": "2025-11-08T20:02:41.156Z",
+    "nombre": "maria",
+    "uid": "kaOgwToIhAOm9caFw06nIGVMjt02"
+  },
+  "y8wzuhOe9YdnhGlJBWBHmFfv54x1": {
+    "email": "a@gmail.com",
+    "nombre": "Andres",
+    "apellido": "Leiva",
+    "fechaRegistro": "2025-10-24T01:35:49.855Z",
+    "uid": "4Kz8Y7fKYFjdxl6245jR"
+  },
+  "yGHGVTIepVNCvuBRuH1DNhmzwS12": {
+    "apellido": "Gonzales",
+    "email": "pedrigonzales@correo.com",
+    "fechaRegistro": "2025-11-09T23:37:55.036Z",
+    "nombre": "Pedri",
+    "uid": "hW3PSFEYwfEBHB33yYFl"
+  },
+  "zNCeI81q7Ie9FCccK0OIKeSn9Lx1": {
+    "apellido": "White",
+    "email": "walterwhite@correo.com",
+    "fechaRegistro": "2025-11-09T23:35:40.894Z",
+    "nombre": "Walter",
+    "uid": "V86OepYloQkghUL5d2mp"
+  }
+}

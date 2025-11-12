@@ -1,0 +1,27 @@
+{
+  "Pq9yWMvEpFCNCSP0BPvh": {
+    "departamento_id": "Pq9yWMvEpFHGYEP0BPvh",
+    "nombre": "Producción",
+    "codigo": "PD004"
+  },
+  "cSp2PYb3nOT9hV49qF4D": {
+    "nombre": "Recursos Humanos",
+    "codigo": "DH001",
+    "departamento_id": "cSp2PYb3nOT9hV49qF4D"
+  },
+  "sGZFP2jHDK2v6gjyWd3r": {
+    "codigo": "VT005",
+    "departamento_id": "sGZFP2jHDK2v6gjyWd3r",
+    "nombre": "Ventas"
+  },
+  "uh8jHSxUmUXufhbmGjTQ": {
+    "nombre": "Administración",
+    "codigo": "AD001",
+    "departamento_id": "uh8jHSxUmUXufhbmGjTQ"
+  },
+  "wir7mpTi0bbZExvjVr1T": {
+    "nombre": "Sistemas",
+    "codigo": "IT001",
+    "departamento_id": "wir7mpTi0bbZExvjVr1T"
+  }
+}

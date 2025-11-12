@@ -30,6 +30,9 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
   String _query = '';
   String? _sortColumn;
   bool _sortAsc = true;
+  // Default to current month and year for the report selector
+  int? _selectedMonth = DateTime.now().month;
+  int? _selectedYear = DateTime.now().year;
 
   // Available columns to sort by (label -> key)
   final Map<String, String> _sortColumns = {
@@ -234,27 +237,83 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
               
               
               
-                    //Reporte PDF
+                    // Open dialog to select month/year and generate PDF
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: GeneratePDFButton<IncapacidadRow>(
-                        buttonLabel: 'Imprimir reporte de incapacidades',
-                        reportTitle: 'Reporte de Incapacidades',
-                        fetchData: getRegistros,
-                        tableHeaders: [
-                          'Fecha Inicio',
-                          'Fecha Fin',
-                          'Tipo',
-                          'Estado',
-                          'Empleado',
-                          'Emisor y Documento',
-                          'Correo',
-                          'Motivo',
-                          'Area',
-                        ],
-                        rowMapper: (row) => row.toStringList(),
-                        columnFlexes: [1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4, 1.2],
-                        bodyContent: null,
+                      child: ElevatedButton.icon(
+                        style: AppTheme.lightTheme.elevatedButtonTheme.style,
+                        icon: const Icon(Icons.picture_as_pdf),
+                        label: const Text('Imprimir reporte de incapacidades'),
+                        onPressed: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (context) {
+                              int? dialogMonth = _selectedMonth;
+                              int? dialogYear = _selectedYear;
+                              return StatefulBuilder(builder: (context, setDialogState) {
+                                return AlertDialog(
+                                  title: const Text('Seleccionar periodo del reporte'),
+                                  content: Row(
+                                    children: [
+                                      DropdownButton<int?>(
+                                        value: dialogMonth,
+                                        hint: const Text('Mes (Todos)'),
+                                        items: [
+                                          DropdownMenuItem<int?>(value: null, child: Text('Todos')),
+                                          for (var m = 1; m <= 12; m++) DropdownMenuItem<int?>(value: m, child: Text('${m.toString().padLeft(2, '0')} - ${_monthName(m)}')),
+                                        ],
+                                        onChanged: (val) => setDialogState(() => dialogMonth = val),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      DropdownButton<int?>(
+                                        value: dialogYear,
+                                        hint: const Text('Año'),
+                                        items: _yearItems(),
+                                        onChanged: (val) => setDialogState(() => dialogYear = val),
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    // Generate button uses existing GeneratePDFButton inside the dialog so the PDF preview appears as before
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: GeneratePDFButton<IncapacidadRow>(
+                                        buttonLabel: 'Generar',
+                                        reportTitle: 'Reporte de Incapacidades',
+                                        fetchData: () {
+                                          final year = dialogYear ?? (dialogMonth != null ? DateTime.now().year : null);
+                                          if (year != null && dialogMonth != null) return getRegistros(year, dialogMonth);
+                                          return getRegistros();
+                                        },
+                                        tableHeaders: [
+                                          'Fecha Solicitud',
+                                          'Fecha Inicio',
+                                          'Fecha Fin',
+                                          'Tipo',
+                                          'Estado',
+                                          'Empleado',
+                                          'Emisor y Documento',
+                                          'Correo',
+                                          'Motivo',
+                                          'Area',
+                                        ],
+                                        rowMapper: (row) => row.toStringList(),
+                                        reportMonth: dialogMonth,
+                                        reportYear: dialogYear,
+                                        columnFlexes: [1.0, 1.15, 1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4],
+                                        bodyContent: null,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              });
+                            },
+                          );
+                        },
                       ),
                     ),
               
@@ -322,14 +381,14 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                   }
               
                   const columns = [
+                        DataColumn2(label: Center(child: Text('Estado')), size: ColumnSize.M),
                         DataColumn2(label: Center(child: Text('Fecha Solicitud')), size: ColumnSize.M),
                         DataColumn2(label: Center(child: Text('Empleado')), size: ColumnSize.M),
                         DataColumn2(label: Center(child: Text('Tipo')), size: ColumnSize.M),
                         DataColumn2(label: Center(child: Text('Ente Emisor')), size: ColumnSize.M),
                         DataColumn2(label: Center(child: Text('# Certificado')), size: ColumnSize.M),
-                        DataColumn2(label: Center(child: Text('Inicio de incapacidad')), size: ColumnSize.L),
-                        DataColumn2(label: Center(child: Text('Fin de incapacidad')), size: ColumnSize.L),
-                        DataColumn2(label: Center(child: Text('Estado')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Inicio de \nincapacidad')), size: ColumnSize.L),
+                        DataColumn2(label: Center(child: Text('Fin de \nincapacidad')), size: ColumnSize.L),
                         DataColumn2(label: Center(child: Text('Detalles')), size: ColumnSize.S),
                       ];
               
@@ -339,6 +398,11 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     dataRows.add(
                       DataRow2(
                         cells: [
+                        DataCell(inc.estado == "Pendiente" ? 
+                        Center(child: const Text("Pendiente", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),))
+                        : inc.estado == "Aprobada" ? 
+                        Center(child: const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),))
+                        : Center(child: const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),))),
                         DataCell(Center(child: Text(formatDate(inc.fechaSolicitud)))),
                         DataCell(Text(inc.usuario)),
                         DataCell(Text(inc.tipoIncapacidad)),
@@ -346,12 +410,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                         DataCell(Text(inc.numCertificado)),
                         DataCell(Center(child: Text(formatDate(inc.fechaInicioIncapacidad)))),
                         DataCell(Center(child: Text(formatDate(inc.fechaFinIncapacidad)))),
-                        DataCell(inc.estado == "Pendiente" ? 
-                        Center(child: const Text("Pendiente", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),))
-                        : inc.estado == "Aprobada" ? 
-                        Center(child: const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),))
-                        : Center(child: const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),))),
-              
+
                         DataCell(
                           Center(
                             child: FittedBox(
@@ -396,8 +455,15 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
       ),
     );
   }
-  Future<List<IncapacidadRow>> getRegistros() async {
-    final incapacidades = await getAllIncapacidades();
+  Future<List<IncapacidadRow>> getRegistros([int? year, int? month]) async {
+    // If a month is provided but year is null, default to current year
+    if (month != null && year == null) year = DateTime.now().year;
+    List<IncapacidadModel> incapacidades;
+    if (year != null && month != null) {
+      incapacidades = await getIncapacidadesByMonth(year, month);
+    } else {
+      incapacidades = await getAllIncapacidades();
+    }
 
     // Obtener empleados en paralelo (manteniendo el orden)
     final empleados = await Future.wait(
@@ -430,5 +496,19 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
     }
 
     return rows;
+  }
+
+  String _monthName(int m) {
+    const names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    return names[m - 1];
+  }
+
+  List<DropdownMenuItem<int?>> _yearItems() {
+    final current = DateTime.now().year;
+    final items = <DropdownMenuItem<int?>>[];
+    for (var y = current; y >= current - 5; y--) {
+      items.add(DropdownMenuItem<int?>(value: y, child: Text(y.toString())));
+    }
+    return items;
   }
 }
