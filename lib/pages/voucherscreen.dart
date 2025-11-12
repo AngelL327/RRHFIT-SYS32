@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:rrhfit_sys32/widgets/Reporte_Voucher.dart';
+import 'package:rrhfit_sys32/pages/reporte_planilla_local.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/pages/reporte_voucher.dart';
 
 class VoucherScreen extends StatefulWidget {
   const VoucherScreen({super.key});
@@ -32,7 +35,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Voucher marcado como Enviado"),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF39B5DA),
         ),
       );
     } catch (e) {
@@ -48,11 +51,12 @@ class _VoucherScreenState extends State<VoucherScreen> {
         '${toBeginningOfSentenceCase(['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][DateTime.now().month - 1])} ${DateTime.now().year}';
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF7F4F1), // Fondo claro
       appBar: AppBar(
         title: const Text('Reporte de Vouchers'),
+        //titleTextStyle: Colors.black,
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: const Color(0xFF2E7D32), // Verde principal
         elevation: 0,
       ),
 
@@ -74,8 +78,8 @@ class _VoucherScreenState extends State<VoucherScreen> {
                 children: [
                   const SizedBox(height: 20),
                   Text(
-                    'Reporte: $fechaReporte',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    '$fechaReporte',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.black87),
                   ),
                   const SizedBox(height: 30),
 
@@ -96,18 +100,30 @@ class _VoucherScreenState extends State<VoucherScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: const Color(0xFFFBF8F6), // Crema
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
                           ],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildSmallCard(color: Colors.orange, value: totalGenerados, label: 'Generados'),
-                            _buildSmallCard(color: Colors.green, value: enviados, label: 'Enviados'),
-                            _buildSmallCard(color: Colors.blue, value: pendientes, label: 'Pendientes'),
+                            _buildSmallCard(
+                              color: const Color(0xFFF57C00), // Naranja → Generados
+                              value: totalGenerados,
+                              label: 'Generados',
+                            ),
+                            _buildSmallCard(
+                              color: const Color(0xFF39B5DA), // Azul → Enviados
+                              value: enviados,
+                              label: 'Enviados',
+                            ),
+                            _buildSmallCard(
+                              color: const Color(0xFF145A32), // Verde oscuro → Pendientes
+                              value: pendientes,
+                              label: 'Pendientes',
+                            ),
                           ],
                         ),
                       );
@@ -122,9 +138,9 @@ class _VoucherScreenState extends State<VoucherScreen> {
                     height: 350,
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFFFBF8F6), // Crema
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
                       ],
                     ),
@@ -141,7 +157,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
                         final docs = snapshot.data!.docs;
 
                         if (docs.isEmpty) {
-                          return const Center(child: Text("No hay vouchers aún"));
+                          return const Center(child: Text("No hay vouchers aún", style: TextStyle(color: Colors.grey)));
                         }
 
                         return ListView.builder(
@@ -153,10 +169,14 @@ class _VoucherScreenState extends State<VoucherScreen> {
                             final fecha = (d["fecha_creado"] as Timestamp?)?.toDate();
 
                             return ListTile(
-                              leading: const Icon(Icons.receipt_long_outlined),
-                              title: Text("${d["nombre"]} - DNI: ${d["dni"]}"),
+                              leading: const Icon(Icons.receipt_long_outlined, color: Color(0xFF2E7D32)),
+                              title: Text(
+                                "${d["nombre"]} - DNI: ${d["dni"]}",
+                                style: const TextStyle(fontWeight: FontWeight.w600),
+                              ),
                               subtitle: Text(
                                 "$estado - ${fecha != null ? DateFormat('dd/MM/yyyy').format(fecha) : ''}",
+                                style: TextStyle(color: Colors.grey[700]),
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -169,8 +189,9 @@ class _VoucherScreenState extends State<VoucherScreen> {
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.lightBlue,
+                                      backgroundColor: const Color(0xFF39B5DA), // Azul
                                       padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
                                     child: const Text("Ver", style: TextStyle(color: Colors.white, fontSize: 12)),
                                   ),
@@ -181,8 +202,9 @@ class _VoucherScreenState extends State<VoucherScreen> {
                                     ElevatedButton(
                                       onPressed: () => _marcarComoEnviado(docId),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
+                                        backgroundColor: const Color(0xFF2E7D32), // Verde principal
                                         padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                       ),
                                       child: const Text("Enviar", style: TextStyle(color: Colors.white, fontSize: 12)),
                                     ),
@@ -220,8 +242,8 @@ class _VoucherScreenState extends State<VoucherScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
-                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF2E7D32), // Verde principal
+                foregroundColor: const Color(0xFFFBF8F6), // Crema
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 elevation: 10,
@@ -234,7 +256,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
     );
   }
 
-  // Mini cards
+  // Mini cards con colores oficiales
   Widget _buildSmallCard({
     required Color color,
     required int value,
@@ -247,7 +269,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5, offset: Offset(0, 3))],
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5, offset: Offset(0, 3))],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
