@@ -1,7 +1,9 @@
 // lib/empleados/reports/report_preview_page.dart
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:printing/printing.dart';
+import 'package:rrhfit_sys32/empleados/reports/primer_reporte.dart';
 import 'package:rrhfit_sys32/empleados/reports/report_generator.dart';
 
 class AttendanceReportPreview extends StatelessWidget {
@@ -12,7 +14,7 @@ class AttendanceReportPreview extends StatelessWidget {
   final List<Map<String, dynamic>>? rows;
   final String periodo; // Nuevo parámetro
 
-  const AttendanceReportPreview({
+  AttendanceReportPreview({
     super.key,
     this.logoBytes,
     // required this.departamento,
@@ -25,7 +27,7 @@ class AttendanceReportPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reporte Asistencia Perfecta')),
+      appBar: AppBar(title: const Text('Reporte de Asistencia Perfecta')),
       body: PdfPreview(
         allowPrinting: true,
         allowSharing: true,

@@ -9,7 +9,13 @@ class ReportSeccion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [PrimerReporte(), SegundoReporte()],
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [PrimerReporte(), SegundoReporte()],
+        ),
+      ],
     );
   }
 }

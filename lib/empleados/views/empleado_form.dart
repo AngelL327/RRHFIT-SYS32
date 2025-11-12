@@ -356,8 +356,20 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                     ),
                   ],
                 ),
-                TextFormField(
-                  controller: estado,
+                DropdownButtonFormField<String>(
+                  value: estado.text.isEmpty ? null : estado.text,
+                  items: const [
+                    DropdownMenuItem(value: 'Activo', child: Text('Activo')),
+                    DropdownMenuItem(
+                      value: 'Inactivo',
+                      child: Text('Inactivo'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    setState(() {
+                      estado.text = v ?? '';
+                    });
+                  },
                   decoration: const InputDecoration(labelText: 'Estado'),
                 ),
                 TextFormField(

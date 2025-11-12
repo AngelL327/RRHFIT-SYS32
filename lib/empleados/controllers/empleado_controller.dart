@@ -1,5 +1,6 @@
 // lib/empleados/controllers/empleado_controller.dart
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
 import 'package:rrhfit_sys32/empleados/models/departamento_model.dart';
@@ -9,6 +10,8 @@ import 'package:rrhfit_sys32/empleados/services/firestore_service.dart';
 
 class EmpleadoController with ChangeNotifier {
   final FirestoreService service;
+
+  final FirebaseFirestore firestoree = FirebaseFirestore.instance;
 
   EmpleadoController({FirestoreService? service})
     : service = service ?? FirestoreService() {
@@ -66,13 +69,15 @@ class EmpleadoController with ChangeNotifier {
 
   //---------------------------------------------------------------------------------------------
 
-  // Método principal para generar datos del reporte
+  //---------------------------------------------------------------------------------------------
+
+  // Reemplaza la implementación actual de computeWeeklyAttendanceRows por esta:
   Future<List<Map<String, dynamic>>> computeWeeklyAttendanceRows({
     bool includeWeekends = false,
     DateTime? customStartDate,
     DateTime? customEndDate,
     bool soloAsistenciaPerfecta = true,
-    int ind = 0,
+    int? ind,
   }) async {
     await ready;
 
@@ -83,8 +88,82 @@ class EmpleadoController with ChangeNotifier {
       _reportData = await service.getReporteAsistenciaData(
         startDate: start,
         endDate: end,
-        ind: ind,
+        ind: ind ?? 0,
       );
+
+      // Contar solo días laborables (lunes..viernes) en el rango
+      int totalWorkingDays = 0;
+      DateTime cur = DateTime(start.year, start.month, start.day);
+      final DateTime endDay = DateTime(end.year, end.month, end.day);
+      while (!cur.isAfter(endDay)) {
+        if (cur.weekday >= DateTime.monday && cur.weekday <= DateTime.friday) {
+          totalWorkingDays++;
+        }
+        cur = cur.add(const Duration(days: 1));
+      }
+      if (totalWorkingDays == 0)
+        totalWorkingDays = 1; // evitar división por cero
+
+      // Helper para determinar si un registro corresponde a un día laborable
+      bool registroEsLaborable(Map<String, dynamic> registro) {
+        // Intenta extraer fecha de campos comunes
+        final candidates = <String?>[
+          registro['_docId']?.toString(),
+          registro['fecha']?.toString(),
+          registro['date']?.toString(),
+          registro['dia']?.toString(),
+        ];
+
+        for (final cand in candidates) {
+          if (cand == null) continue;
+          // Intentar parse ISO first
+          DateTime? parsed;
+          try {
+            parsed = DateTime.tryParse(cand);
+          } catch (_) {
+            parsed = null;
+          }
+          if (parsed == null) {
+            // Intentar dd/MM/yyyy
+            try {
+              final parts = cand.split(RegExp(r'[-/ ]'));
+              if (parts.length == 3) {
+                // detectar formato heurísticamente: si la primera parte tiene 4 dígitos, es yyyy-MM-dd
+                if (parts[0].length == 4) {
+                  parsed = DateTime.tryParse(
+                    cand,
+                  ); // ya intentado, pero reintento
+                } else {
+                  // asumir dd MM yyyy
+                  final d = int.tryParse(parts[0]);
+                  final m = int.tryParse(parts[1]);
+                  final y = int.tryParse(parts[2]);
+                  if (d != null && m != null && y != null) {
+                    parsed = DateTime(y, m, d);
+                  }
+                }
+              }
+            } catch (_) {
+              parsed = null;
+            }
+          }
+
+          if (parsed != null) {
+            // si la fecha parsea, devolver true si es Lunes-Viernes
+            return parsed.weekday >= DateTime.monday &&
+                parsed.weekday <= DateTime.friday;
+          }
+        }
+
+        // Si no pudimos parsear, podemos intentar usar otros indicadores:
+        // si el registro tiene 'entrada' o 'salida' asumimos que es asistencia válida
+        if (registro.containsKey('entrada') || registro.containsKey('salida')) {
+          return true; // asumimos laboral
+        }
+
+        // Por defecto: considerar como laboral (conservador)
+        return true;
+      }
 
       // Filtrar solo asistencia perfecta si se solicita
       final filteredData = soloAsistenciaPerfecta
@@ -93,12 +172,30 @@ class EmpleadoController with ChangeNotifier {
                 .toList()
           : _reportData;
 
-      // Formatear datos para la tabla
       final rows = filteredData.asMap().entries.map((entry) {
         final index = entry.key;
         final empleado = entry.value;
         final asistencias =
-            empleado['asistencias'] as List<Map<String, dynamic>>;
+            (empleado['asistencias'] as List<dynamic>?)
+                ?.cast<Map<String, dynamic>>() ??
+            <Map<String, dynamic>>[];
+
+        // Contar solo las asistencias que caen en días laborables
+        int asistenciasLaborables = 0;
+        for (final reg in asistencias) {
+          try {
+            if (registroEsLaborable(reg)) asistenciasLaborables++;
+          } catch (e) {
+            // Si algo falla con un registro, asumimos que cuenta (evita subreportar)
+            asistenciasLaborables++;
+          }
+        }
+
+        // Calcular índice con respecto a los días laborables
+        final double indiceDouble = totalWorkingDays > 0
+            ? (asistenciasLaborables / totalWorkingDays) * 100.0
+            : 0.0;
+        final String indiceStr = '${indiceDouble.toStringAsFixed(1)}%';
 
         return {
           'ranking': (index + 1).toString(),
@@ -108,23 +205,21 @@ class EmpleadoController with ChangeNotifier {
           'departamento': empleado['departamento'],
           'fecha_contratacion': empleado['fecha_contratacion'],
           'periodo': '${_formatDate(start)} - ${_formatDate(end)}',
-          'indice': empleado['indice_formateado'],
-          'dias': '${empleado['dias_asistidos']} / ${empleado['total_dias']}',
+          'indice': indiceStr,
+          'dias': '$asistenciasLaborables / $totalWorkingDays',
           'area': empleado['area'],
           'detalle_asistencias': asistencias,
           'empleado_id': empleado['empleado_id'],
         };
       }).toList();
 
-      debugPrint(
-        'Reporte generado: ${rows.length} empleados con asistencia perfecta',
-      );
       return rows;
     } catch (e, st) {
-      debugPrint('Error generando reporte: $e\n$st');
       return [];
     }
   }
+
+  //---------------------------------------------------------------------------------------------
 
   // Método para obtener datos detallados de un empleado
   Future<Map<String, dynamic>?> getDetalleEmpleado(String empleadoId) async {
@@ -195,7 +290,6 @@ class EmpleadoController with ChangeNotifier {
 
       if (!_readyCompleter.isCompleted) _readyCompleter.complete();
     } catch (e, s) {
-      debugPrint('EmpleadoController _init error: $e\n$s');
       if (!_readyCompleter.isCompleted) _readyCompleter.completeError(e);
     }
   }

@@ -3,11 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:rrhfit_sys32/Reportes/report_footer.dart';
-import 'package:rrhfit_sys32/core/theme.dart';
 
 Future<Uint8List> generateAttendancePdf({
   Uint8List? logoBytes,
-  // required String departamento,
   required String generadoPor,
   required String criterioExcepcion,
   required String periodo,
@@ -15,7 +13,6 @@ Future<Uint8List> generateAttendancePdf({
   pw.Font? customFont,
 }) async {
   final pdf = pw.Document();
-
   final data = rows ?? [];
 
   final tableHeaders = [
@@ -43,8 +40,7 @@ Future<Uint8List> generateAttendancePdf({
   }).toList();
 
   final baseFont = customFont;
-  final String fechaHoy =
-      DateFormat('dd-MM-yy').format(DateTime.now()) as String;
+  final String fechaHoy = DateFormat('dd-MM-yy').format(DateTime.now());
 
   Uint8List? watermarkBytes = logoBytes;
   if (watermarkBytes == null) {
@@ -58,8 +54,29 @@ Future<Uint8List> generateAttendancePdf({
 
   pdf.addPage(
     pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+      // Dibujar marca de agua por página sin afectar paginación
+      pageTheme: pw.PageTheme(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+        buildBackground: (pw.Context ctx) {
+          if (watermarkBytes == null) return pw.Container();
+          return pw.FullPage(
+            ignoreMargins: true,
+            child: pw.Center(
+              child: pw.Opacity(
+                opacity: 0.12,
+                child: pw.Image(
+                  pw.MemoryImage(watermarkBytes),
+                  width: 400,
+                  height: 400,
+                  fit: pw.BoxFit.contain,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+
       header: (pw.Context ctx) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -139,20 +156,12 @@ Future<Uint8List> generateAttendancePdf({
                           fontSize: 12,
                         ),
                       ),
-                      // pw.SizedBox(height: 6),
-                      // pw.Text(
-                      //   'Fecha:',
-                      //   style: pw.TextStyle(
-                      //     fontWeight: pw.FontWeight.bold,
-                      //     fontSize: 10.0,
-                      //   ),
-                      // ),
                       pw.SizedBox(height: 6),
                       pw.Text(
                         'Criterio de Excepción: ',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 12.0,
+                          fontSize: 12,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -160,7 +169,7 @@ Future<Uint8List> generateAttendancePdf({
                         'Período Evaluado:',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 12.0,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -174,25 +183,16 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 12.0,
+                          fontSize: 12,
                         ),
                       ),
-                      // pw.SizedBox(height: 6),
-                      // pw.Text(
-                      //   fechaGenerado,
-                      //   softWrap: true,
-                      //   style: pw.TextStyle(
-                      //     fontWeight: pw.FontWeight.normal,
-                      //     fontSize: 10.0,
-                      //   ),
-                      // ),
                       pw.SizedBox(height: 6),
                       pw.Text(
                         criterioExcepcion,
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 12.0,
+                          fontSize: 12,
                         ),
                       ),
                       pw.SizedBox(height: 6),
@@ -201,7 +201,7 @@ Future<Uint8List> generateAttendancePdf({
                         softWrap: true,
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.normal,
-                          fontSize: 12.0,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -219,12 +219,9 @@ Future<Uint8List> generateAttendancePdf({
 
       build: (pw.Context ctx) {
         final content = <pw.Widget>[
-          // Tabla principal de resumen
-          // pw.Text(
-          //   'Resumen de Asistencia por Empleado',
-          //   style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-          // ),
           pw.SizedBox(height: 10),
+
+          // --- SOLO la tabla principal (sin detalles) ---
           pw.Table.fromTextArray(
             headers: tableHeaders,
             data: tableData,
@@ -236,9 +233,6 @@ Future<Uint8List> generateAttendancePdf({
               color: PdfColor.fromInt(0xFF39B5DA),
             ),
             cellStyle: const pw.TextStyle(fontSize: 8),
-            cellDecoration: (rowIndex, cellData, colIndex) {
-              return const pw.BoxDecoration(color: PdfColors.white);
-            },
             cellAlignment: pw.Alignment.centerLeft,
             columnWidths: {
               0: const pw.FlexColumnWidth(1.1),
@@ -256,12 +250,8 @@ Future<Uint8List> generateAttendancePdf({
             ),
             border: pw.TableBorder.all(color: PdfColors.black, width: .2),
           ),
-          pw.SizedBox(height: 20),
 
-          // Detalles de registros por empleado
-          ..._buildRegistrosDetails(data),
-
-          pw.SizedBox(height: 8),
+          pw.SizedBox(height: 12),
           pw.Text(
             '**Total empleados evaluados:** ${data.length}',
             style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
@@ -269,234 +259,10 @@ Future<Uint8List> generateAttendancePdf({
           pw.SizedBox(height: 18),
         ];
 
-        if (watermarkBytes != null) {
-          return [
-            pw.Stack(
-              children: [
-                pw.Center(
-                  child: pw.Opacity(
-                    opacity: 0.40,
-                    child: pw.SizedBox(
-                      width: 400,
-                      height: 500,
-                      child: pw.Image(
-                        pw.MemoryImage(watermarkBytes),
-                        fit: pw.BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-                pw.Column(children: content),
-              ],
-            ),
-          ];
-        }
-
         return content;
       },
     ),
   );
 
   return pdf.save();
-}
-
-// Función auxiliar para construir los detalles de registros
-List<pw.Widget> _buildRegistrosDetails(List<Map<String, dynamic>> data) {
-  final widgets = <pw.Widget>[];
-
-  for (final empleado in data) {
-    final registros = (empleado['registros'] as List<dynamic>?) ?? [];
-
-    if (registros.isNotEmpty) {
-      widgets.addAll([
-        pw.SizedBox(height: 15),
-        pw.Container(
-          width: double.infinity,
-          padding: const pw.EdgeInsets.all(8),
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(color: PdfColors.blue300, width: 1),
-            borderRadius: pw.BorderRadius.circular(4),
-          ),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Row(
-                children: [
-                  pw.Text(
-                    'Detalles de Asistencia: ',
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.Text(
-                    '${empleado['empleado']} (${empleado['codigo']})',
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue700,
-                    ),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 8),
-
-              // Tabla de registros diarios
-              pw.Table(
-                border: pw.TableBorder.all(
-                  color: PdfColors.grey300,
-                  width: 0.5,
-                ),
-                children: [
-                  // Encabezado de la tabla de registros
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey100,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text(
-                          'Fecha',
-                          style: pw.TextStyle(
-                            fontSize: 7,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text(
-                          'Entrada',
-                          style: pw.TextStyle(
-                            fontSize: 7,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text(
-                          'Salida',
-                          style: pw.TextStyle(
-                            fontSize: 7,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text(
-                          'Inicio Almuerzo',
-                          style: pw.TextStyle(
-                            fontSize: 7,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text(
-                          'Fin Almuerzo',
-                          style: pw.TextStyle(
-                            fontSize: 7,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text(
-                          'Horas Trabajadas',
-                          style: pw.TextStyle(
-                            fontSize: 7,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Filas de registros
-                  ...registros.map((registro) {
-                    return pw.TableRow(
-                      children: [
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Text(
-                            _formatFecha(registro['fecha'] ?? ''),
-                            style: const pw.TextStyle(fontSize: 7),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Text(
-                            registro['entrada']?.toString() ?? '-',
-                            style: const pw.TextStyle(fontSize: 7),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Text(
-                            registro['salida']?.toString() ?? '-',
-                            style: const pw.TextStyle(fontSize: 7),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Text(
-                            registro['almuerzo_inicio']?.toString() ?? '-',
-                            style: const pw.TextStyle(fontSize: 7),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Text(
-                            registro['almuerzo_fin']?.toString() ?? '-',
-                            style: const pw.TextStyle(fontSize: 7),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Text(
-                            registro['horas_trabajadas']?.toString() ?? '-',
-                            style: const pw.TextStyle(fontSize: 7),
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ],
-              ),
-
-              pw.SizedBox(height: 6),
-              pw.Text(
-                'Total de días asistidos: ${registros.length}',
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  fontStyle: pw.FontStyle.italic,
-                  color: PdfColors.grey600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ]);
-    }
-  }
-
-  return widgets;
-}
-
-// Función auxiliar para formatear fechas
-String _formatFecha(String fecha) {
-  try {
-    final parts = fecha.split('-');
-    if (parts.length == 3) {
-      return '${parts[2]}/${parts[1]}/${parts[0]}';
-    }
-    return fecha;
-  } catch (e) {
-    return fecha;
-  }
 }

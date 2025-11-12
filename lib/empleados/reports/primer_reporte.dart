@@ -1,7 +1,7 @@
-// lib/empleados/views/primer_reporte.dart
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 import 'package:rrhfit_sys32/empleados/views/report_preview_page.dart';
 import 'package:rrhfit_sys32/empleados/widgets/custom_button.dart';
@@ -26,16 +26,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
   void initState() {
     super.initState();
     _initializeController();
-  }
-
-  void increment() {
-    if (counter >= 100) return;
-    counter = counter + 10;
-  }
-
-  void decrement() {
-    if (counter <= 0) return;
-    counter = counter - 10;
   }
 
   Future<void> _initializeController() async {
@@ -70,9 +60,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
         ind: counter,
       );
 
-      // final departamento = 'Departamento de RRHH';
       final generadoPor = Global().userName.toString();
-      // final fechaGenerado = DateFormat('dd/MM/yyyy').format(DateTime.now());
       final criterio = 'Índice de Asistencia > $counter';
 
       if (!mounted) return;
@@ -82,7 +70,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
         MaterialPageRoute(
           builder: (_) => AttendanceReportPreview(
             logoBytes: logo,
-            // departamento: departamento,
             generadoPor: generadoPor,
             criterioExcepcion: criterio,
             rows: rows,
@@ -121,77 +108,160 @@ class _PrimerReporteState extends State<PrimerReporte> {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
+  /// Muestra el dialog para elegir rango de fechas e índice
+  Future<void> _showReporteDialog() async {
+    // valores temporales para el diálogo (no aplican hasta que el usuario presiona "Generar")
+    DateTime tempStart = _startDate;
+    DateTime tempEnd = _endDate;
+    int tempCounter = counter;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Configurar reporte'),
+          content: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return SizedBox(
+                width: 500,
+                // Ajusta altura si es necesario
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Reutilizamos tu DateRangePicker, pero con los valores temporales.
+                      DateRangePicker(
+                        initialStartDate: tempStart,
+                        initialEndDate: tempEnd,
+                        onDateRangeSelected: (s, e) {
+                          setStateDialog(() {
+                            tempStart = s;
+                            tempEnd = e;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Índice a evaluar: $tempCounter'),
+                      ),
+                      // Slider para seleccionar índice 0..100
+                      Slider(
+                        value: tempCounter.toDouble(),
+                        min: 0,
+                        max: 100,
+                        divisions: 100,
+                        label: '$tempCounter',
+                        onChanged: (v) {
+                          setStateDialog(() {
+                            tempCounter = v.round();
+                          });
+                        },
+                      ),
+                      // También mostramos botones +/- rápidos
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            tooltip: 'Disminuir 1',
+                            onPressed: () {
+                              setStateDialog(() {
+                                if (tempCounter > 0) tempCounter -= 1;
+                              });
+                            },
+                            icon: const Icon(Icons.remove),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '$tempCounter',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            tooltip: 'Aumentar 1',
+                            onPressed: () {
+                              setStateDialog(() {
+                                if (tempCounter < 100) tempCounter += 1;
+                              });
+                            },
+                            icon: const Icon(Icons.add),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      // Aplicar los valores seleccionados al estado real y cerrar diálogo
+                      setState(() {
+                        _startDate = tempStart;
+                        _endDate = tempEnd;
+                        counter = tempCounter;
+                      });
+                      _empleadoController.setDateRange(_startDate, _endDate);
+                      Navigator.of(context).pop();
+                      // Ejecutar la generación del reporte con los parámetros seleccionados
+                      await _generarReporte();
+                    },
+              child: const Text('Generar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      // color: Colors.white,
-      width: 400.0,
-      height: 200.0,
+      width: 260.0,
+      // height: 100.0,
       alignment: Alignment.center,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                Text("Indice a Evaluar"),
-                SizedBox(width: 15.0),
-                Container(
-                  width: 30.0,
-                  height: 30,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        increment();
-                      });
-                    },
-                    icon: Icon(Icons.add),
-                    color: Colors.white,
-                    style: ButtonStyle(
-                      iconSize: WidgetStateProperty.all(15),
-                      backgroundColor: MaterialStateProperty.all(
-                        Color.fromARGB(255, 24, 210, 27),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12.0),
-                Text("$counter"),
-                SizedBox(width: 12.0),
-                Container(
-                  width: 30.0,
-                  height: 30,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        decrement();
-                      });
-                    },
-                    icon: Icon(Icons.remove),
-                    color: Colors.white,
-                    style: ButtonStyle(
-                      iconSize: WidgetStateProperty.all(15),
-                      backgroundColor: MaterialStateProperty.all(
-                        Color.fromARGB(255, 24, 210, 27),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10.0),
-            DateRangePicker(
-              initialStartDate: _startDate,
-              initialEndDate: _endDate,
-              onDateRangeSelected: _onDateRangeSelected,
-            ),
-            const SizedBox(height: 8),
+            // // Título
+            // const Text(
+            //   'Reporte — Asistencia Perfecta',
+            //   style: TextStyle(fontWeight: FontWeight.bold),
+            // ),
+            // const SizedBox(height: 12),
+            // // Resumen: muestra las opciones actualmente seleccionadas
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     Column(
+            //       crossAxisAlignment: CrossAxisAlignment.start,
+            //       children: [
+            //         Text(
+            //           'Periodo: ${_formatDate(_startDate)} - ${_formatDate(_endDate)}',
+            //         ),
+            //         const SizedBox(height: 6),
+            //         Text('Índice seleccionado: $counter'),
+            //       ],
+            //     ),
+            //   ],
+            // ),
+            const SizedBox(height: 12),
+            // Botón principal: abre el diálogo para elegir parámetros
             CustomButton(
               icono: const Icon(Icons.picture_as_pdf_rounded),
-              btnTitle: "Generar Reporte de Asistencia Perfecta",
+              btnTitle: "Reporte Asistencia Perfecta",
               bgColor: Colors.blueAccent,
               fgColor: Colors.white,
-              onPressed: _isLoading ? null : _generarReporte,
+              onPressed: _isLoading ? null : _showReporteDialog,
             ),
             if (_isLoading)
               const Padding(

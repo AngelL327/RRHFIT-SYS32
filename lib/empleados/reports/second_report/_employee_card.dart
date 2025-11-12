@@ -6,10 +6,9 @@ pw.Widget buildEmployeeCard({
   required Map<String, dynamic> row,
   required double leftColWidth,
 }) {
-  final name = row['nombre'] ?? '-';
-  final pct = (row['porcentaje'] is num)
-      ? (row['porcentaje'] as num).toDouble()
-      : 0.0;
+  final name = row['empleado'] ?? '-';
+  final valor = row['indice'].replaceAll('%', '');
+  double? pct = double.tryParse(valor);
 
   // Lógica para iniciales - extraída para simplificar la función principal
   final initials = (name is String && name.trim().isNotEmpty)
@@ -33,14 +32,14 @@ pw.Widget buildEmployeeCard({
           height: 80,
           child: pw.Center(
             child: pw.Text(
-              row['rankingLabel'] ?? '',
+              row['ranking'] ?? '',
               style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
           ),
         ),
         pw.SizedBox(width: 6),
         // Main card
-        pw.Expanded(child: _buildCardContent(row, initials, pct)),
+        pw.Expanded(child: _buildCardContent(row, initials, pct!)),
       ],
     ),
   );
@@ -62,7 +61,7 @@ pw.Widget _buildCardContent(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         // Row 1: avatar + name
-        _buildNameRow(initials, row['nombre']),
+        _buildNameRow(initials, row['empleado']),
         pw.SizedBox(height: 4),
         // Row 2: info columns + percentage box
         pw.Row(
@@ -138,9 +137,9 @@ pw.Widget _buildInfoValues(Map<String, dynamic> row) {
         pw.SizedBox(height: 1),
         pw.Text(row['puesto'] ?? '-', style: valueStyle),
         pw.SizedBox(height: 1),
-        pw.Text(row['fechaContratacion'] ?? '-', style: valueStyle),
+        pw.Text(row['fecha_contratacion'] ?? '-', style: valueStyle),
         pw.SizedBox(height: 1),
-        pw.Text(row['diasAsistidos'] ?? '-', style: valueStyle),
+        pw.Text(row['dias'] ?? '-', style: valueStyle),
       ],
     ),
   );

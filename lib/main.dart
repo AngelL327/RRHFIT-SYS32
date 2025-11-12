@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:get/get.dart';
 import 'package:rrhfit_sys32/globals.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';

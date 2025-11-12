@@ -1,6 +1,5 @@
 // lib/empleados/services/firestore_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/models/area_model.dart';
 import 'package:rrhfit_sys32/empleados/models/departamento_model.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
@@ -55,92 +54,306 @@ class FirestoreService {
         return {'id': doc.id, ...data};
       }).toList();
     } catch (e) {
-      debugPrint('Error obteniendo empleados: $e');
       return [];
     }
   }
 
-  // Obtener asistencias por empleado ID
+  // Obtener asistencias por empleado ID (robusto: intenta campo 'fecha' y docId)
   Future<List<Map<String, dynamic>>> getAsistenciasByEmpleadoId(
     String empleadoId, {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
     try {
-      final asistenciaSnapshot = await _firestore
+      final docRef = _firestore
           .collection('asistenciasEmpleados')
-          .doc(empleadoId)
-          .get();
+          .doc(empleadoId);
+      // REMOVIDO: final asistenciaSnapshot = await docRef.get(...);
+      // REMOVIDO: if (!asistenciaSnapshot.exists) { ... return []; }
+      // Siempre procede, ya que subcolección puede existir sin datos en padre
 
-      if (!asistenciaSnapshot.exists) {
-        return [];
+      final registrosRef = docRef.collection('registros');
+
+      // Intento 1: buscar por campo 'fecha' (Timestamp) dentro del rango
+      try {
+        final startTs = Timestamp.fromDate(
+          DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0),
+        );
+        final endTs = Timestamp.fromDate(
+          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59),
+        );
+        final byFecha = await registrosRef
+            .where('fecha', isGreaterThanOrEqualTo: startTs)
+            .where('fecha', isLessThanOrEqualTo: endTs)
+            .orderBy('fecha')
+            .get(const GetOptions(source: Source.server));
+
+        if (byFecha.docs.isNotEmpty) {
+          return byFecha.docs.map((d) {
+            final m = Map<String, dynamic>.from(d.data());
+            m['_docId'] = d.id;
+            return m;
+          }).toList();
+        } else {}
+      } catch (e) {
+        // seguir a fallback
       }
 
-      // Obtener registros del rango de fechas
-      final registrosSnapshot = await _firestore
-          .collection('asistenciasEmpleados')
-          .doc(empleadoId)
-          .collection('registros')
-          .where(
-            FieldPath.documentId,
-            isGreaterThanOrEqualTo: _formatDate(startDate),
-          )
-          .where(
-            FieldPath.documentId,
-            isLessThanOrEqualTo: _formatDate(endDate),
-          )
-          .get();
+      // Intento 2: fallback por documentId (formato esperado yyyy-MM-dd)
+      try {
+        final startId = _formatDate(startDate);
+        final endId = _formatDate(endDate);
+        final byDocId = await registrosRef
+            .where(FieldPath.documentId, isGreaterThanOrEqualTo: startId)
+            .where(FieldPath.documentId, isLessThanOrEqualTo: endId)
+            .orderBy(FieldPath.documentId)
+            .get(const GetOptions(source: Source.server));
 
-      return registrosSnapshot.docs.map((doc) {
-        final data = doc.data();
-        return {'fecha': doc.id, ...data};
-      }).toList();
-    } catch (e) {
-      debugPrint('Error obteniendo asistencias para $empleadoId: $e');
+        if (byDocId.docs.isNotEmpty) {
+          return byDocId.docs.map((d) {
+            final m = Map<String, dynamic>.from(d.data());
+            m['_docId'] = d.id;
+            return m;
+          }).toList();
+        } else {}
+      } catch (e) {}
+
+      return [];
+    } catch (e, s) {
       return [];
     }
   }
 
-  // Obtener datos combinados para el reporte
+  //------------------------------------------------------------------
+  Future<List<Map<String, dynamic>>> fetchRegistrosByEmpleadoIdAnywhere(
+    String empleadoId,
+    DateTime start,
+    DateTime end,
+  ) async {
+    try {
+      final startTs = Timestamp.fromDate(
+        DateTime(start.year, start.month, start.day, 0, 0, 0),
+      );
+      final endTs = Timestamp.fromDate(
+        DateTime(end.year, end.month, end.day, 23, 59, 59),
+      );
+      final startId = _dateId(start);
+      final endId = _dateId(end);
+
+      // 1) Preferencia: buscar directamente en asistenciasEmpleados/{empleadoId}/registros
+      try {
+        print("EmpleadoID AJA: $empleadoId");
+        final docRef = _firestore
+            .collection('asistenciasEmpleados')
+            .doc(empleadoId);
+        // REMOVIDO: final docSnap = await docRef.get(...);
+        // REMOVIDO: if (docSnap.exists) { ... }
+        // Siempre procede
+
+        // Intento A: por campo "fecha" (Timestamp)
+        try {
+          final qFecha = docRef
+              .collection('registros')
+              .where('fecha', isGreaterThanOrEqualTo: startTs)
+              .where('fecha', isLessThanOrEqualTo: endTs)
+              .orderBy('fecha');
+          final snapFecha = await qFecha.get(
+            const GetOptions(source: Source.server),
+          );
+          if (snapFecha.docs.isNotEmpty) {
+            return snapFecha.docs.map((d) {
+              final m = Map<String, dynamic>.from(d.data());
+              m['_docId'] = d.id;
+              m['_parentPath'] = d.reference.parent.parent?.path ?? '';
+              return m;
+            }).toList();
+          } else {}
+        } catch (e) {}
+
+        // Intento B: por documentId (yyyy-MM-dd)
+        try {
+          final qDocId = docRef
+              .collection('registros')
+              .where(FieldPath.documentId, isGreaterThanOrEqualTo: startId)
+              .where(FieldPath.documentId, isLessThanOrEqualTo: endId)
+              .orderBy(FieldPath.documentId);
+          final snapDocId = await qDocId.get(
+            const GetOptions(source: Source.server),
+          );
+          if (snapDocId.docs.isNotEmpty) {
+            return snapDocId.docs.map((d) {
+              final m = Map<String, dynamic>.from(d.data());
+              m['_docId'] = d.id;
+              m['_parentPath'] = d.reference.parent.parent?.path ?? '';
+              return m;
+            }).toList();
+          } else {}
+        } catch (e) {}
+      } catch (e) {}
+
+      return [];
+    } catch (e, s) {
+      return [];
+    }
+  }
+
+  //------------------------------------------------------------------
+
+  //------------------------------------------------------------------
   Future<List<Map<String, dynamic>>> getReporteAsistenciaData({
     required DateTime startDate,
     required DateTime endDate,
-    int ind = 0,
+    int? ind,
   }) async {
     try {
       final empleados = await getAllEmpleados();
       final reportData = <Map<String, dynamic>>[];
 
+      final totalDias = _calculateWorkingDays(startDate, endDate);
+
       for (final empleado in empleados) {
-        final asistencias = await getAsistenciasByEmpleadoId(
-          empleado['id'],
-          startDate: startDate,
-          endDate: endDate,
-        );
-        // Calcular métricas
-        final totalDias = _calculateWorkingDays(startDate, endDate);
-        final diasAsistidos = asistencias.length;
+        final empleadoId = empleado['id']?.toString() ?? '';
+
+        // obtener asistenciaDocId si existe (solo 1 declaración aquí)
+        final asistenciaDocId =
+            (empleado['asistencia_doc_id'] ??
+                    empleado['asistenciaDocId'] ??
+                    empleado['asistencia_docid'] ??
+                    '')
+                .toString();
+
+        // 1) intentos de obtención de registros
+        List<Map<String, dynamic>> asistencias = [];
+
+        // 1.a) intentar ruta: asistencias/{asistenciaDocId}/registros
+        if (asistenciaDocId.isNotEmpty) {
+          try {
+            final fetched = await fetchRegistrosByAsistenciaDocId(
+              asistenciaDocId,
+              startDate,
+              endDate,
+            );
+            if (fetched.isNotEmpty) {
+              asistencias = fetched;
+            }
+          } catch (e) {}
+        }
+
+        // 1.b) si vacío, intentar asistenciasEmpleados/{empleadoId}/registros
+        if (asistencias.isEmpty && empleadoId.isNotEmpty) {
+          try {
+            final fetched2 = await getAsistenciasByEmpleadoId(
+              empleadoId,
+              startDate: startDate,
+              endDate: endDate,
+            );
+            if (fetched2.isNotEmpty) {
+              asistencias = fetched2;
+            }
+          } catch (e) {}
+        }
+
+        // 1.c) si aún vacío, intentar collectionGroup fallback (anywhere)
+        if (asistencias.isEmpty && empleadoId.isNotEmpty) {
+          try {
+            final fetched3 = await fetchRegistrosByEmpleadoIdAnywhere(
+              empleadoId,
+              startDate,
+              endDate,
+            );
+            if (fetched3.isNotEmpty) {
+              asistencias = fetched3;
+            }
+          } catch (e) {}
+        }
+
+        // 2) Dedup y conteo de diasUnicos + detalle
+        final Set<String> diasUnicos = <String>{};
+        final List<Map<String, dynamic>> detalle = [];
+
+        DateTime? _parseFechaFromRegistro(Map<String, dynamic> r) {
+          try {
+            if (r.containsKey('fecha') && r['fecha'] is Timestamp) {
+              return (r['fecha'] as Timestamp).toDate();
+            }
+            if (r.containsKey('fecha')) {
+              final s = r['fecha'].toString();
+              final parsed = DateTime.tryParse(s);
+              if (parsed != null) return parsed;
+            }
+            if (r.containsKey('_docId')) {
+              final id = r['_docId'].toString();
+              final m = RegExp(
+                r'(\d{4})[-_]?(\d{2})[-_]?(\d{2})',
+              ).firstMatch(id);
+              if (m != null) {
+                return DateTime(
+                  int.parse(m.group(1)!),
+                  int.parse(m.group(2)!),
+                  int.parse(m.group(3)!),
+                );
+              }
+              // intentar formatos dd/MM/yyyy
+              final parts = id.split(RegExp(r'[-/ ]'));
+              if (parts.length == 3) {
+                final d = int.tryParse(parts[0]);
+                final mo = int.tryParse(parts[1]);
+                final y = int.tryParse(parts[2]);
+                if (d != null && mo != null && y != null)
+                  return DateTime(y, mo, d);
+              }
+            }
+          } catch (_) {
+            return null;
+          }
+          return null;
+        }
+
+        for (final r in asistencias) {
+          final dt = _parseFechaFromRegistro(Map<String, dynamic>.from(r));
+          String key;
+          if (dt != null) {
+            key =
+                '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+          } else {
+            // fallback: usar _docId o un hash
+            key =
+                (r['_docId']?.toString() ??
+                r['id']?.toString() ??
+                r.toString());
+          }
+
+          // agregamos al detalle (mantener original para mostrar)
+          detalle.add(Map<String, dynamic>.from(r));
+          diasUnicos.add(key);
+        }
+
+        final diasAsistidos = diasUnicos.length;
         final indiceAsistencia = totalDias > 0
             ? (diasAsistidos / totalDias) * 100
-            : 0;
+            : 0.0;
 
-        // print('PERÍODO: ${_formatDate(startDate)} - ${_formatDate(endDate)}');
-        // print('DÍAS LABORABLES ESPERADOS: 3 (31/oct, 3/nov, 4/nov)');
-        // print('DÍAS LABORABLES CALCULADOS: $totalDias');
-        // print('DÍAS Asistencia: $diasAsistidos');
-        // print('DÍAS indice: $indiceAsistencia');
-
-        // Obtener información del puesto y departamento
-        final puestoNombre = await _getPuestoNombre(empleado['puesto_id']);
-        final departamentoNombre = await _getDepartamentoNombre(
-          empleado['departamento_id'],
+        // 3) Obtener nombres auxiliares (compatibilidad con claves diversas)
+        final puestoNombre = await _getPuestoNombre(
+          empleado['puesto_id'] ??
+              empleado['puestoId'] ??
+              empleado['puesto'] ??
+              '',
         );
-        final areaNombre = await _getAreaNombre(empleado['area_id']);
+        final departamentoNombre = await _getDepartamentoNombre(
+          empleado['departamento_id'] ??
+              empleado['departamentoId'] ??
+              empleado['departamento'] ??
+              '',
+        );
+        final areaNombre = await _getAreaNombre(
+          empleado['area_id'] ?? empleado['areaId'] ?? empleado['area'] ?? '',
+        );
 
         reportData.add({
-          // Datos del empleado
-          'empleado_id': empleado['id'],
-          'codigo_empleado': empleado['codigo_empleado'] ?? '-',
+          'empleado_id': empleadoId,
+          'codigo_empleado':
+              empleado['codigo_empleado'] ?? empleado['codigo'] ?? '-',
           'nombre': empleado['nombre'] ?? '-',
           'puesto': puestoNombre,
           'departamento': departamentoNombre,
@@ -148,32 +361,29 @@ class FirestoreService {
           'fecha_contratacion': empleado['fecha_contratacion'] != null
               ? _formatFirestoreTimestamp(empleado['fecha_contratacion'])
               : '-',
-
-          // Métricas de asistencia
           'total_dias': totalDias,
           'dias_asistidos': diasAsistidos,
           'indice_asistencia': indiceAsistencia,
           'indice_formateado': '${indiceAsistencia.toStringAsFixed(1)}%',
-
-          // Detalles de asistencias
-          'asistencias': asistencias,
-
-          // Para el reporte perfecto (100% de asistencia)
-          'asistencia_perfecta': indiceAsistencia >= ind,
+          'asistencias': detalle,
+          'asistencia_perfecta': indiceAsistencia >= (ind ?? 0),
         });
       }
 
       // Ordenar por índice de asistencia descendente
       reportData.sort(
-        (a, b) => b['indice_asistencia'].compareTo(a['indice_asistencia']),
+        (a, b) => (b['indice_asistencia'] as double).compareTo(
+          a['indice_asistencia'] as double,
+        ),
       );
 
       return reportData;
-    } catch (e) {
-      debugPrint('Error generando datos del reporte: $e');
+    } catch (e, s) {
       return [];
     }
   }
+
+  //------------------------------------------------------------------
 
   // Métodos auxiliares
   String _formatDate(DateTime date) {
@@ -405,22 +615,14 @@ class FirestoreService {
     try {
       final col = _firestore.collection('asistencias');
       final snap = await col.get();
-      debugPrint('DEBUG: total asistencias docs = ${snap.docs.length}');
       for (final doc in snap.docs) {
-        debugPrint('  - asistenciaDocId = ${doc.id}');
         final regsSnap = await col.doc(doc.id).collection('registros').get();
-        debugPrint('      registros.count = ${regsSnap.docs.length}');
         for (int i = 0; i < regsSnap.docs.length && i < 3; i++) {
           final r = regsSnap.docs[i];
           final data = r.data();
-          debugPrint(
-            '         registro $i: id=${r.id}, uid=${data['uid']}, entrada=${data['entrada']}',
-          );
         }
       }
-    } catch (e, st) {
-      debugPrint('debugListAllAsistencias error: $e\n$st');
-    }
+    } catch (e, st) {}
   }
 
   String _dateId(DateTime d) =>
@@ -472,7 +674,6 @@ class FirestoreService {
         return m;
       }).toList();
     } catch (e, st) {
-      debugPrint('Error en fetchRegistrosByAsistenciaDocId: $e\n$st');
       return [];
     }
   }

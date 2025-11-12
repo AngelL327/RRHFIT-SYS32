@@ -11,7 +11,7 @@ List<pw.Widget> buildRankingChart({
     pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 6),
       child: pw.Text(
-        '**Total empleados destacados:** ${data.length} de X (Y%)',
+        '**Total empleados destacados:** ${data.length}',
         style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
       ),
     ),
@@ -30,9 +30,9 @@ List<pw.Widget> buildRankingChart({
 }
 
 pw.Widget _buildChartBar(Map<String, dynamic> row, double maxBarWidth) {
-  final pct = (row['porcentaje'] is num)
-      ? (row['porcentaje'] as num).toDouble()
-      : 0.0;
+  final valor = row['indice'].replaceAll('%', '');
+  double? pct = double.tryParse(valor);
+
   // Se usa maxBarWidth aquí porque es el ancho máximo disponible para el área de la barra (excluyendo márgenes y etiquetas)
   const double labelWidth = 18.0;
   const double labelSpacing = 8.0;
@@ -41,7 +41,7 @@ pw.Widget _buildChartBar(Map<String, dynamic> row, double maxBarWidth) {
     0.0,
     maxBarWidth,
   );
-  final barWidth = (pct.clamp(0.0, 100.0) / 100.0) * barAreaWidth;
+  final barWidth = (pct!.clamp(0.0, 100.0) / 100.0) * barAreaWidth;
 
   return pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 6),
@@ -81,7 +81,7 @@ pw.Widget _buildChartBar(Map<String, dynamic> row, double maxBarWidth) {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      row['nombre'] ?? '-',
+                      row['empleado'] ?? '-',
                       style: pw.TextStyle(color: PdfColors.white, fontSize: 9),
                     ),
                     pw.Text(

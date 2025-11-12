@@ -3,24 +3,38 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 import 'package:rrhfit_sys32/empleados/reports/second_report/report_asistencia_perfecta.dart';
 import 'package:rrhfit_sys32/empleados/widgets/custom_button.dart';
+import 'package:rrhfit_sys32/globals.dart';
 
-class SegundoReporte extends StatelessWidget {
+class SegundoReporte extends StatefulWidget {
   const SegundoReporte({super.key});
+
+  @override
+  State<SegundoReporte> createState() => _SegundoReporteState();
+}
+
+class _SegundoReporteState extends State<SegundoReporte> {
+  final EmpleadoController _emplController = EmpleadoController();
+
+  final DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
+
+  final DateTime _endDate = DateTime.now();
+
+  int counter = 0;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white30,
-      width: 300.0,
-      height: 50.0,
+      width: 100.0,
+      // height: 50.0,
       alignment: Alignment.center,
       child: Padding(
-        padding: EdgeInsetsGeometry.only(right: 10.0, top: 5.0, bottom: 5.0),
+        padding: EdgeInsetsGeometry.only(right: 10.0, top: 15.0, bottom: 5.0),
         child: CustomButton(
           icono: Icon(Icons.picture_as_pdf_rounded),
-          btnTitle: "Generar Reporte Asistencia Perfecta",
+          btnTitle: "Ver",
           bgColor: Colors.blueAccent,
           fgColor: Colors.white,
           onPressed: () async {
@@ -35,12 +49,40 @@ class SegundoReporte extends StatelessWidget {
                 logo = null;
               }
 
+              final Future<List<Map<String, dynamic>>> futureRows =
+                  _emplController.computeWeeklyAttendanceRows(
+                    customStartDate: _startDate,
+                    customEndDate: _endDate,
+                    includeWeekends: false,
+                    ind: 0,
+                  );
+              final List<Map<String, dynamic>> rows = await futureRows;
+
+              final List<Map<String, dynamic>> five = rows.take(5).toList();
+
+              //       for (var item in await rows) {
+              //         print("""
+              //   'ranking ${item["ranking"]}
+              //   'codigo ${item["codigo"]}
+              //   'empleado ${item["empleado"]}
+              //   'puesto ${item["puesto"]}
+              //   'departamento ${item["departamento"]}
+              //   'fecha_contratacion ${item["fecha_contratacion"]}
+              //   'periodo ${item["periodo"]}
+              //   'indice ${item["indice"]}
+              //   'dias ${item["dias"]}
+              //   'area ${item["area"]}
+              //   'detalle_asistencias ${item["detalle_asistencias"]}
+              //   'empleado_id ${item["empleado_id"]}
+              // }""");
+              //       }
+
               final departamento = 'Departamento de RRHH';
-              final generadoPor = 'Jeffry Espinal Valle';
+              final generadoPor = Global().userName.toString();
               final fechaGenerado = DateFormat(
                 'dd/MM/yyyy',
               ).format(DateTime.now());
-              final criterio = 'Índice de Asistencia > 95%';
+              final criterio = 'Índice de Asistencia > $counter %';
 
               // items: usar datos reales aqui
               final items = [
@@ -121,7 +163,7 @@ class SegundoReporte extends StatelessWidget {
                           generadoPor: generadoPor,
                           fechaGenerado: fechaGenerado,
                           criterioExcepcion: criterio,
-                          items: items,
+                          items: await five,
                         );
                       },
                     ),
