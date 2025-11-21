@@ -11,6 +11,9 @@ import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/utilities/tipos_incapacidades.dart';
 import 'package:rrhfit_sys32/logic/utilities/tipos_solicitudes.dart';
 import 'package:rrhfit_sys32/widgets/alert_message.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:rrhfit_sys32/logic/utilities/documentos_supabase.dart';
+import 'dart:typed_data';
 
 // New: extract the form into a reusable widget that can be embedded inside an AlertDialog
 class AddIncapacidadForm extends StatefulWidget {
@@ -36,11 +39,19 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
   DateTime? _fechaFin;
   String _estado = EstadoSolicitud.pendiente;
   final TextEditingController _motivoCtrl = TextEditingController();
-  final TextEditingController _documentoCtrl = TextEditingController();
+  // Document upload state (replaces the previous URL text input)
+  Uint8List? _selectedFileBytes;
+  String? _selectedFileName;
+  String? _uploadedFilePath;
+  String? _documentPublicUrl; // will be assigned after upload and saved to the model
+  bool _uploadingDocument = false;
   EmpleadoModel? _selectedEmpleado;
   List<EmpleadoModel> _empleados = [];
   Future<List<EmpleadoModel>>? _empleadosFuture;
   String _empleadoTyped = '';
+  bool _submitting = false;
+  String? _asyncError; // errors from async checks (overlap, duplicate)
+  bool _autoSelectedInitialized = false;
 
   @override
   void initState() {
@@ -64,8 +75,77 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     _numCertCtrl.dispose();
     _enteEmisorCtrl.dispose();
     _motivoCtrl.dispose();
-    _documentoCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadDocument() async {
+    setState(() {
+      _asyncError = null;
+    });
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'png'],
+      withData: true,
+    );
+    if (result == null) return; // user cancelled
+    final file = result.files.first;
+    final bytes = file.bytes;
+    final name = file.name;
+    setState(() {
+      _selectedFileBytes = bytes;
+      _selectedFileName = name;
+      _uploadingDocument = true;
+    });
+
+    try {
+      if (bytes == null) throw Exception('No se obtuvieron datos del archivo (withData==true pendiente)');
+      final path = 'Incapacidades/${DateTime.now().millisecondsSinceEpoch}_$name';
+      final url = await uploadDocumentToSupabase(bytes, path, bucket: 'Reportes', makePublic: true);
+      setState(() {
+        _uploadedFilePath = path;
+        _documentPublicUrl = url;
+      });
+    } catch (e) {
+      setState(() => _asyncError = 'Error subiendo archivo: $e');
+    } finally {
+      setState(() => _uploadingDocument = false);
+    }
+  }
+
+  Future<void> _removeSelectedDocument() async {
+    // If the file was already uploaded to Supabase, try to delete it from storage
+    if (_uploadedFilePath != null) {
+      setState(() {
+        _uploadingDocument = true;
+        _asyncError = null;
+      });
+      try {
+        final deleted = await deleteDocumentFromSupabase(_uploadedFilePath!);
+        if (!deleted) {
+          setState(() => _asyncError = 'No se pudo eliminar el archivo en el servidor');
+        }
+      } catch (e) {
+        setState(() => _asyncError = 'Error eliminando archivo en servidor: $e');
+      } finally {
+        // Clear local selection regardless; keep error visible if any
+        setState(() {
+          _selectedFileBytes = null;
+          _selectedFileName = null;
+          _uploadedFilePath = null;
+          _documentPublicUrl = null;
+          _uploadingDocument = false;
+        });
+      }
+    } else {
+      // Not uploaded yet: just clear local selection
+      setState(() {
+        _selectedFileBytes = null;
+        _selectedFileName = null;
+        _uploadedFilePath = null;
+        _documentPublicUrl = null;
+        _asyncError = null;
+      });
+    }
   }
 
   Future<void> _pickDate(BuildContext ctx, DateTime? initial, Function(DateTime) onPicked) async {
@@ -73,8 +153,10 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     final picked = await showDatePicker(
       context: ctx,
       initialDate: initial ?? now,
-      firstDate: DateTime(now.year - 5),
-      lastDate: DateTime(now.year + 5),
+      // Restrict selectable dates to a reasonable window: not more than 1 year in the past
+      // and not more than 1 year in the future from today.
+      firstDate: DateTime(now.year - 1, now.month, now.day),
+      lastDate: DateTime(now.year + 1, now.month, now.day),
     );
     if (picked != null) onPicked(picked);
   }
@@ -98,54 +180,128 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
       _empleadoTyped = _selectedEmpleado!.nombre;
     }
 
+    // Run synchronous validators first (field validators)
     if (!_formKey.currentState!.validate()) return;
+
+    // Validate date presence and ordering
     if (_fechaInicio == null || _fechaFin == null) {
-      errorScaffoldMsg(context, 'Por favor seleccione las fechas de inicio y fin de incapacidad');
+      setState(() => _asyncError = 'Por favor seleccione las fechas de inicio y fin de incapacidad');
       return;
     }
     if (_fechaInicio!.isAfter(_fechaFin!)) {
-      errorScaffoldMsg(context, 'La fecha de inicio no puede ser posterior a la fecha final');
-      return;
-    }
-    if(_numCertCtrl.text.trim().isEmpty){
-      errorScaffoldMsg(context, 'Por favor ingrese el número de certificado');
+      setState(() => _asyncError = 'La fecha de inicio no puede ser posterior a la fecha final');
       return;
     }
 
-    if (_enteEmisorCtrl.text.trim().isEmpty) {
-      errorScaffoldMsg(context, 'Por favor ingrese el ente emisor');
+    // Validate date range: not more than 1 year in the past or future from today
+    final now = DateTime.now();
+    final earliest = DateTime(now.year - 1, now.month, now.day);
+    final latest = DateTime(now.year + 1, now.month, now.day);
+    if (_fechaInicio!.isBefore(earliest) || _fechaFin!.isBefore(earliest) || _fechaInicio!.isAfter(latest) || _fechaFin!.isAfter(latest)) {
+      setState(() => _asyncError = 'Las fechas deben estar dentro de un año hacia atrás y un año hacia adelante desde hoy');
       return;
     }
+  // Trim inputs and enforce length limits before further checks
+  String numCert = _numCertCtrl.text.trim();
+  String enteEmisor = _enteEmisorCtrl.text.trim();
+  String motivo = _motivoCtrl.text.trim();
+  // Use uploaded document URL if present (file picker replaces URL input)
+  String documento = _documentPublicUrl?.trim() ?? '';
 
+    // Length truncation
+    if (motivo.length > 256) motivo = motivo.substring(0, 256);
+    if (enteEmisor.length > 64) enteEmisor = enteEmisor.substring(0, 64);
+    if (numCert.length > 8) numCert = numCert.substring(0, 8);
+
+    // Reassign trimmed/truncated values back to controllers so UI reflects them
+    _numCertCtrl.text = numCert;
+    _enteEmisorCtrl.text = enteEmisor;
+  _motivoCtrl.text = motivo;
+
+    // Basic presence checks (validators already cover some, double-check)
+    if (numCert.isEmpty) {
+      setState(() => _asyncError = 'Por favor ingrese el número de certificado');
+      return;
+    }
+    if (enteEmisor.isEmpty) {
+      setState(() => _asyncError = 'Por favor ingrese el ente emisor');
+      return;
+    }
     if (_empleados.isNotEmpty && _selectedEmpleado == null) {
-      // if empleados exist but we couldn't resolve a selection, block submit
-      errorScaffoldMsg(context, 'El empleado seleccionado no es válido');
+      setState(() => _asyncError = 'El empleado seleccionado no es válido');
       return;
     }
 
-    final inc = IncapacidadModel(
+    // numCert pattern: digits only, length between 4 and 8
+    final digitsOnly = RegExp(r'^\d{4,8}$');
+    if (!digitsOnly.hasMatch(numCert)) {
+      setState(() => _asyncError = 'El número de certificado debe contener sólo dígitos (4-8 caracteres)');
+      return;
+    }
+
+    // Before creating, perform async business checks: overlap and duplicates
+    setState(() {
+      _asyncError = null;
+      _submitting = true;
+    });
+
+    try {
+      // fetch existing incapacidades for employee (if we have an id)
+      final empleadoId = _selectedEmpleado?.empleadoID ?? _userIdCtrl.text.trim();
+      if (empleadoId.isNotEmpty) {
+        final existing = await getIncapacidadesByEmpleadoId(empleadoId);
+        // check overlap
+        final overlaps = existing.where((e) {
+          final aStart = e.fechaInicioIncapacidad;
+          final aEnd = e.fechaFinIncapacidad;
+          final bStart = _fechaInicio!;
+          final bEnd = _fechaFin!;
+          // intervals [aStart,aEnd] and [bStart,bEnd] intersect iff
+          return !(aEnd.isBefore(bStart) || aStart.isAfter(bEnd));
+        }).toList();
+        if (overlaps.isNotEmpty) {
+          setState(() {
+            _asyncError = 'La incapacidad solapa con otra registrada para este empleado';
+            _submitting = false;
+          });
+          return;
+        }
+        // check duplicate certificate recently used (same certificate number)
+        final dup = existing.where((e) => e.numCertificado.trim() == numCert).toList();
+        if (dup.isNotEmpty) {
+          setState(() {
+            _asyncError = 'El número de certificado ya está registrado para este empleado';
+            _submitting = false;
+          });
+          return;
+        }
+      }
+
+      final inc = IncapacidadModel(
       id: '',
       userId: _selectedEmpleado?.empleadoID ?? (_userIdCtrl.text.trim().isEmpty ? 'N/A' : _userIdCtrl.text.trim()),
       usuario: _selectedEmpleado?.nombre ?? (_usuarioCtrl.text.trim().isEmpty ? 'N/A' : _usuarioCtrl.text.trim()),
       tipoSolicitud: _tipoSolicitud,
       tipoIncapacidad: _tipoIncapacidad.trim().isEmpty ? 'N/A' : _tipoIncapacidad.trim(),
-      numCertificado: _numCertCtrl.text.trim().isEmpty ? 'N/A' : _numCertCtrl.text.trim(),
-      enteEmisor: _enteEmisorCtrl.text.trim().isEmpty ? 'N/A' : _enteEmisorCtrl.text.trim(),
+      numCertificado: numCert.isEmpty ? 'N/A' : numCert,
+      enteEmisor: enteEmisor.isEmpty ? 'N/A' : enteEmisor,
       fechaSolicitud: _fechaSolicitud,
       fechaExpediente: _fechaExpediente ?? _fechaSolicitud,
       fechaInicioIncapacidad: _fechaInicio!,
       fechaFinIncapacidad: _fechaFin!,
       estado: _estado,
-      motivo: _motivoCtrl.text.trim().isEmpty ? 'N/A' : _motivoCtrl.text.trim(),
-      documentoUrl: _documentoCtrl.text.trim(),
+      motivo: motivo.isEmpty ? 'N/A' : motivo,
+      documentoUrl: documento,
     );
-
-    final success = await addIncapacidad(inc);
-    if (success) {
-      successScaffoldMsg(context, 'Incapacidad creada correctamente');
-      Navigator.of(context).pop(true);
-    } else {
-      errorScaffoldMsg(context, 'Error al crear la incapacidad');
+      final success = await addIncapacidad(inc);
+      if (success) {
+        successScaffoldMsg(context, 'Incapacidad creada correctamente');
+        Navigator.of(context).pop(true);
+      } else {
+        setState(() => _asyncError = 'Error al crear la incapacidad');
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -177,6 +333,14 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                     // keep a local copy for submit-time decisions
                     _empleados = empleados;
                     if (empleados.isEmpty) return const Text('No se encontraron empleados');
+                    // If not yet initialized, auto-select the first empleado without calling setState
+                    // to avoid marking widgets dirty during build. We'll update the Autocomplete controller
+                    // later inside its fieldViewBuilder.
+                    if (!_autoSelectedInitialized && _selectedEmpleado == null && empleados.isNotEmpty) {
+                      _selectedEmpleado = empleados.first;
+                      _empleadoTyped = empleados.first.nombre;
+                      _autoSelectedInitialized = true;
+                    }
                     return Autocomplete<EmpleadoModel>(
                       optionsBuilder: (TextEditingValue textEditingValue) {
                         if (textEditingValue.text == '') {
@@ -188,14 +352,31 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                       },
                       displayStringForOption: (EmpleadoModel e) => e.nombre,
                       fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+                        // ensure the controller reflects the typed/selected value
+                        // (do this after the frame to avoid mutating the controller during build)
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
+                          if (_empleadoTyped.isNotEmpty && textEditingController.text != _empleadoTyped) {
+                            textEditingController.text = _empleadoTyped;
+                            textEditingController.selection = TextSelection.collapsed(offset: _empleadoTyped.length);
+                          }
+                        });
                         return TextFormField(
                           controller: textEditingController,
                           focusNode: focusNode,
                           decoration: const InputDecoration(labelText: 'Empleado'),
                           // keep track of what's typed so we can try to match on submit
                           onChanged: (v) => _empleadoTyped = v,
-                          // allow empty here; we'll default to the first empleado on submit
-                          validator: (v) => null,
+                          // validator ensures an empleado is chosen when empleados exist
+                          validator: (v) {
+                            if (_empleados.isNotEmpty && _selectedEmpleado == null) {
+                              final typed = v?.trim() ?? '';
+                              if (typed.isEmpty) return 'Seleccione un empleado';
+                              final idx = _empleados.indexWhere((e) => e.nombre.toLowerCase() == typed.toLowerCase());
+                              if (idx == -1) return 'Seleccione un empleado válido';
+                            }
+                            return null;
+                          },
                         );
                       },
                       onSelected: (EmpleadoModel selection) {
@@ -232,11 +413,24 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 TextFormField(
                   controller: _numCertCtrl,
                   decoration: const InputDecoration(labelText: 'Número de certificado'),
+                  validator: (v) {
+                    final s = v?.trim() ?? '';
+                    if (s.isEmpty) return 'Ingrese el número de certificado';
+                    if (s.length < 4 || s.length > 8) return 'Deben ser 4-8 dígitos';
+                    if (int.tryParse(s) == null) return 'El número debe contener sólo dígitos';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _enteEmisorCtrl,
                   decoration: const InputDecoration(labelText: 'Ente emisor'),
+                  validator: (v) {
+                    final s = v?.trim() ?? '';
+                    if (s.isEmpty) return 'Ingrese el ente emisor';
+                    if (s.length > 64) return 'Máximo 64 caracteres';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 8),
                 ListTile(
@@ -289,13 +483,55 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                   controller: _motivoCtrl,
                   decoration: const InputDecoration(labelText: 'Motivo'),
                   maxLines: 4,
-                  validator: (v) => v == null || v.trim().isEmpty ? 'Ingrese motivo' : null,
+                  validator: (v) {
+                    final s = v?.trim() ?? '';
+                    if (s.isEmpty) return 'Ingrese motivo';
+                    if (s.length < 5) return 'El motivo debe tener al menos 5 caracteres';
+                    if (s.length > 256) return 'Máximo 256 caracteres';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
-                  controller: _documentoCtrl,
-                  decoration: const InputDecoration(labelText: 'URL de documento (opcional)'),
+                // File picker & upload (only PDF or PNG). Uploaded file public URL is stored in
+                // _documentPublicUrl and will be saved to the model as documentoUrl.
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _uploadingDocument ? null : _pickAndUploadDocument,
+                          icon: const Icon(Icons.attach_file),
+                          label: Text(_selectedFileName == null ? 'Seleccionar archivo (pdf/png)' : 'Cambiar archivo'),
+                        ),
+                        const SizedBox(width: 8),
+                        if (_uploadingDocument) const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                        if (_selectedFileName != null) ...[
+                          const SizedBox(width: 8),
+                          Text(_selectedFileName!, style: const TextStyle(fontStyle: FontStyle.italic)),
+                          IconButton(onPressed: _removeSelectedDocument, icon: const Icon(Icons.delete, color: Colors.red)),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (_selectedFileBytes != null && _selectedFileName != null && _selectedFileName!.toLowerCase().endsWith('.png'))
+                      SizedBox(
+                        width: 120,
+                        height: 120,
+                        child: Image.memory(_selectedFileBytes!, fit: BoxFit.cover),
+                      ),
+                    if (_documentPublicUrl != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: SelectableText('Archivo subido: $_documentPublicUrl', style: const TextStyle(fontSize: 12)),
+                      ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                if (_asyncError != null) ...[
+                  Text(_asyncError!, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 8),
+                ],
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -307,10 +543,13 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                     const SizedBox(width: 8),
                     ElevatedButton(
                       style: AppTheme.lightTheme.elevatedButtonTheme.style,
-                      onPressed: _submit,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-                        child: Text('Guardar', style: TextStyle(fontSize: 16)),
+                      // Disable submit while saving or while a document upload/delete is in progress
+                      onPressed: (_submitting || _uploadingDocument) ? null : _submit,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                        child: (_submitting || _uploadingDocument)
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Text('Guardar', style: TextStyle(fontSize: 16)),
                       ),
                     ),
                   ],

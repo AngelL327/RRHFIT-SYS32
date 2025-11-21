@@ -1,14 +1,10 @@
-import 'dart:math';
-
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/Reportes/reporte_incapacidades_body.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
-import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/logic/area_functions.dart';
 import 'package:rrhfit_sys32/logic/empleados_functions.dart';
 import 'package:rrhfit_sys32/logic/models/area_model.dart';
-import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_row.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
@@ -209,7 +205,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 1),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -219,15 +215,17 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     IconButton(
                       style: AppTheme.lightTheme.elevatedButtonTheme.style,
                       icon: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.add_circle, color: AppTheme.cream ),
+                          const Icon(Icons.add_circle, color: AppTheme.cream , size: 16,),
                           const SizedBox(width: 8),
-                          Text('Añadir nueva solicitud', style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 16),),
+                          Text('Añadir nueva solicitud', style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 14),),
                         ],
                       ),
                       tooltip: 'Añadir nueva solicitud de incapacidad',
                       onPressed: () async {
                         final created = await showAddIncapacidadDialog(context);
+                        if (!mounted) return; // avoid setState after dispose
                         if (created == true) {
                           setState(() {});
                         }
@@ -239,8 +237,9 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
               
                     // Open dialog to select month/year and generate PDF
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
                       child: ElevatedButton.icon(
+
                         style: AppTheme.lightTheme.elevatedButtonTheme.style,
                         icon: const Icon(Icons.picture_as_pdf),
                         label: const Text('Imprimir reporte de incapacidades'),
@@ -253,61 +252,81 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                               return StatefulBuilder(builder: (context, setDialogState) {
                                 return AlertDialog(
                                   title: const Text('Seleccionar periodo del reporte'),
-                                  content: Row(
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      DropdownButton<int?>(
-                                        value: dialogMonth,
-                                        hint: const Text('Mes (Todos)'),
-                                        items: [
-                                          DropdownMenuItem<int?>(value: null, child: Text('Todos')),
-                                          for (var m = 1; m <= 12; m++) DropdownMenuItem<int?>(value: m, child: Text('${m.toString().padLeft(2, '0')} - ${_monthName(m)}')),
+                                      Row(
+                                        children: [
+                                          DropdownButton<int?>(
+                                            value: dialogMonth,
+                                            hint: const Text('Mes (Todos)'),
+                                            items: [
+                                              DropdownMenuItem<int?>(value: null, child: Text('Todos')),
+                                              for (var m = 1; m <= 12; m++) DropdownMenuItem<int?>(value: m, child: Text('${m.toString().padLeft(2, '0')} - ${_monthName(m)}')),
+                                            ],
+                                            onChanged: (val) => setDialogState(() => dialogMonth = val),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          DropdownButton<int?>(
+                                            value: dialogYear,
+                                            hint: const Text('Año'),
+                                            items: _yearItems(),
+                                            onChanged: (val) => setDialogState(() => dialogYear = val),
+                                          ),
                                         ],
-                                        onChanged: (val) => setDialogState(() => dialogMonth = val),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      DropdownButton<int?>(
-                                        value: dialogYear,
-                                        hint: const Text('Año'),
-                                        items: _yearItems(),
-                                        onChanged: (val) => setDialogState(() => dialogYear = val),
                                       ),
                                     ],
                                   ),
                                   actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
-                                      child: const Text('Cancelar'),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        // Generate button uses existing GeneratePDFButton inside the dialog so the PDF preview appears as before
+                                        Column(
+                                          children: [
+                                            SizedBox(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.only(right: 8.0),
+                                                    child: GeneratePDFButton<IncapacidadRow>(
+                                                      buttonLabel: 'Generar',
+                                                      reportTitle: 'Reporte de Incapacidades',
+                                                      fetchData: () {
+                                                        // Pass the dialog selections directly to getRegistros.
+                                                        // getRegistros will handle the combinations: (year+month), (year only), or (all).
+                                                        return getRegistros(dialogYear, dialogMonth);
+                                                      },
+                                                      tableHeaders: [
+                                                        'Fecha Solicitud',
+                                                        'Fecha Inicio',
+                                                        'Fecha Fin',
+                                                        'Tipo',
+                                                        'Estado',
+                                                        'Empleado',
+                                                        'Emisor y Documento',
+                                                        'Motivo',
+                                                      ],
+                                                      rowMapper: (row) => row.toStringList(),
+                                                      reportMonth: dialogMonth,
+                                                      reportYear: dialogYear,
+                                                      columnFlexes: [1.0, 1.15, 1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4],
+                                                      bodyContent: null,
+                                                    ),
+                                                  ),
+                                                ),
+                                          ],
+                                        ),
+                                        SizedBox(width: 8),
+                                        Column(
+                                          children: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(context).pop(),
+                                              child: const Text('Cancelar'),
+                                            ),
+                                          ],
+                                        ),                                        
+                                      ],
                                     ),
-                                    // Generate button uses existing GeneratePDFButton inside the dialog so the PDF preview appears as before
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
-                                      child: GeneratePDFButton<IncapacidadRow>(
-                                        buttonLabel: 'Generar',
-                                        reportTitle: 'Reporte de Incapacidades',
-                                        fetchData: () {
-                                          final year = dialogYear ?? (dialogMonth != null ? DateTime.now().year : null);
-                                          if (year != null && dialogMonth != null) return getRegistros(year, dialogMonth);
-                                          return getRegistros();
-                                        },
-                                        tableHeaders: [
-                                          'Fecha Solicitud',
-                                          'Fecha Inicio',
-                                          'Fecha Fin',
-                                          'Tipo',
-                                          'Estado',
-                                          'Empleado',
-                                          'Emisor y Documento',
-                                          'Correo',
-                                          'Motivo',
-                                          'Area',
-                                        ],
-                                        rowMapper: (row) => row.toStringList(),
-                                        reportMonth: dialogMonth,
-                                        reportYear: dialogYear,
-                                        columnFlexes: [1.0, 1.15, 1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4],
-                                        bodyContent: null,
-                                      ),
-                                    ),
+                                    
                                   ],
                                 );
                               });
@@ -422,11 +441,14 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                               ),
                               child: const Text('Ver'),
                               onPressed: () {
+                                // Pass a safe callback that checks mounted before calling setState
+                                void safeSetState() {
+                                  if (!mounted) return;
+                                  setState(() {});
+                                }
                                 showDialog<void>(
                                   context: context,
-                                  builder: (context) => buildDetallesDialog(context, inc, setState: () {
-                                    setState(() {});
-                                  }),
+                                  builder: (context) => buildDetallesDialog(context, inc, setState: safeSetState),
                                 );
                               },
                                                         ),
@@ -459,8 +481,15 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
     // If a month is provided but year is null, default to current year
     if (month != null && year == null) year = DateTime.now().year;
     List<IncapacidadModel> incapacidades;
+    // three cases:
+    // - year != null && month != null -> specific month
+    // - year != null && month == null -> whole year
+    // - year == null -> all records
     if (year != null && month != null) {
       incapacidades = await getIncapacidadesByMonth(year, month);
+    } else if (year != null && month == null) {
+      // fetch by year
+      incapacidades = await getIncapacidadesByYear(year);
     } else {
       incapacidades = await getAllIncapacidades();
     }

@@ -23,6 +23,7 @@ class GeneratePDFButton<T> extends StatelessWidget {
     this.fontAsset = 'assets/fonts/Roboto-Regular.ttf',
     this.columnFlexes,
     this.bodyContent,
+    this.buttonWidth = 8.0,
   });
 
   final String buttonLabel;
@@ -35,6 +36,7 @@ class GeneratePDFButton<T> extends StatelessWidget {
   final String fontAsset;
   final List<double>? columnFlexes;
   final pw.Widget? bodyContent;
+  final double buttonWidth;
   // Optional period to be displayed in the report header
   final int? reportMonth;
   final int? reportYear;
@@ -120,7 +122,7 @@ class GeneratePDFButton<T> extends StatelessWidget {
       icon: Row(
         children: [
           Icon(Icons.picture_as_pdf),
-          const SizedBox(width: 8),
+          SizedBox(width: buttonWidth),
           Text(buttonLabel, style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold)),
         ],
       ),

@@ -33,7 +33,7 @@ class IncapacidadModel {
     required this.fechaFinIncapacidad,
     required this.estado,
     required this.motivo,
-    required this.documentoUrl,
+    this.documentoUrl = 'https://mmrnyhyltodxfirygqua.supabase.co/storage/v1/object/public/Reportes/Reportes/Formato%20incapacidad.pdf',
   });
 
   factory IncapacidadModel.fromJson(String id, Map<String, dynamic> json) {
@@ -51,7 +51,7 @@ class IncapacidadModel {
       fechaFinIncapacidad: parseToDateTime(json['fechaFinIncapacidad']),
       estado: json['estado'] ?? 'N/A',
       motivo: json['motivo'] ?? 'N/A',
-      documentoUrl: json['documento'] ?? json['documento'] ?? json['documento'] ?? '',
+      documentoUrl: json['documento'] == "" ? 'https://mmrnyhyltodxfirygqua.supabase.co/storage/v1/object/public/Reportes/Reportes/Formato%20incapacidad.pdf' : json['documento'],
     );
   }
 

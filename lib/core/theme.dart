@@ -31,13 +31,13 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: cream,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 1),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       textTheme: base.textTheme.copyWith(
-        headlineSmall: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        titleLarge: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        headlineSmall: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        titleLarge: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         bodyMedium: const TextStyle(fontSize: 14),
       ),
       
