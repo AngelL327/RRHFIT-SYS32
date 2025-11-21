@@ -75,14 +75,17 @@ class _SecondSeccionState extends State<SecondSeccion> {
                           if (nuevo != null) {
                             await widget.controller.createEmployee(nuevo);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Empleado creado')),
+                              const SnackBar(
+                                content: Text('EMPLEADO CREADO EXITOSAMENTE'),
+                                backgroundColor: Colors.green,
+                              ),
                             );
                           }
                         } catch (e) {
-                          debugPrint('Error al abrir formulario crear: $e');
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Error inicializando datos'),
+                              backgroundColor: Colors.red,
                             ),
                           );
                         }
@@ -96,9 +99,9 @@ class _SecondSeccionState extends State<SecondSeccion> {
                 dataRowHeight: 52,
                 rowsPerPage: 6,
                 columns: const [
-                  DataColumn(label: Text('EmpleadoID')),
+                  // DataColumn(label: Text('EmpleadoID')),
                   DataColumn(label: Text('Nombre')),
-                  DataColumn(label: Text('Código')),
+                  DataColumn(label: Text('DNI')),
                   DataColumn(label: Text('Correo')),
                   DataColumn(label: Text('Teléfono')),
                   DataColumn(label: Text('Estado')),
@@ -143,7 +146,6 @@ class EmpleadosDataSource extends DataTableSource {
 
     return DataRow.byIndex(
       index: index,
-      // no manejamos selected persistente; permitimos seleccionar para abrir detalle
       selected: false,
       onSelectChanged: (selected) {
         if (selected == true) {
@@ -160,7 +162,6 @@ class EmpleadosDataSource extends DataTableSource {
         }
       },
       cells: [
-        DataCell(Text(empleado.empleadoId ?? '-')),
         DataCell(Text(empleado.nombre ?? '-')),
         DataCell(Text(empleado.codigoEmpleado ?? '-')),
         DataCell(Text(empleado.correo ?? '-')),
@@ -181,7 +182,6 @@ class EmpleadosDataSource extends DataTableSource {
         DataCell(
           Row(
             children: [
-              // Ver (abre detalle)
               IconButton(
                 tooltip: 'Ver',
                 icon: const Icon(Icons.visibility),
@@ -216,11 +216,13 @@ class EmpleadosDataSource extends DataTableSource {
                       actualizado.id = empleado.id;
                       await controller.updateEmployee(actualizado);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Empleado actualizado')),
+                        const SnackBar(
+                          content: Text('Empleado actualizado'),
+                          backgroundColor: Colors.green,
+                        ),
                       );
                     }
                   } catch (e) {
-                    debugPrint('Error al abrir formulario editar: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Error inicializando datos'),
@@ -232,7 +234,6 @@ class EmpleadosDataSource extends DataTableSource {
                 color: Colors.blue,
               ),
 
-              // Eliminar
               IconButton(
                 tooltip: 'Eliminar',
                 onPressed: () async {
@@ -258,7 +259,10 @@ class EmpleadosDataSource extends DataTableSource {
                   if (confirm == true && empleado.id != null) {
                     await controller.deleteEmployee(empleado.id!);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Empleado eliminado')),
+                      const SnackBar(
+                        content: Text('Empleado eliminado'),
+                        backgroundColor: Colors.green,
+                      ),
                     );
                   }
                 },

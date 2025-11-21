@@ -65,6 +65,8 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
     super.dispose();
   }
 
+  bool _isSaving = false;
+
   Future<void> pickDate(
     BuildContext context,
     DateTime? initial,
@@ -82,6 +84,22 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
 
   String formatoDate(DateTime? d) =>
       d == null ? '-' : d.toLocal().toIso8601String().split('T')[0];
+
+  bool esSoloNumeros(String str) {
+    final RegExp regex = RegExp(r'^\d{8}$');
+    return regex.hasMatch(str);
+  }
+
+  bool esSoloNumerosDNI(String str) {
+    final RegExp regex = RegExp(r'^\d{13}$');
+    return regex.hasMatch(str);
+  }
+
+  bool esMayorDeEdad(DateTime dob) {
+    final today = DateTime.now();
+    final fechaAdulto = DateTime(today.year - 18, today.month, today.day);
+    return dob.isBefore(fechaAdulto) || dob.isAtSameMomentAs(fechaAdulto);
+  }
 
   Widget _buildDepartamentoDropdown() {
     return StreamBuilder<List<Departamento>>(
@@ -133,10 +151,6 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
           (it) => it.value == _selectedDepartamentoId,
         );
         final valueToUse = hasSelected ? _selectedDepartamentoId : null;
-
-        debugPrint(
-          'FormDepartamento: selected=$_selectedDepartamentoId hasSelected=$hasSelected items=${items.length}',
-        );
 
         if (items.isEmpty) {
           return InputDecorator(
@@ -215,10 +229,6 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
         final hasSelected = items.any((it) => it.value == _selectedAreaId);
         final valueToUse = hasSelected ? _selectedAreaId : null;
 
-        debugPrint(
-          'FormArea: selected=$_selectedAreaId hasSelected=$hasSelected items=${items.length} depto=$_selectedDepartamentoId',
-        );
-
         if (items.isEmpty) {
           return InputDecorator(
             decoration: const InputDecoration(labelText: 'Área'),
@@ -286,10 +296,6 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
         final hasSelected = items.any((it) => it.value == _selectedPuestoId);
         final valueToUse = hasSelected ? _selectedPuestoId : null;
 
-        debugPrint(
-          'FormPuesto: selected=$_selectedPuestoId hasSelected=$hasSelected items=${items.length}',
-        );
-
         if (items.isEmpty) {
           return InputDecorator(
             decoration: const InputDecoration(labelText: 'Puesto'),
@@ -323,24 +329,39 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
               children: [
                 TextFormField(
                   controller: nombre,
-                  decoration: const InputDecoration(labelText: 'Nombre'),
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre',
+                    hintText: "Lionel Andrés Messi Cuccittini",
+                  ),
                   validator: (v) =>
                       (v == null || v.isEmpty) ? 'Ingrese nombre' : null,
                 ),
                 TextFormField(
                   controller: codigo,
                   decoration: const InputDecoration(
-                    labelText: 'Código empleado',
+                    labelText: 'DNI',
+                    hintText: "Ej: 0501199909283, Sin guiones ni espacios",
                   ),
+                  validator: (v) {
+                    final bool esNumeroDNI = esSoloNumerosDNI(v.toString());
+                    if (v == null || v.isEmpty || !esNumeroDNI) {
+                      return 'Ingrese DNI válido de 13 dígitos';
+                    }
+                    return null;
+                  },
                 ),
                 Row(
                   children: [
                     Expanded(
                       child: TextFormField(
                         controller: correo,
-                        decoration: const InputDecoration(labelText: 'Correo'),
+                        decoration: const InputDecoration(
+                          labelText: 'Correo',
+                          hintText: "Ej: correo@correo.com",
+                        ),
                         validator: (v) {
-                          if (v == null || v.isEmpty) return 'Ingrese correo';
+                          if (v == null || v.isEmpty || !v.contains("@"))
+                            return 'Ingrese correo';
                           return null;
                         },
                       ),
@@ -351,7 +372,15 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                         controller: telefono,
                         decoration: const InputDecoration(
                           labelText: 'Teléfono',
+                          hintText: "Ej: 95563530, sin guiones ni espacios",
                         ),
+                        validator: (v) {
+                          final bool esNumero = esSoloNumeros(v.toString());
+                          if (v == null || v.isEmpty || !esNumero) {
+                            return 'Ingrese teléfono';
+                          }
+                          return null;
+                        },
                       ),
                     ),
                   ],
@@ -380,6 +409,7 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                   controller: numeroCuenta,
                   decoration: const InputDecoration(
                     labelText: 'Número de cuenta',
+                    hintText: "Ej: 744718183",
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -434,25 +464,150 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
           child: const Text('Cancelar'),
         ),
         ElevatedButton(
-          onPressed: () {
-            if (!formKey.currentState!.validate()) return;
-            final newEmpleado = Empleado(
-              id: widget.employee?.id,
-              nombre: nombre.text.trim(),
-              codigoEmpleado: codigo.text.trim(),
-              fechaNacimiento: fechaNacimiento,
-              correo: correo.text.trim(),
-              telefono: telefono.text.trim(),
-              estado: estado.text.trim(),
-              direccion: direccion.text.trim(),
-              numeroCuenta: numeroCuenta.text.trim(),
-              departamentoId: _selectedDepartamentoId,
-              areaId: _selectedAreaId,
-              puestoId: _selectedPuestoId,
-              fechaContratacion: fechaContratacion,
-            );
-            Navigator.pop(context, newEmpleado);
-          },
+          onPressed: _isSaving
+              ? null
+              : () async {
+                  if (!formKey.currentState!.validate()) return;
+
+                  //? Validaciones de fechas
+                  if (fechaNacimiento == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Seleccione fecha de nacimiento'),
+                        backgroundColor: Colors.yellow,
+                      ),
+                    );
+                    return;
+                  }
+                  if (fechaContratacion == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Seleccione fecha de contratación'),
+                        backgroundColor: Colors.yellow,
+                      ),
+                    );
+                    return;
+                  }
+                  //? 1) nacimiento < contratación
+                  if (!fechaNacimiento!.isBefore(fechaContratacion!)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'La fecha de nacimiento debe ser anterior a la fecha de contratación',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  //? 2) edad >= 18 años
+                  if (!esMayorDeEdad(fechaNacimiento!)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'El empleado debe tener al menos 18 años',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (_selectedDepartamentoId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Seleccione un departamento'),
+                      ),
+                    );
+                    return;
+                  }
+                  if (_selectedAreaId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Seleccione un área')),
+                    );
+                    return;
+                  }
+                  if (_selectedPuestoId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Seleccione un puesto')),
+                    );
+                    return;
+                  }
+                  if (estado.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Seleccione el estado')),
+                    );
+                    return;
+                  }
+
+                  setState(() => _isSaving = true);
+                  try {
+                    final existe = await widget.controller.checkDNI(
+                      codigo.text.trim(),
+                    );
+
+                    final existeEmail = await widget.controller.checkEmail(
+                      correo.text.trim(),
+                    );
+
+                    if (existeEmail) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Este correo ya se encuentra en uso.',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    if (existe) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('El DNI del empleado ya existe.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    final newEmpleado = Empleado(
+                      id: widget.employee?.id,
+                      nombre: nombre.text.trim(),
+                      codigoEmpleado: codigo.text.trim(),
+                      fechaNacimiento: fechaNacimiento,
+                      correo: correo.text.trim(),
+                      telefono: telefono.text.trim(),
+                      estado: estado.text.trim(),
+                      direccion: direccion.text.trim(),
+                      numeroCuenta: numeroCuenta.text.trim(),
+                      departamentoId: _selectedDepartamentoId,
+                      areaId: _selectedAreaId,
+                      puestoId: _selectedPuestoId,
+                      fechaContratacion: fechaContratacion,
+                    );
+
+                    if (mounted) Navigator.pop(context, newEmpleado);
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Error al verificar el DNI o correo: $e',
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  } finally {
+                    if (mounted) setState(() => _isSaving = false);
+                  }
+                },
           child: const Text('Guardar'),
         ),
       ],

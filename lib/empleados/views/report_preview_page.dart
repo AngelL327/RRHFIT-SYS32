@@ -1,9 +1,7 @@
 // lib/empleados/reports/report_preview_page.dart
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:printing/printing.dart';
-import 'package:rrhfit_sys32/empleados/reports/primer_reporte.dart';
 import 'package:rrhfit_sys32/empleados/reports/report_generator.dart';
 
 class AttendanceReportPreview extends StatelessWidget {
