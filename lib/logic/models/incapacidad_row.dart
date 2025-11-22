@@ -24,9 +24,9 @@ class IncapacidadRow {
       incapacidad.estado,
       incapacidad.usuario,
       "${incapacidad.enteEmisor}\n#${incapacidad.numCertificado}",
-      empleado?.correo ?? '',
+      // empleado?.correo ?? '',
       incapacidad.motivo.length > 30 ? '${incapacidad.motivo.substring(0, 30)}...' : incapacidad.motivo,
-      area?.nombre ?? 'No asignada',
+      // area?.nombre ?? 'No asignada',
     ];
   }
 }

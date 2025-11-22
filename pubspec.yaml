@@ -26,6 +26,7 @@ dependencies:
   fl_chart: ^1.1.1
   syncfusion_flutter_charts: ^31.2.4
   syncfusion_flutter_pdf: ^31.2.5
+  syncfusion_flutter_pdfviewer: 31.2.5
   data_table_2: ^2.6.0
   get: ^4.7.2
 

@@ -1,7 +1,5 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 import 'package:rrhfit_sys32/empleados/views/report_preview_page.dart';
 import 'package:rrhfit_sys32/empleados/widgets/custom_button.dart';
@@ -35,14 +33,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
     } catch (e) {
       debugPrint('Error inicializando controlador: $e');
     }
-  }
-
-  void _onDateRangeSelected(DateTime start, DateTime end) {
-    setState(() {
-      _startDate = start;
-      _endDate = end;
-    });
-    _empleadoController.setDateRange(start, end);
   }
 
   Future<void> _generarReporte() async {
@@ -108,9 +98,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
-  /// Muestra el dialog para elegir rango de fechas e índice
   Future<void> _showReporteDialog() async {
-    // valores temporales para el diálogo (no aplican hasta que el usuario presiona "Generar")
     DateTime tempStart = _startDate;
     DateTime tempEnd = _endDate;
     int tempCounter = counter;
@@ -129,7 +117,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Reutilizamos tu DateRangePicker, pero con los valores temporales.
                       DateRangePicker(
                         initialStartDate: tempStart,
                         initialEndDate: tempEnd,
@@ -145,7 +132,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
                         alignment: Alignment.centerLeft,
                         child: Text('Índice a evaluar: $tempCounter'),
                       ),
-                      // Slider para seleccionar índice 0..100
                       Slider(
                         value: tempCounter.toDouble(),
                         min: 0,
@@ -158,7 +144,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
                           });
                         },
                       ),
-                      // También mostramos botones +/- rápidos
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -203,7 +188,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
               onPressed: _isLoading
                   ? null
                   : () async {
-                      // Aplicar los valores seleccionados al estado real y cerrar diálogo
                       setState(() {
                         _startDate = tempStart;
                         _endDate = tempEnd;
@@ -211,7 +195,6 @@ class _PrimerReporteState extends State<PrimerReporte> {
                       });
                       _empleadoController.setDateRange(_startDate, _endDate);
                       Navigator.of(context).pop();
-                      // Ejecutar la generación del reporte con los parámetros seleccionados
                       await _generarReporte();
                     },
               child: const Text('Generar'),
@@ -232,30 +215,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            // // Título
-            // const Text(
-            //   'Reporte — Asistencia Perfecta',
-            //   style: TextStyle(fontWeight: FontWeight.bold),
-            // ),
-            // const SizedBox(height: 12),
-            // // Resumen: muestra las opciones actualmente seleccionadas
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     Column(
-            //       crossAxisAlignment: CrossAxisAlignment.start,
-            //       children: [
-            //         Text(
-            //           'Periodo: ${_formatDate(_startDate)} - ${_formatDate(_endDate)}',
-            //         ),
-            //         const SizedBox(height: 6),
-            //         Text('Índice seleccionado: $counter'),
-            //       ],
-            //     ),
-            //   ],
-            // ),
             const SizedBox(height: 12),
-            // Botón principal: abre el diálogo para elegir parámetros
             CustomButton(
               icono: const Icon(Icons.picture_as_pdf_rounded),
               btnTitle: "Reporte Asistencia Perfecta",

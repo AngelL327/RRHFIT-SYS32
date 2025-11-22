@@ -44,7 +44,6 @@ class ThirdSeccion extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Grid de tarjetas de métricas
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth > 900;
@@ -254,20 +253,6 @@ class ThirdSeccion extends StatelessWidget {
     );
   }
 
-  // Widget _salarioDistributionCard(SalaryDistribution stats) {
-  //   return Card(
-  //     elevation: 2,
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(14),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _alertasCard({
     required List<Empleado> cumpleanios,
     required List<Empleado> contratos,
@@ -451,40 +436,6 @@ class ThirdSeccion extends StatelessWidget {
               e.fechaFinContrato!.isBefore(end),
         )
         .toList();
-  }
-
-  SalaryDistribution _calcularDistribucionSalarial(List<Empleado> empleados) {
-    final salarios = empleados
-        .where((e) => (e.salario != null))
-        .map((e) => e.salario!.toDouble())
-        .toList();
-    if (salarios.isEmpty) return SalaryDistribution.empty();
-
-    salarios.sort();
-    final min = salarios.first;
-    final max = salarios.last;
-    if (min == max) {
-      return SalaryDistribution.single(salarios.length, min);
-    }
-
-    final buckets = <String, int>{};
-    final span = (max - min) / 5;
-    for (int i = 0; i < 5; i++) {
-      final start = min + span * i;
-      final end = (i == 4) ? max : (min + span * (i + 1));
-      final label = '${start.toStringAsFixed(0)} - ${end.toStringAsFixed(0)}';
-      buckets[label] = 0;
-    }
-
-    for (final s in salarios) {
-      final index = ((s - min) / (max - min) * 5).floor().clamp(0, 4);
-      final start = min + span * index;
-      final end = (index == 4) ? max : (min + span * (index + 1));
-      final label = '${start.toStringAsFixed(0)} - ${end.toStringAsFixed(0)}';
-      buckets[label] = (buckets[label] ?? 0) + 1;
-    }
-
-    return SalaryDistribution(buckets: buckets);
   }
 }
 

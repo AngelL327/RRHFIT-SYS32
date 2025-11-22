@@ -57,26 +57,7 @@ class _SegundoReporteState extends State<SegundoReporte> {
                     ind: 0,
                   );
               final List<Map<String, dynamic>> rows = await futureRows;
-
               final List<Map<String, dynamic>> five = rows.take(5).toList();
-
-              //       for (var item in await rows) {
-              //         print("""
-              //   'ranking ${item["ranking"]}
-              //   'codigo ${item["codigo"]}
-              //   'empleado ${item["empleado"]}
-              //   'puesto ${item["puesto"]}
-              //   'departamento ${item["departamento"]}
-              //   'fecha_contratacion ${item["fecha_contratacion"]}
-              //   'periodo ${item["periodo"]}
-              //   'indice ${item["indice"]}
-              //   'dias ${item["dias"]}
-              //   'area ${item["area"]}
-              //   'detalle_asistencias ${item["detalle_asistencias"]}
-              //   'empleado_id ${item["empleado_id"]}
-              // }""");
-              //       }
-
               final departamento = 'Departamento de RRHH';
               final generadoPor = Global().userName.toString();
               final fechaGenerado = DateFormat(
@@ -84,63 +65,12 @@ class _SegundoReporteState extends State<SegundoReporte> {
               ).format(DateTime.now());
               final criterio = 'Índice de Asistencia > $counter %';
 
-              // items: usar datos reales aqui
-              final items = [
-                {
-                  'rankingLabel': '1°',
-                  'nombre': 'Jeffry Valle',
-                  'codigo': 'A001',
-                  'puesto': 'Gerente IT',
-                  'fechaContratacion': '26 / 07 / 2010',
-                  'diasAsistidos': '22 / 22',
-                  'porcentaje': 100.0,
-                },
-                {
-                  'rankingLabel': '2°',
-                  'nombre': 'Merari',
-                  'codigo': 'A002',
-                  'puesto': 'Gerente IT',
-                  'fechaContratacion': '25 / 07 / 2010',
-                  'diasAsistidos': '21 / 22',
-                  'porcentaje': 97.0,
-                },
-                {
-                  'rankingLabel': '3°',
-                  'nombre': 'Pedri Gonzales',
-                  'codigo': 'A003',
-                  'puesto': 'Gerente IT',
-                  'fechaContratacion': '26 / 07 / 2010',
-                  'diasAsistidos': '20 / 22',
-                  'porcentaje': 96.0,
-                },
-                {
-                  'rankingLabel': '4°',
-                  'nombre': 'Chilindrina Peréz',
-                  'codigo': 'A004',
-                  'puesto': 'Gerente IT',
-                  'fechaContratacion': '25 / 07 / 2010',
-                  'diasAsistidos': '21 / 22',
-                  'porcentaje': 95.0,
-                },
-                {
-                  'rankingLabel': '5°',
-                  'nombre': 'Profesor Girafales',
-                  'codigo': 'A005',
-                  'puesto': 'Gerente IT',
-                  'fechaContratacion': '26 / 07 / 2010',
-                  'diasAsistidos': '19 / 22',
-                  'porcentaje': 95.0,
-                },
-              ];
-
-              // Abrir preview en horizontal: inicializa PdfPreview con page format landscape
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => Scaffold(
                     appBar: AppBar(title: const Text('Asistencia Perfecta')),
                     body: PdfPreview(
-                      // fuerza el page format inicial a landscape A4
                       initialPageFormat: PdfPageFormat.a4.landscape,
                       maxPageWidth: 1400,
                       allowPrinting: true,
@@ -155,7 +85,6 @@ class _SegundoReporteState extends State<SegundoReporte> {
                       ),
                       canChangeOrientation: false,
                       canChangePageFormat: false,
-
                       build: (format) async {
                         return await generateAsistenciaPerfectaPdf(
                           logoBytes: logo,

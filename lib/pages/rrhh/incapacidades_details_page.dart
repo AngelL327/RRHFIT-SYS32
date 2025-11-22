@@ -139,7 +139,7 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-          width: size.width * 0.25,
+          width: size.width * 0.32,
           child: GenerateHistoriaIncapacidades(
             buttonLabel: "Descargar Historial de Incapacidad del Empleado",
             reportTitle: "Historial de Incapacidades",

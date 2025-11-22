@@ -58,7 +58,6 @@ class _FirstSeccionState extends State<FirstSeccion> {
                       style: const TextStyle(color: Colors.black),
                       cursorColor: Colors.black,
                       onChanged: (v) {
-                        // avisa al controller cada vez que el usuario escribe
                         widget.controller.setSearchTerm(v);
                       },
                       decoration: InputDecoration(
@@ -120,7 +119,6 @@ class _FirstSeccionState extends State<FirstSeccion> {
                         setState(() {
                           _selected = valor;
                         });
-                        // comunica al controller qué campo filtrar
                         widget.controller.setFilterField(valor);
                       },
                       decoration: InputDecoration(

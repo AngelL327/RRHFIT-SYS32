@@ -1,4 +1,3 @@
-// lib/empleados/views/empleado_detalle_screen.dart
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
@@ -54,7 +53,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
         controller.getDepartamentoNombre(empleado.departamentoId) ?? '-';
     final area = controller.getAreaNombre(empleado.areaId) ?? '-';
     final puesto = controller.getPuestoNombre(empleado.puestoId) ?? '-';
-
     final estado = (empleado.estado ?? '').toLowerCase();
     final isActivo = estado == 'activo' || estado == 'active' || estado == 'a';
 
@@ -84,7 +82,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header card with gradient + avatar
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -104,7 +101,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(18),
                   child: Row(
                     children: [
-                      // Avatar + initials
                       Container(
                         width: 96,
                         height: 96,
@@ -142,7 +138,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
 
                       const SizedBox(width: 18),
 
-                      // Name and small meta
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,7 +173,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                                   Chip(
                                     backgroundColor: Colors.white24,
                                     label: Text(
-                                      'Código: ${empleado.codigoEmpleado!}',
+                                      'DNI: ${empleado.codigoEmpleado!}',
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontWeight: FontWeight.w500,
@@ -200,7 +195,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // Action buttons (small)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [const SizedBox(height: 8)],
@@ -211,7 +205,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
 
                 const SizedBox(height: 18),
 
-                // Info area: responsive two-column layout
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth > 760;
@@ -219,7 +212,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                       direction: isWide ? Axis.horizontal : Axis.vertical,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Left column (main details)
                         Expanded(
                           flex: 2,
                           child: Card(
@@ -253,7 +245,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                                   ),
                                   _infoRow(
                                     Icons.account_box_outlined,
-                                    'Código',
+                                    'DNI',
                                     empleado.codigoEmpleado ?? '-',
                                   ),
                                   const SizedBox(height: 6),
@@ -296,7 +288,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                         else
                           const SizedBox(height: 12),
 
-                        // Right column (org + dates + actions)
                         Expanded(
                           flex: 1,
                           child: Column(
@@ -397,7 +388,6 @@ class EmpleadoDetalleScreen extends StatelessWidget {
 
                               const SizedBox(height: 12),
 
-                              // Quick actions
                               Card(
                                 elevation: 0,
                                 color: Colors.grey[50],
