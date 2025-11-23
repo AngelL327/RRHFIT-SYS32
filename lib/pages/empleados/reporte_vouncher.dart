@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart' as pdf_lib;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 
 Uint8List? logoBytes;
 pw.ImageProvider? logoImage;
@@ -471,7 +472,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                       pw.Expanded(
                         child: pw.Container(
                           decoration: pw.BoxDecoration(
-                            border: pw.Border.all(color: pdf_lib.PdfColors.grey400),
+                            border: pw.Border.all(color: AppTheme.pdfTableHeaderBG),
                             borderRadius: pw.BorderRadius.circular(4),
                           ),
                           child: pw.Column(
@@ -481,7 +482,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                                 width: double.infinity,
                                 padding: pw.EdgeInsets.all(12),
                                 decoration: pw.BoxDecoration(
-                                  color: pdf_lib.PdfColors.grey400,
+                                  color: AppTheme.pdfTableHeaderBG,
                                   borderRadius: pw.BorderRadius.only(
                                     topLeft: pw.Radius.circular(4),
                                     topRight: pw.Radius.circular(4),
@@ -528,7 +529,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                       pw.Expanded(
                         child: pw.Container(
                           decoration: pw.BoxDecoration(
-                            border: pw.Border.all(color: pdf_lib.PdfColors.grey400),
+                            border: pw.Border.all(color:AppTheme.pdfTableHeaderBG),
                             borderRadius: pw.BorderRadius.circular(4),
                           ),
                           child: pw.Column(
@@ -538,7 +539,7 @@ class GenerateNominaPDFScreen extends StatelessWidget {
                                 width: double.infinity,
                                 padding: pw.EdgeInsets.all(12),
                                 decoration: pw.BoxDecoration(
-                                  color: pdf_lib.PdfColors.grey400,
+                                  color: AppTheme.pdfTableHeaderBG,
                                   borderRadius: pw.BorderRadius.only(
                                     topLeft: pw.Radius.circular(4),
                                     topRight: pw.Radius.circular(4),
@@ -946,13 +947,25 @@ class GenerateNominaPDFScreen extends StatelessWidget {
               ),
             );
           }
-
-          return PdfPreview(
+ return Theme(
+        data: ThemeData(
+          primaryColor: AppTheme.primary,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppTheme.primary,
+            primary: AppTheme.primary,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppTheme.primary,
+            foregroundColor: Colors.white,
+          ),
+        ),
+          child: PdfPreview(
             canChangeOrientation: false,
             canDebug: false,
             maxPageWidth: 700,
             previewPageMargin: const EdgeInsets.all(20),
             build: (format) => _buildPdf(format),
+          ),
           );
         },
       ),
