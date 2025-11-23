@@ -574,7 +574,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                         DataColumn(label: Text("IHSS")),
                         DataColumn(label: Text("ISR")),
                         DataColumn(label: Text("Neto")),
-                        DataColumn(label: Text("Acción")),
+                        DataColumn(label: Text("Detalles")),
                       ],
                       rows: docs.map((d) {
                         final data = d.data() as Map<String, dynamic>;
@@ -626,7 +626,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                child: const Text("Detalles"),
+                                child: const Text(" Ver detalles"),
                               ),
                             ),
                           ],

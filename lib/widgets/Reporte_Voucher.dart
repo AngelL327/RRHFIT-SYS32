@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Vista General Reporte Planilla',
+      title: 'Vista general reporte deducciones',
       home: const ReportePlanillaScreen(),
     );
   }
@@ -233,7 +233,7 @@ class _ReportePlanillaScreenState extends State<ReportePlanillaScreen> {
           child: Padding(
             padding: EdgeInsets.only(left: 16),
             child: Text(
-              'Vista General Reporte Planilla',
+              'VVista general reporte deducciones',
               style: TextStyle(color: Colors.white),
             ),
           ),
