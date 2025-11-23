@@ -46,7 +46,7 @@ class ReportePlanillaScreen extends StatelessWidget {
   ),
   iconTheme: const IconThemeData(color: Color(0xFFFBF8F6)),
 
-  // <-- Aquí agregamos el botón a la derecha
+  // Boton a la derecha para ver reportes anteriores
   actions: [
     Padding(
       padding: const EdgeInsets.only(right: 8.0),
@@ -149,7 +149,7 @@ class ReportePlanillaScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
 
-          // === CARD 1: ESTADO GENERAL (igual que antes) ===
+          // === CARD 1: ESTADO GENERAL ===
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection('vouchers').snapshots(),
             builder: (context, snapshot) {
@@ -205,7 +205,7 @@ class ReportePlanillaScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
 
-          // === CARD 2: GRÁFICOS + MONTO TOTAL (LÓGICA ORIGINAL RESTAURADA) ===
+          // === CARD 2: GRÁFICOS + MONTO TOTAL  ===
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection('vouchers').snapshots(),
             builder: (context, snapshot) {
@@ -246,7 +246,7 @@ class ReportePlanillaScreen extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        // DONA: ENVÍO (2 secciones)
+                        // DONA: ENVÍO 
                         Expanded(
                           child: Column(
                             children: [
@@ -339,7 +339,7 @@ class ReportePlanillaScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
 
-                        // PASTEL: 3 ESTADOS (LÓGICA ORIGINAL RESTAURADA)
+                        // PASTEL: 3 ESTADOS
                         Expanded(
                           child: Column(
                             children: [
