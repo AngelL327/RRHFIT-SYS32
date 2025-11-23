@@ -208,9 +208,9 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                 child: Row(
                   children: [
-                    Expanded(flex: 3, child: Align(alignment: Alignment.centerLeft, child: Text("Departamento de RRHH", style: TextStyle(fontSize: 12, color: Colors.grey[700])))),
+                    Expanded(flex: 3, child: Align(alignment: Alignment.centerLeft, child: Text("Departamento de RRHH", style: TextStyle(fontSize: 20, color: Colors.grey[700])))),
                     const Expanded(flex: 4, child: SizedBox()),
-                    Expanded(flex: 3, child: Align(alignment: Alignment.centerRight, child: Text('Fecha: $fechaGenerado', style: TextStyle(fontSize: 12, color: Colors.grey[700])))),
+                    Expanded(flex: 3, child: Align(alignment: Alignment.centerRight, child: Text('Fecha: $fechaGenerado', style: TextStyle(fontSize: 20, color: Colors.grey[700])))),
                   ],
                 ),
               ),
@@ -477,8 +477,8 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Generado por: ${Global().userName ?? 'Usuario'}', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-                    Text('Página 1 / 1', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                    Text('Generado por: ${Global().userName ?? 'Usuario'}', style: TextStyle(fontSize: 20, color: Colors.grey[700])),
+                    Text('Página 1 / 1', style: TextStyle(fontSize: 20, color: Colors.grey[700])),
                   ],
                 ),
               ),
