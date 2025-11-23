@@ -347,6 +347,8 @@ class EmpleadoController with ChangeNotifier {
           return (e.telefono ?? '').toLowerCase().contains(q);
         case 'Estado':
           return (e.estado ?? '').toLowerCase().contains(q);
+        case 'Salario':
+          return (e.salario ?? '').toString().toLowerCase().contains(q);
         case 'Departamento':
           return (getDepartamentoNombre(e.departamentoId) ?? '')
               .toLowerCase()

@@ -24,6 +24,7 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
   late final TextEditingController telefono;
   late final TextEditingController estado;
   late final TextEditingController direccion;
+  late final TextEditingController salario;
   late final TextEditingController numeroCuenta;
 
   DateTime? fechaNacimiento;
@@ -32,6 +33,8 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
   String? _selectedDepartamentoId;
   String? _selectedAreaId;
   String? _selectedPuestoId;
+
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -43,11 +46,10 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
     telefono = TextEditingController(text: empleado?.telefono ?? '');
     estado = TextEditingController(text: empleado?.estado ?? '');
     direccion = TextEditingController(text: empleado?.direccion ?? '');
+    salario = TextEditingController(text: empleado?.salario?.toString() ?? '');
     numeroCuenta = TextEditingController(text: empleado?.numeroCuenta ?? '');
-
     fechaNacimiento = empleado?.fechaNacimiento;
     fechaContratacion = empleado?.fechaContratacion;
-
     _selectedDepartamentoId = empleado?.departamentoId;
     _selectedAreaId = empleado?.areaId;
     _selectedPuestoId = empleado?.puestoId;
@@ -61,11 +63,10 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
     telefono.dispose();
     estado.dispose();
     direccion.dispose();
+    salario.dispose();
     numeroCuenta.dispose();
     super.dispose();
   }
-
-  bool _isSaving = false;
 
   Future<void> pickDate(
     BuildContext context,
@@ -424,6 +425,17 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                 const SizedBox(height: 8),
                 _buildPuestoDropdown(),
                 const SizedBox(height: 8),
+                TextFormField(
+                  controller: salario,
+                  decoration: const InputDecoration(
+                    labelText: 'Salario',
+                    hintText: "Ej: 5000.00",
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
@@ -467,52 +479,96 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
           onPressed: _isSaving
               ? null
               : () async {
+                  final bool isEditing = widget.employee != null;
+
                   if (!formKey.currentState!.validate()) return;
 
-                  //? Validaciones de fechas
-                  if (fechaNacimiento == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Seleccione fecha de nacimiento'),
-                        backgroundColor: Colors.yellow,
-                      ),
-                    );
-                    return;
-                  }
-                  if (fechaContratacion == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Seleccione fecha de contratación'),
-                        backgroundColor: Colors.yellow,
-                      ),
-                    );
-                    return;
-                  }
-                  //? 1) nacimiento < contratación
-                  if (!fechaNacimiento!.isBefore(fechaContratacion!)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'La fecha de nacimiento debe ser anterior a la fecha de contratación',
+                  if (!isEditing) {
+                    if (fechaNacimiento == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Seleccione fecha de nacimiento'),
+                          backgroundColor: Colors.yellow,
                         ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    return;
-                  }
-                  //? 2) edad >= 18 años
-                  if (!esMayorDeEdad(fechaNacimiento!)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'El empleado debe tener al menos 18 años',
+                      );
+                      return;
+                    }
+                    if (fechaContratacion == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Seleccione fecha de contratación'),
+                          backgroundColor: Colors.yellow,
                         ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    return;
+                      );
+                      return;
+                    }
+                    // nacimiento < contratación
+                    if (!fechaNacimiento!.isBefore(fechaContratacion!)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'La fecha de nacimiento debe ser anterior a la fecha de contratación',
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (fechaNacimiento != null && fechaContratacion != null) {
+                      if (!fechaNacimiento!.isBefore(fechaContratacion!)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'La fecha de nacimiento debe ser anterior a la fecha de contratación',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                    }
+
+                    // edad >= 18 años
+                    if (!esMayorDeEdad(fechaNacimiento!)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'El empleado debe tener al menos 18 años',
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                  } else {
+                    if (fechaNacimiento != null && fechaContratacion != null) {
+                      if (!fechaNacimiento!.isBefore(fechaContratacion!)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'La fecha de nacimiento debe ser anterior a la fecha de contratación',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                      if (!esMayorDeEdad(fechaNacimiento!)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'El empleado debe tener al menos 18 años',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                    }
                   }
 
+                  // Common validations
                   if (_selectedDepartamentoId == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -540,40 +596,78 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                     return;
                   }
 
-                  setState(() => _isSaving = true);
-                  try {
-                    final existe = await widget.controller.checkDNI(
-                      codigo.text.trim(),
+                  if (salario.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Ingrese el salario'),
+                        backgroundColor: Colors.yellow,
+                      ),
                     );
+                    return;
+                  }
 
-                    final existeEmail = await widget.controller.checkEmail(
-                      correo.text.trim(),
-                    );
-
-                    if (existeEmail) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Este correo ya se encuentra en uso.',
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
+                  // salario deber ser un numero positivo
+                  if (salario.text.trim().isNotEmpty) {
+                    final salarioValue =
+                        double.tryParse(salario.text.trim()) ?? -1.0;
+                    if (salarioValue < 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('El salario debe ser un número válido'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
                       return;
                     }
+                  }
 
-                    if (existe) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('El DNI del empleado ya existe.'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                  setState(() => _isSaving = true);
+                  try {
+                    // Only check uniqueness when necessary:
+                    final originalDni = widget.employee?.codigoEmpleado?.trim();
+                    final originalEmail = widget.employee?.correo?.trim();
+                    final currentDni = codigo.text.trim();
+                    final currentEmail = correo.text.trim();
+
+                    final needCheckDni =
+                        !isEditing || (currentDni != originalDni);
+                    final needCheckEmail =
+                        !isEditing || (currentEmail != originalEmail);
+
+                    if (needCheckEmail && currentEmail.isNotEmpty) {
+                      final existeEmail = await widget.controller.checkEmail(
+                        currentEmail,
+                      );
+                      if (existeEmail) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Este correo ya se encuentra en uso.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                        return;
                       }
-                      return;
+                    }
+
+                    if (needCheckDni && currentDni.isNotEmpty) {
+                      final existe = await widget.controller.checkDNI(
+                        currentDni,
+                      );
+                      if (existe) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('El DNI del empleado ya existe.'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                        return;
+                      }
                     }
 
                     final newEmpleado = Empleado(
@@ -585,6 +679,7 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                       telefono: telefono.text.trim(),
                       estado: estado.text.trim(),
                       direccion: direccion.text.trim(),
+                      salario: double.tryParse(salario.text.trim()) ?? 0.0,
                       numeroCuenta: numeroCuenta.text.trim(),
                       departamentoId: _selectedDepartamentoId,
                       areaId: _selectedAreaId,

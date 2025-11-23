@@ -18,6 +18,7 @@ class _FirstSeccionState extends State<FirstSeccion> {
     "Telefono",
     "Estado",
     "Departamento",
+    "Salario",
     "Puesto",
     "Fecha de Contratacion",
   ];

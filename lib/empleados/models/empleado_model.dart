@@ -12,6 +12,7 @@ class Empleado {
   String? direccion;
   String? numeroCuenta;
   String? departamentoId;
+  double? salario;
   String? areaId;
   String? asistenciaDocId;
   String? puestoId;
@@ -29,6 +30,7 @@ class Empleado {
     this.direccion,
     this.numeroCuenta,
     this.departamentoId,
+    this.salario,
     this.areaId,
     this.asistenciaDocId,
     this.puestoId,
@@ -56,6 +58,7 @@ class Empleado {
       direccion: mapa['direccion'] as String?,
       numeroCuenta: mapa['numero_cuenta'] as String?,
       departamentoId: mapa['departamento_id'] as String?,
+      salario: (mapa['salario'] as num?)?.toDouble(),
       areaId: mapa['area_id'] as String?,
       asistenciaDocId: mapa['asistenciaDocId'] as String?,
       puestoId: mapa['puesto_id'] as String?,
@@ -64,8 +67,6 @@ class Empleado {
   }
 
   get fechaFinContrato => null;
-
-  get salario => null;
 
   Map<String, dynamic> toMap() {
     dynamic toTimestamp(DateTime? d) =>
@@ -82,6 +83,7 @@ class Empleado {
       'direccion': direccion,
       'numero_cuenta': numeroCuenta,
       'departamento_id': departamentoId,
+      'salario': salario,
       'area_id': areaId,
       'asistenciaDocId': asistenciaDocId,
       'puesto_id': puestoId,

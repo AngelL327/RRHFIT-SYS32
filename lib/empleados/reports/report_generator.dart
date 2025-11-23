@@ -17,7 +17,7 @@ Future<Uint8List> generateAttendancePdf({
 
   final tableHeaders = [
     'Ranking',
-    'Código',
+    'DNI',
     'Empleado',
     'Puesto',
     'Fecha de Contratación',
@@ -233,12 +233,12 @@ Future<Uint8List> generateAttendancePdf({
             cellStyle: const pw.TextStyle(fontSize: 8),
             cellAlignment: pw.Alignment.centerLeft,
             columnWidths: {
-              0: const pw.FlexColumnWidth(1.1),
-              1: const pw.FlexColumnWidth(1.1),
+              0: const pw.FlexColumnWidth(0.8),
+              1: const pw.FlexColumnWidth(1.7),
               2: const pw.FlexColumnWidth(2.0),
-              3: const pw.FlexColumnWidth(1.4),
-              4: const pw.FlexColumnWidth(1.8),
-              5: const pw.FlexColumnWidth(1.4),
+              3: const pw.FlexColumnWidth(1.7),
+              4: const pw.FlexColumnWidth(1.5),
+              5: const pw.FlexColumnWidth(1.1),
               6: const pw.FlexColumnWidth(1.5),
               // 7: const pw.FlexColumnWidth(1.5),
             },

@@ -51,6 +51,8 @@ class _SecondSeccionState extends State<SecondSeccion> {
               }
 
               return PaginatedDataTable(
+                headingRowColor: MaterialStateProperty.all(Colors.blue[400]),
+                showCheckboxColumn: false,
                 header: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -97,19 +99,69 @@ class _SecondSeccionState extends State<SecondSeccion> {
                 horizontalMargin: 12,
                 headingRowHeight: 48,
                 dataRowHeight: 52,
-                rowsPerPage: 6,
+                rowsPerPage: 8,
                 columns: const [
                   // DataColumn(label: Text('EmpleadoID')),
-                  DataColumn(label: Text('Nombre')),
-                  DataColumn(label: Text('DNI')),
-                  DataColumn(label: Text('Correo')),
-                  DataColumn(label: Text('Teléfono')),
-                  DataColumn(label: Text('Estado')),
-                  DataColumn(label: Text('Departamento')),
-                  DataColumn(label: Text('Area')),
-                  DataColumn(label: Text('Puesto')),
-                  DataColumn(label: Text('Fecha Contratación')),
-                  DataColumn(label: Text('Acciones')),
+                  DataColumn(
+                    label: Text(
+                      'Nombre',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text('DNI', style: TextStyle(color: Colors.white)),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Correo',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Teléfono',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Estado',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Departamento',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text('Area', style: TextStyle(color: Colors.white)),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Puesto',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Fecha Contratación',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Salario',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Acciones',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 ],
                 source: dataSource,
               );
@@ -179,6 +231,13 @@ class EmpleadosDataSource extends DataTableSource {
         DataCell(Text(controller.getAreaNombre(empleado.areaId) ?? '-')),
         DataCell(Text(controller.getPuestoNombre(empleado.puestoId) ?? '-')),
         DataCell(Text(formato(empleado.fechaContratacion))),
+        DataCell(
+          Text(
+            empleado.salario != null
+                ? '\L ${empleado.salario!.toStringAsFixed(2)}'
+                : 'L -',
+          ),
+        ),
         DataCell(
           Row(
             children: [

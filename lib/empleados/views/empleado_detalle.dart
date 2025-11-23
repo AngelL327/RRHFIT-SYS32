@@ -245,8 +245,8 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                                   ),
                                   _infoRow(
                                     Icons.account_box_outlined,
-                                    'DNI',
-                                    empleado.codigoEmpleado ?? '-',
+                                    'Salario',
+                                    'L. ${empleado.salario?.toString() ?? '-'}',
                                   ),
                                   const SizedBox(height: 6),
                                   const Text(
