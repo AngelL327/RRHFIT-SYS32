@@ -11,168 +11,537 @@ class PlanillasScreen extends StatefulWidget {
 }
 
 class _PlanillasScreenState extends State<PlanillasScreen> {
-  final _nombreCtrl = TextEditingController();
-  final _dniCtrl = TextEditingController();
-  final _sueldoCtrl = TextEditingController();
-  final _horasExtraCtrl = TextEditingController();
-  final _diasIncapacidadCtrl = TextEditingController();
-  final _areaIdCtrl = TextEditingController();
-
   bool _cargando = false;
   bool _mostrarFormulario = false;
   String _busqueda = "";
+  String? _selectedEmpleadoId;
+
+  final _horasExtraCtrl = TextEditingController();
+  final _nombreCtrl = TextEditingController();
+  final _dniCtrl = TextEditingController();
+  final _sueldoCtrl = TextEditingController();
+  String _areaId = "";
+
+  final List<Color> cardColors = [
+    const Color(0xFF2E7D32),
+    const Color(0xFF39B5DA),
+    const Color(0xFFF57C00),
+    const Color(0xFF145A32),
+    const Color(0xFF1976D2),
+  ];
 
   @override
   void dispose() {
+    _horasExtraCtrl.dispose();
     _nombreCtrl.dispose();
     _dniCtrl.dispose();
     _sueldoCtrl.dispose();
-    _horasExtraCtrl.dispose();
-    _diasIncapacidadCtrl.dispose();
-    _areaIdCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _agregarPlanilla() async {
-    if (_nombreCtrl.text.isEmpty ||
-        _dniCtrl.text.isEmpty ||
-        _sueldoCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa los campos obligatorios")),
+  // ===== Formateo de moneda L 1,000.00 =====
+  String _formatCurrency(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'es_US',
+      symbol: 'L ',
+      decimalDigits: 2,
+    );
+    return formatter.format(amount);
+  }
+
+  double calcularISR(double sueldo) {
+    if (sueldo <= 21457.76)
+      return 0.0;
+    else if (sueldo <= 30969.88) {
+      return double.parse(((sueldo - 21457.76) * 0.15).toStringAsFixed(2));
+    } else if (sueldo <= 67604.36) {
+      double cuotaFija = (30969.88 - 21457.76) * 0.15;
+      return double.parse(
+        (cuotaFija + (sueldo - 30969.88) * 0.20).toStringAsFixed(2),
       );
+    } else {
+      double cuotaFija15 = (30969.88 - 21457.76) * 0.15;
+      double cuotaFija20 = (67604.36 - 30969.88) * 0.20;
+      return double.parse(
+        (cuotaFija15 + cuotaFija20 + (sueldo - 67604.36) * 0.25)
+            .toStringAsFixed(2),
+      );
+    }
+  }
+
+  // === NÓMINA MASIVA PARA TODOS LOS EMPLEADOS ===
+  Future<void> _generarNominaTodos() async {
+    setState(() => _cargando = true);
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection("empleados")
+          .get();
+      if (snapshot.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No hay empleados registrados")),
+        );
+        setState(() => _cargando = false);
+        return;
+      }
+
+      final batch = FirebaseFirestore.instance.batch();
+      int generadas = 0;
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final String empleadoId = doc.id;
+        final String nombre = data['nombre'] ?? 'Sin nombre';
+        final String dni = data['codigo_empleado'] ?? '000000';
+        final double sueldoBase = (data['salario'] as num?)?.toDouble() ?? 0.0;
+        final int horasExtra = 0;
+
+        final double rap = double.parse(
+          (sueldoBase * 0.015).toStringAsFixed(2),
+        );
+        final double ihss = double.parse(
+          (sueldoBase * 0.035).toStringAsFixed(2),
+        );
+        final double isr = calcularISR(sueldoBase);
+        final double pagoHorasExtra = (horasExtra * 80.0);
+        final double sueldoBruto = sueldoBase + pagoHorasExtra;
+        final double totalDeducciones = rap + ihss + isr;
+        final double sueldoNeto = double.parse(
+          (sueldoBruto - totalDeducciones).toStringAsFixed(2),
+        );
+
+        final nominaRef = FirebaseFirestore.instance
+            .collection("nominas")
+            .doc();
+        batch.set(nominaRef, {
+          "empleado_id": empleadoId,
+          "nombre": nombre,
+          "dni": dni,
+          "sueldo_base": sueldoBase,
+          "horas_extra": horasExtra,
+          "rap": rap,
+          "seguro_social": ihss,
+          "isr": isr,
+          "pago_horas_extra": pagoHorasExtra,
+          "total_deducciones": totalDeducciones,
+          "sueldo_neto": sueldoNeto,
+          "area_id": data['area_id'] ?? '',
+          "fecha_generada": FieldValue.serverTimestamp(),
+        });
+
+        final voucherRef = FirebaseFirestore.instance
+            .collection("vouchers")
+            .doc();
+        batch.set(voucherRef, {
+          "empleado_id": empleadoId,
+          "nombre": nombre,
+          "dni": dni,
+          "sueldo_neto": sueldoNeto,
+          "estado": "Generado",
+          "fecha_creado": FieldValue.serverTimestamp(),
+        });
+
+        generadas++;
+      }
+
+      await batch.commit();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "¡Nómina generada para TODOS los empleados! ($generadas)",
+          ),
+          backgroundColor: cardColors[2],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => _cargando = false);
+    }
+  }
+
+  // === BORRAR TODAS LAS NÓMINAS ===
+  Future<void> _borrarTodasLasNominas() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF145A32), // Fondo verde oscuro
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ), // Bordes redondeados
+        title: const Text(
+          "¿Borrar nómina de empleados?",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          "Esta acción NO se puede deshacer.\nSe eliminarán todas las nóminas y vouchers.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor:
+                  Colors.grey[300], // Fondo gris claro para cancelar
+              foregroundColor: Colors.black, // Texto negro
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Cancelar"),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Color(
+                0xFFF57C00,
+              ), // Fondo rojo para acción peligrosa
+              foregroundColor: Colors.white, // Texto blanco
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Borrar todo"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _cargando = true);
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      final nominas = await FirebaseFirestore.instance
+          .collection("nominas")
+          .get();
+      for (var doc in nominas.docs) batch.delete(doc.reference);
+
+      final vouchers = await FirebaseFirestore.instance
+          .collection("vouchers")
+          .get();
+      for (var doc in vouchers.docs) batch.delete(doc.reference);
+
+      await batch.commit();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            "Todas las nóminas han sido eliminadas correctamente",
+          ),
+          backgroundColor: cardColors[2],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error al borrar: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _cargando = false);
+    }
+  }
+
+  // === GENERAR NÓMINA INDIVIDUAL ===
+  Future<void> _agregarPlanilla() async {
+    if (_selectedEmpleadoId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Selecciona un empleado")));
       return;
     }
 
     setState(() => _cargando = true);
 
-    double sueldoBase = double.tryParse(_sueldoCtrl.text) ?? 0;
-    int horasExtra = int.tryParse(_horasExtraCtrl.text) ?? 0;
-    int diasIncapacidad = int.tryParse(_diasIncapacidadCtrl.text) ?? 0;
+    final double sueldoBase = double.tryParse(_sueldoCtrl.text) ?? 0.0;
+    final int horasExtra = int.tryParse(_horasExtraCtrl.text) ?? 0;
 
-    double rap = double.parse((sueldoBase * 0.015).toStringAsFixed(2));
-    double ihss = double.parse((sueldoBase * 0.035).toStringAsFixed(2));
-    double pagoExtra = double.parse((horasExtra * 80).toStringAsFixed(2));
-    double descuentoIncapacidad = double.parse(
-      ((sueldoBase / 30) * diasIncapacidad).toStringAsFixed(2),
+    final double rap = double.parse((sueldoBase * 0.015).toStringAsFixed(2));
+    final double ihss = double.parse((sueldoBase * 0.035).toStringAsFixed(2));
+    final double isr = calcularISR(sueldoBase);
+    final double pagoHorasExtra = double.parse(
+      (horasExtra * 80.0).toStringAsFixed(2),
     );
-
-    double sueldoBruto = double.parse(
-      (sueldoBase + pagoExtra).toStringAsFixed(2),
-    );
-    double totalDeducciones = double.parse(
-      (rap + ihss + descuentoIncapacidad).toStringAsFixed(2),
-    );
-    double sueldoNeto = double.parse(
-      (sueldoBruto - totalDeducciones).toStringAsFixed(2),
-    );
-
-    final data = {
-      "nombre": _nombreCtrl.text,
-      "dni": _dniCtrl.text,
-      "sueldo_base": sueldoBase,
-      "horas_extra": horasExtra,
-      "dias_incapacidad": diasIncapacidad,
-      "rap": rap,
-      "seguro_social": ihss,
-      "descuento_incapacidad": descuentoIncapacidad,
-      "total_deducciones": totalDeducciones,
-      "sueldo_neto": sueldoNeto,
-      "area_id": _areaIdCtrl.text.isEmpty ? null : _areaIdCtrl.text,
-      "fecha_generada": FieldValue.serverTimestamp(),
-    };
+    final double sueldoBruto = sueldoBase + pagoHorasExtra;
+    final double totalDeducciones = rap + ihss + isr;
+    final double sueldoNeto = sueldoBruto - totalDeducciones;
 
     try {
-      // Guardar nómina
-      await FirebaseFirestore.instance.collection("nominas").add(data);
+      await FirebaseFirestore.instance.collection("nominas").add({
+        "empleado_id": _selectedEmpleadoId,
+        "nombre": _nombreCtrl.text,
+        "dni": _dniCtrl.text,
+        "sueldo_base": sueldoBase,
+        "horas_extra": horasExtra,
+        "rap": rap,
+        "seguro_social": ihss,
+        "isr": isr,
+        "pago_horas_extra": pagoHorasExtra,
+        "total_deducciones": totalDeducciones,
+        "sueldo_neto": sueldoNeto,
+        "area_id": _areaId,
+        "fecha_generada": FieldValue.serverTimestamp(),
+      });
 
-      // Guardar voucher (incluye dias de incapacidad)
       await FirebaseFirestore.instance.collection("vouchers").add({
+        "empleado_id": _selectedEmpleadoId,
         "nombre": _nombreCtrl.text,
         "dni": _dniCtrl.text,
         "sueldo_neto": sueldoNeto,
-        "dias_incapacidad": diasIncapacidad,
         "estado": "Generado",
         "fecha_creado": FieldValue.serverTimestamp(),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Planilla guardada correctamente")),
+        SnackBar(
+          content: const Text("Planilla individual generada"),
+          backgroundColor: cardColors[0],
+        ),
       );
 
-      _nombreCtrl.clear();
-      _dniCtrl.clear();
-      _sueldoCtrl.clear();
-      _horasExtraCtrl.clear();
-      _diasIncapacidadCtrl.clear();
-      _areaIdCtrl.clear();
-
       setState(() {
-        _cargando = false;
+        _selectedEmpleadoId = null;
+        _nombreCtrl.clear();
+        _dniCtrl.clear();
+        _sueldoCtrl.clear();
+        _horasExtraCtrl.clear();
         _mostrarFormulario = false;
       });
     } catch (e) {
-      setState(() => _cargando = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Error al guardar: $e")));
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+    } finally {
+      setState(() => _cargando = false);
     }
   }
 
-  void _showDetallesDialog(QueryDocumentSnapshot d) {
-    final nombre = d["nombre"] ?? '';
-    final dni = d["dni"] ?? '';
-    final sueldoBase = (d["sueldo_base"] ?? 0).toDouble();
-    final horasExtra = (d["horas_extra"] ?? 0).toInt();
-    final diasIncapacidad = (d["dias_incapacidad"] ?? 0).toInt();
-    final rap = (d["rap"] ?? 0).toDouble();
-    final ihss = (d["seguro_social"] ?? 0).toDouble();
-    final descuentoIncapacidad = (d["descuento_incapacidad"] ?? 0).toDouble();
-    final totalDeducciones = (d["total_deducciones"] ?? 0).toDouble();
-    final sueldoNeto = (d["sueldo_neto"] ?? 0).toDouble();
-    final fecha = (d["fecha_generada"] as Timestamp?)?.toDate();
+  void _showDetallesDialog(QueryDocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final fecha = (data['fecha_generada'] as Timestamp?)?.toDate();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Detalle - $nombre"),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _detalleRow("Nombre", nombre),
-              _detalleRow("DNI", dni),
-              _detalleRow("Sueldo base", "L. ${sueldoBase.toStringAsFixed(2)}"),
-              _detalleRow("Horas extra", horasExtra.toString()),
-              _detalleRow("Días incapacidad", diasIncapacidad.toString()),
-              _detalleRow(
-                "Pago por horas extra",
-                "L. ${(horasExtra * 80).toStringAsFixed(2)}",
-              ),
-              _detalleRow("RAP (1.5%)", "L. ${rap.toStringAsFixed(2)}"),
-              _detalleRow("IHSS (3.5%)", "L. ${ihss.toStringAsFixed(2)}"),
-              _detalleRow(
-                "Descuento incapacidad",
-                "L. ${descuentoIncapacidad.toStringAsFixed(2)}",
-              ),
-              const Divider(),
-              _detalleRow(
-                "Total deducciones",
-                "L. ${totalDeducciones.toStringAsFixed(2)}",
-              ),
-              _detalleRow("Sueldo neto", "L. ${sueldoNeto.toStringAsFixed(2)}"),
-              const SizedBox(height: 8),
-              _detalleRow(
-                "Fecha",
-                fecha != null
-                    ? DateFormat('dd/MM/yyyy HH:mm').format(fecha)
-                    : "Sin fecha",
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        backgroundColor: Color(0xFF2E7D32).withOpacity(0.98),
+        title: Text(
+          "Detalles del empleado",
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
+
+        content: SizedBox(
+          width: 350,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.person, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Nombre",
+                        data['nombre'] ?? "",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(Icons.badge, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "DNI",
+                        data['dni'] ?? "",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.monetization_on,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Sueldo Base",
+                        _formatCurrency(data['sueldo_base'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(Icons.timer, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Horas Extra",
+                        "${data['horas_extra'] ?? 0}",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(Icons.paid, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Pago Horas Extra",
+                        _formatCurrency(data['pago_horas_extra'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(Icons.money_off, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "RAP (1.5%)",
+                        _formatCurrency(data['rap'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.health_and_safety,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "IHSS (3.5%)",
+                        _formatCurrency(data['seguro_social'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.account_balance,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "ISR",
+                        _formatCurrency(data['isr'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const Divider(color: Colors.grey),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.remove_circle,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Total Deducciones",
+                        _formatCurrency(data['total_deducciones'] ?? 0),
+                        bold: true,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Sueldo Neto",
+                        _formatCurrency(data['sueldo_neto'] ?? 0),
+                        bold: true,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(Icons.date_range, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Fecha",
+                        fecha != null
+                            ? DateFormat('dd/MM/yyyy HH:mm').format(fecha)
+                            : "—",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              backgroundColor: const Color(0xFF145A32), // fondo verde oscuro
+              foregroundColor: Colors.white, // color del texto
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
             child: const Text("Cerrar"),
           ),
         ],
@@ -180,19 +549,31 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
     );
   }
 
-  Widget _detalleRow(String label, String value) {
+  Widget _row(String label, String value, {bool bold = false, Color? color}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
           Expanded(
             flex: 4,
             child: Text(
               "$label:",
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+                color: color ?? Colors.white,
+              ),
             ),
           ),
-          Expanded(flex: 5, child: Text(value)),
+          Expanded(
+            flex: 5,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+                color: color ?? Colors.white,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -201,23 +582,26 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: Color(0xFFFBF8F6),
       body: Column(
         children: [
-          // ===== CABECERA MEJORADA =====
+          // CABECERA
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.blue.shade700,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
-              ),
+              color: cardColors[0],
+
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                // Buscar
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -225,36 +609,50 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextField(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: "Buscar empleado...",
+                        hintStyle: TextStyle(color: Colors.grey[600]),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                        prefixIcon: Icon(Icons.search),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                        ),
+                        prefixIcon: Icon(Icons.search, color: cardColors[0]),
                       ),
-                      onChanged: (v) => setState(() => _busqueda = v.trim()),
+                      onChanged: (v) => setState(() => _busqueda = v),
                     ),
                   ),
                 ),
-
+                const SizedBox(width: 12),
                 const SizedBox(width: 8),
-
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.download, color: Colors.white),
-                  tooltip: "Exportar PDF",
-                ),
-
-                const SizedBox(width: 4),
-
-                ElevatedButton(
-                  onPressed: () => setState(() => _mostrarFormulario = true),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _cargando ? null : _generarNominaTodos,
+                  icon: _cargando
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      : const Icon(
+                          Icons.people,
+                          color: Color.fromARGB(255, 0, 0, 0),
+                        ),
+                  label: const Text("Todos"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    backgroundColor: Color(0xFFFBF8F6),
                   ),
-                  child: const Text("+ Nuevo"),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _cargando ? null : _borrarTodasLasNominas,
+                  icon: const Icon(
+                    Icons.delete_forever,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                  label: const Text("Borrar Todo"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFFBF8F6),
+                  ),
                 ),
               ],
             ),
@@ -262,190 +660,109 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
 
           const SizedBox(height: 10),
 
-          // ===== TABLA =====
+          // TABLA
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection("nominas")
-                    .orderBy("fecha_generada", descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              child: Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection("nominas")
+                      .orderBy("fecha_generada", descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData)
+                      return const Center(child: CircularProgressIndicator());
 
-                  final docs = snapshot.data!.docs.where((d) {
-                    return d["nombre"].toString().toLowerCase().contains(
-                      _busqueda.toLowerCase(),
-                    );
-                  }).toList();
+                    var docs = snapshot.data!.docs
+                        .where(
+                          (d) => (d['nombre'] as String).toLowerCase().contains(
+                            _busqueda.toLowerCase(),
+                          ),
+                        )
+                        .toList();
 
-                  return Card(
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: DataTable2(
-                      border: TableBorder.all(color: Colors.black12),
-                      columnSpacing: 12,
+                    return DataTable2(
+                      headingRowColor: WidgetStateProperty.all(cardColors[0]),
+                      headingTextStyle: const TextStyle(
+                        color: Color(0xFFF7F4F1),
+                        fontWeight: FontWeight.bold,
+                      ),
                       columns: const [
                         DataColumn(label: Text("Nombre")),
-                        DataColumn(label: Text("DNI")),
-                        DataColumn(label: Text("Horas extra")),
-                        DataColumn(label: Text("Incapacidad")),
-                        DataColumn(label: Text("Sueldo base")),
+                        DataColumn(label: Text("Sueldo Base")),
+                        DataColumn(label: Text("RAP")),
+                        DataColumn(label: Text("IHSS")),
+                        DataColumn(label: Text("ISR")),
+                        DataColumn(label: Text("Neto")),
                         DataColumn(label: Text("Detalles")),
                       ],
-
                       rows: docs.map((d) {
-                        final data = d.data() as Map<String, dynamic>? ?? {};
-
+                        final data = d.data() as Map<String, dynamic>;
                         return DataRow(
                           cells: [
-                            DataCell(Text(data["nombre"] ?? "")),
-                            DataCell(Text(data["dni"] ?? "")),
                             DataCell(
                               Text(
-                                "${data.containsKey("horas_extra") ? data["horas_extra"] : 0}",
+                                data['nombre'] ?? "",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(_formatCurrency(data['sueldo_base'] ?? 0)),
+                            ),
+                            DataCell(Text(_formatCurrency(data['rap'] ?? 0))),
+                            DataCell(
+                              Text(_formatCurrency(data['seguro_social'] ?? 0)),
+                            ),
+                            DataCell(
+                              Text(
+                                _formatCurrency(data['isr'] ?? 0),
+                                style: TextStyle(
+                                  color: const Color.fromARGB(255, 0, 0, 0),
+                                ),
                               ),
                             ),
                             DataCell(
                               Text(
-                                "${data.containsKey("dias_incapacidad") ? data["dias_incapacidad"] : 0} días",
-                              ),
-                            ),
-                            DataCell(
-                              Text(
-                                "L. ${data.containsKey("sueldo_base") ? data["sueldo_base"] : 0}",
+                                _formatCurrency(data['sueldo_neto'] ?? 0),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2E7D32),
+                                ),
                               ),
                             ),
                             DataCell(
                               ElevatedButton(
+                                onPressed: () => _showDetallesDialog(d),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blueAccent,
+                                  backgroundColor: cardColors[1],
+                                  foregroundColor: Color(0xFFFBF8F6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
-                                onPressed: () {},
-                                child: const Text("Ver detalles"),
+                                child: const Text(" Ver detalles"),
                               ),
                             ),
                           ],
                         );
                       }).toList(),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
-
-          // ===== FORMULARIO =====
-          if (_mostrarFormulario)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Agregar Planilla",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const Divider(),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _nombreCtrl,
-                          decoration: const InputDecoration(
-                            labelText: "Nombre",
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: _dniCtrl,
-                          decoration: const InputDecoration(labelText: "DNI"),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _sueldoCtrl,
-                          decoration: const InputDecoration(
-                            labelText: "Sueldo Base (L.)",
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: _horasExtraCtrl,
-                          decoration: const InputDecoration(
-                            labelText: "Horas extra",
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  TextField(
-                    controller: _diasIncapacidadCtrl,
-                    decoration: const InputDecoration(
-                      labelText: "Días de incapacidad",
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-
-                  TextField(
-                    controller: _areaIdCtrl,
-                    decoration: const InputDecoration(
-                      labelText: "Área ID (Opcional)",
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _cargando ? null : _agregarPlanilla,
-                      icon: _cargando
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Icon(Icons.save),
-                      label: const Text("Guardar Planilla"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

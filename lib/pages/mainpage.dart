@@ -5,24 +5,22 @@ import 'package:rrhfit_sys32/empleados/screens/empleados_screen.dart';
 import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/logic/utilities/obtener_username.dart';
 import 'package:rrhfit_sys32/pages/rrhh/incapacidades_page.dart';
+import 'package:rrhfit_sys32/reclutamiento/screen/reclutamiento_screen.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:rrhfit_sys32/pages/dashboard/dashboard_page.dart';
 import 'package:rrhfit_sys32/pages/solicitudes.dart';
 import 'package:rrhfit_sys32/pages/Usuario_page.dart';
 import 'package:rrhfit_sys32/pages/rrhh/asistencia.dart';
-import 'package:rrhfit_sys32/pages/subirpdf.dart';
 import 'package:rrhfit_sys32/pages/empleados/mi_perfil_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/tracker_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 import 'package:rrhfit_sys32/pages/empleados/EmpleadoMainPage.dart';
-import 'package:rrhfit_sys32/Reportes/planillareport.dart';
 import 'package:rrhfit_sys32/pages/nomina.dart';
 import 'package:rrhfit_sys32/pages/voucherscreen.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
-  
-  
+
   @override
   State<MainPage> createState() => _MainPageState();
 }
@@ -31,15 +29,13 @@ class _MainPageState extends State<MainPage> {
   final _controller = SidebarXController(selectedIndex: 0, extended: true);
   String empleadoId = '';
   String empleadoUid = '';
-  String nombre= '';
-  String areaId= '';
-  String codigoEmpleado= ''; // <--- agrega esta línea
-  
-  
+  String nombre = '';
+  String areaId = '';
+  String codigoEmpleado = '';
 
   List<Widget> get webPages => [
     TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
-    SolicitudesEmpleadoPage(empleadoId: empleadoId, empleadoNombre: ''),
+    SolicitudesEmpleadoPage(empleadoId: empleadoId, empleadoNombre: '', empleadoUid: empleadoUid),
     MiPerfilPage(empleadoId: empleadoId),
     TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
     EmpleadoMainPage(),
@@ -47,6 +43,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<SidebarXItem> _sidebarItems = const [
     SidebarXItem(icon: Icons.dashboard, label: 'Dashboard'),
+    SidebarXItem(icon: Icons.people, label: 'Reclutamiento'),
     SidebarXItem(icon: Icons.people, label: 'Empleados'),
     SidebarXItem(icon: Icons.access_time, label: 'Asistencia'),
     SidebarXItem(icon: Icons.assignment, label: 'Solicitudes'),
@@ -55,7 +52,7 @@ class _MainPageState extends State<MainPage> {
     SidebarXItem(icon: Icons.attach_money, label: 'Nomina'),
     SidebarXItem(icon: Icons.exit_to_app, label: 'Configuracion'),
   ];
-    final List<SidebarXItem> _sidebarItems2 = const [
+  final List<SidebarXItem> _sidebarItems2 = const [
     SidebarXItem(icon: Icons.dashboard, label: 'Tracker'),
     SidebarXItem(icon: Icons.people, label: 'Mis solicitudes'),
     SidebarXItem(icon: Icons.access_time, label: 'Mi perfil'),
@@ -63,6 +60,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     const DashboardPage(),
+    const ReclutamientoScreen(),
     EmpleadosScreen(),
     const AsistenciaScreen(),
     const SolicitudesScreen(),
@@ -192,7 +190,6 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       body: Row(
         children: [
-          
           SidebarX(
             controller: _controller,
             theme: SidebarXTheme(

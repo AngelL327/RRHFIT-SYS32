@@ -1,6 +1,4 @@
-// lib/empleados/controllers/empleado_controller.dart
 import 'dart:async';
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rrhfit_sys32/empleados/models/empleado_model.dart';
@@ -11,7 +9,6 @@ import 'package:rrhfit_sys32/empleados/services/firestore_service.dart';
 
 class EmpleadoController with ChangeNotifier {
   final FirestoreService service;
-
   final FirebaseFirestore firestoree = FirebaseFirestore.instance;
 
   EmpleadoController({FirestoreService? service})
@@ -68,11 +65,28 @@ class EmpleadoController with ChangeNotifier {
   Stream<List<Area>> get areasStream => areasController.stream;
   Stream<List<Puesto>> get puestosStream => puestosController.stream;
 
-  //---------------------------------------------------------------------------------------------
+  Future<bool> checkDNI(String dni) async {
+    await ready;
+    final querySnapshot = await firestoree
+        .collection('empleados')
+        .where('codigo_empleado', isEqualTo: dni)
+        .limit(1)
+        .get();
 
-  //---------------------------------------------------------------------------------------------
+    return querySnapshot.docs.isNotEmpty;
+  }
 
-  // Reemplaza la implementación actual de computeWeeklyAttendanceRows por esta:
+  Future<bool> checkEmail(String email) async {
+    await ready;
+    final querySnapshot = await firestoree
+        .collection('empleados')
+        .where('correo', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty;
+  }
+
   Future<List<Map<String, dynamic>>> computeWeeklyAttendanceRows({
     bool includeWeekends = false,
     DateTime? customStartDate,
@@ -92,7 +106,6 @@ class EmpleadoController with ChangeNotifier {
         ind: ind ?? 0,
       );
 
-      // Contar solo días laborables (lunes..viernes) en el rango
       int totalWorkingDays = 0;
       DateTime cur = DateTime(start.year, start.month, start.day);
       final DateTime endDay = DateTime(end.year, end.month, end.day);
@@ -102,12 +115,9 @@ class EmpleadoController with ChangeNotifier {
         }
         cur = cur.add(const Duration(days: 1));
       }
-      if (totalWorkingDays == 0)
-        totalWorkingDays = 1; // evitar división por cero
+      if (totalWorkingDays == 0) totalWorkingDays = 1;
 
-      // Helper para determinar si un registro corresponde a un día laborable
       bool registroEsLaborable(Map<String, dynamic> registro) {
-        // Intenta extraer fecha de campos comunes
         final candidates = <String?>[
           registro['_docId']?.toString(),
           registro['fecha']?.toString(),
@@ -117,7 +127,7 @@ class EmpleadoController with ChangeNotifier {
 
         for (final cand in candidates) {
           if (cand == null) continue;
-          // Intentar parse ISO first
+
           DateTime? parsed;
           try {
             parsed = DateTime.tryParse(cand);
@@ -125,17 +135,12 @@ class EmpleadoController with ChangeNotifier {
             parsed = null;
           }
           if (parsed == null) {
-            // Intentar dd/MM/yyyy
             try {
               final parts = cand.split(RegExp(r'[-/ ]'));
               if (parts.length == 3) {
-                // detectar formato heurísticamente: si la primera parte tiene 4 dígitos, es yyyy-MM-dd
                 if (parts[0].length == 4) {
-                  parsed = DateTime.tryParse(
-                    cand,
-                  ); // ya intentado, pero reintento
+                  parsed = DateTime.tryParse(cand);
                 } else {
-                  // asumir dd MM yyyy
                   final d = int.tryParse(parts[0]);
                   final m = int.tryParse(parts[1]);
                   final y = int.tryParse(parts[2]);
@@ -150,23 +155,18 @@ class EmpleadoController with ChangeNotifier {
           }
 
           if (parsed != null) {
-            // si la fecha parsea, devolver true si es Lunes-Viernes
             return parsed.weekday >= DateTime.monday &&
                 parsed.weekday <= DateTime.friday;
           }
         }
 
-        // Si no pudimos parsear, podemos intentar usar otros indicadores:
-        // si el registro tiene 'entrada' o 'salida' asumimos que es asistencia válida
         if (registro.containsKey('entrada') || registro.containsKey('salida')) {
           return true; // asumimos laboral
         }
 
-        // Por defecto: considerar como laboral (conservador)
         return true;
       }
 
-      // Filtrar solo asistencia perfecta si se solicita
       final filteredData = soloAsistenciaPerfecta
           ? _reportData
                 .where((emp) => emp['asistencia_perfecta'] == true)
@@ -181,18 +181,15 @@ class EmpleadoController with ChangeNotifier {
                 ?.cast<Map<String, dynamic>>() ??
             <Map<String, dynamic>>[];
 
-        // Contar solo las asistencias que caen en días laborables
         int asistenciasLaborables = 0;
         for (final reg in asistencias) {
           try {
             if (registroEsLaborable(reg)) asistenciasLaborables++;
           } catch (e) {
-            // Si algo falla con un registro, asumimos que cuenta (evita subreportar)
             asistenciasLaborables++;
           }
         }
 
-        // Calcular índice con respecto a los días laborables
         final double indiceDouble = totalWorkingDays > 0
             ? (asistenciasLaborables / totalWorkingDays) * 100.0
             : 0.0;
@@ -216,53 +213,41 @@ class EmpleadoController with ChangeNotifier {
       }).toList();
 
       rows.sort((a, b) {
-        // Ordenamos de mayor a menor porcentaje
         return (b['indice_valor_numerico'] as double).compareTo(
           (a['indice_valor_numerico'] as double),
         );
       });
 
       double parseIndicePorcentaje(String indiceStr) {
-        // Elimina el símbolo de '%'
         final cleanString = indiceStr.replaceAll('%', '');
 
-        // Intenta parsear a double, si falla devuelve 0.0 para evitar errores
         return double.tryParse(cleanString) ?? 0.0;
       }
 
       for (int i = 0; i < rows.length; i++) {
-        // i es el índice basado en 0, así que el ranking es i + 1
         rows[i]['ranking'] = (i + 1).toString();
       }
 
       rows.sort((a, b) {
-        // Obtenemos los strings de índice de los mapas a y b
         final indiceAStr = a['indice'] as String;
         final indiceBStr = b['indice'] as String;
 
-        // Parseamos los strings a doubles usando nuestra función auxiliar
         final indiceADouble = parseIndicePorcentaje(indiceAStr);
         final indiceBDouble = parseIndicePorcentaje(indiceBStr);
 
-        // Comparamos los valores numéricos
-        // Esto ordena de forma ascendente (de menor a mayor índice)
         return indiceBDouble.compareTo(indiceADouble);
       });
 
       for (int i = 0; i < rows.length; i++) {
-        // i es el índice basado en 0, así que el ranking es i + 1
         rows[i]['ranking'] = (i + 1).toString();
       }
 
       return rows;
-    } catch (e, st) {
+    } catch (e) {
       return [];
     }
   }
 
-  //---------------------------------------------------------------------------------------------
-
-  // Método para obtener datos detallados de un empleado
   Future<Map<String, dynamic>?> getDetalleEmpleado(String empleadoId) async {
     await ready;
     return _reportData.firstWhere(
@@ -271,7 +256,6 @@ class EmpleadoController with ChangeNotifier {
     );
   }
 
-  // Métodos para configurar fechas
   void setDateRange(DateTime start, DateTime end) {
     _startDate = start;
     _endDate = end;
@@ -284,8 +268,6 @@ class EmpleadoController with ChangeNotifier {
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
-
-  //---------------------------------------------------------------------------------------------
 
   Future<void> _init() async {
     try {
@@ -330,7 +312,7 @@ class EmpleadoController with ChangeNotifier {
       });
 
       if (!_readyCompleter.isCompleted) _readyCompleter.complete();
-    } catch (e, s) {
+    } catch (e) {
       if (!_readyCompleter.isCompleted) _readyCompleter.completeError(e);
     }
   }
@@ -365,6 +347,8 @@ class EmpleadoController with ChangeNotifier {
           return (e.telefono ?? '').toLowerCase().contains(q);
         case 'Estado':
           return (e.estado ?? '').toLowerCase().contains(q);
+        case 'Salario':
+          return (e.salario ?? '').toString().toLowerCase().contains(q);
         case 'Departamento':
           return (getDepartamentoNombre(e.departamentoId) ?? '')
               .toLowerCase()
@@ -398,100 +382,6 @@ class EmpleadoController with ChangeNotifier {
     await ready;
     await service.deleteEmployee(id);
   }
-
-  // REPORTE SEMANAL POR UID
-
-  // Future<List<Map<String, dynamic>>> computeWeeklyAttendanceRows({
-  //   bool includeWeekends = false,
-  // }) async {
-  //   await ready;
-
-  //   final DateTime start = DateTime(2025, 10, 31);
-  //   final DateTime end = DateTime(2025, 11, 9);
-
-  //   // Calcular totalDays laborables
-  //   int totalDays = 0;
-  //   DateTime current = start;
-  //   while (!current.isAfter(end)) {
-  //     if (includeWeekends ||
-  //         (current.weekday >= DateTime.monday &&
-  //             current.weekday <= DateTime.friday)) {
-  //       totalDays++;
-  //     }
-  //     current = current.add(const Duration(days: 1));
-  //   }
-  //   if (totalDays == 0) totalDays = 1;
-
-  //   final List<Map<String, dynamic>> rows = [];
-  //   debugPrint('DEBUG: Empleados cargados: ${allEmployees.length}');
-
-  //   for (final e in allEmployees) {
-  //     if (e.asistenciaDocId == null || e.asistenciaDocId!.isEmpty) {
-  //       debugPrint(
-  //         'DEBUG: Empleado sin asistenciaDocId, saltando: ${e.nombre}',
-  //       );
-  //       continue;
-  //     }
-
-  //     // Obtener registros usando el asistenciaDocId (nombre normalizado)
-  //     final registros = await service.fetchRegistrosByAsistenciaDocId(
-  //       e.asistenciaDocId!,
-  //       start,
-  //       end,
-  //     );
-
-  //     final int asistencias = registros.length;
-  //     final double indice = totalDays > 0 ? (asistencias / totalDays) * 100 : 0;
-
-  //     final String indiceStr = '${indice.toStringAsFixed(1)}%';
-  //     final String periodoLabel = '${_formatDate(start)} - ${_formatDate(end)}';
-
-  //     // Preparar datos detallados de registros para el PDF
-  //     final registrosDetallados = registros.map((registro) {
-  //       return {
-  //         'fecha': registro['_docId'],
-  //         'entrada': registro['entrada'] ?? '-',
-  //         'salida': registro['salida'] ?? '-',
-  //         'almuerzo_inicio': registro['almuerzoInicio'] ?? '-',
-  //         'almuerzo_fin': registro['almuerzoFin'] ?? '-',
-  //         'horas_trabajadas': registro['horasTrabajadas'] ?? '-',
-  //       };
-  //     }).toList();
-
-  //     rows.add({
-  //       'ranking': '',
-  //       'codigo': e.codigoEmpleado ?? '-',
-  //       'empleado': e.nombre ?? '-',
-  //       'puesto': getPuestoNombre(e.puestoId) ?? '-',
-  //       'fecha_contratacion': e.fechaContratacion == null
-  //           ? '-'
-  //           : '${e.fechaContratacion!.day.toString().padLeft(2, '0')} / ${e.fechaContratacion!.month.toString().padLeft(2, '0')} / ${e.fechaContratacion!.year}',
-  //       'periodo': periodoLabel,
-  //       'indice': indiceStr,
-  //       'dias': '$asistencias / $totalDays',
-  //       'rawIndice': indice,
-  //       'registros': registrosDetallados, // Incluir registros detallados
-  //       'asistenciaDocId': e.asistenciaDocId, // Para debugging
-  //     });
-  //   }
-
-  //   // Ordenar por índice descendente
-  //   rows.sort(
-  //     (a, b) => (b['rawIndice'] as double).compareTo(a['rawIndice'] as double),
-  //   );
-
-  //   // Asignar ranking
-  //   for (int i = 0; i < rows.length; i++) {
-  //     rows[i]['ranking'] = (i + 1).toString();
-  //     rows[i].remove('rawIndice');
-  //   }
-
-  //   debugPrint('DEBUG: Rows generadas: ${rows.length}');
-  //   return rows;
-  // }
-
-  // String _formatDate(DateTime d) =>
-  //     '${d.day.toString().padLeft(2, '0')} / ${d.month.toString().padLeft(2, '0')} / ${d.year}';
 
   @override
   void dispose() {

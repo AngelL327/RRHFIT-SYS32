@@ -18,6 +18,7 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
   String _empleadoId = '';
   String _empleadoUid = '';
   bool _isLoading = true;
+  String _empleadoNombre = '';
 
   @override
   void initState() {
@@ -42,8 +43,9 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
           
           setState(() {
             _empleadoId = '${nombre}_${apellido}';
-            _isLoading = false;
             _empleadoUid = data['uid'] ?? '';
+            _empleadoNombre = '${data['nombre']} ${data['apellido']}';
+            _isLoading = false;
           });
         }
       }
@@ -64,7 +66,7 @@ class _EmpleadoMainPageState extends State<EmpleadoMainPage> {
   List<Widget> _getPages() {
     return [
       TrackerPage(empleadoId: _empleadoId,empleadoUid: _empleadoUid),
-      SolicitudesEmpleadoPage(empleadoId: _empleadoId, empleadoNombre: ''),
+      SolicitudesEmpleadoPage(empleadoId: _empleadoId, empleadoNombre: _empleadoNombre,empleadoUid: _empleadoUid),
       MiPerfilPage(empleadoId: _empleadoId),
     ];
   }

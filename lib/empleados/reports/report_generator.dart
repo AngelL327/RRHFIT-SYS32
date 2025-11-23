@@ -17,11 +17,11 @@ Future<Uint8List> generateAttendancePdf({
 
   final tableHeaders = [
     'Ranking',
-    'Código',
+    'DNI',
     'Empleado',
     'Puesto',
     'Fecha de Contratación',
-    'Periodo de Evaluación',
+    // 'Periodo de Evaluación',
     'Índice de Asistencia',
     'Días Asistidos / Total',
   ];
@@ -33,7 +33,7 @@ Future<Uint8List> generateAttendancePdf({
       r['empleado'] ?? '-',
       r['puesto'] ?? '-',
       r['fecha_contratacion'] ?? '-',
-      r['periodo'] ?? '-',
+      // r['periodo'] ?? '-',
       r['indice'] ?? '-',
       r['dias'] ?? '-',
     ];
@@ -54,7 +54,6 @@ Future<Uint8List> generateAttendancePdf({
 
   pdf.addPage(
     pw.MultiPage(
-      // Dibujar marca de agua por página sin afectar paginación
       pageTheme: pw.PageTheme(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 18),
@@ -221,7 +220,6 @@ Future<Uint8List> generateAttendancePdf({
         final content = <pw.Widget>[
           pw.SizedBox(height: 10),
 
-          // --- SOLO la tabla principal (sin detalles) ---
           pw.Table.fromTextArray(
             headers: tableHeaders,
             data: tableData,
@@ -235,14 +233,14 @@ Future<Uint8List> generateAttendancePdf({
             cellStyle: const pw.TextStyle(fontSize: 8),
             cellAlignment: pw.Alignment.centerLeft,
             columnWidths: {
-              0: const pw.FlexColumnWidth(1.1),
-              1: const pw.FlexColumnWidth(1.1),
-              2: const pw.FlexColumnWidth(1.4),
-              3: const pw.FlexColumnWidth(1.4),
-              4: const pw.FlexColumnWidth(1.8),
-              5: const pw.FlexColumnWidth(2.0),
+              0: const pw.FlexColumnWidth(0.8),
+              1: const pw.FlexColumnWidth(1.7),
+              2: const pw.FlexColumnWidth(2.0),
+              3: const pw.FlexColumnWidth(1.7),
+              4: const pw.FlexColumnWidth(1.5),
+              5: const pw.FlexColumnWidth(1.1),
               6: const pw.FlexColumnWidth(1.5),
-              7: const pw.FlexColumnWidth(1.5),
+              // 7: const pw.FlexColumnWidth(1.5),
             },
             cellPadding: const pw.EdgeInsets.symmetric(
               horizontal: 6,

@@ -51,6 +51,8 @@ class _SecondSeccionState extends State<SecondSeccion> {
               }
 
               return PaginatedDataTable(
+                headingRowColor: MaterialStateProperty.all(Colors.blue[400]),
+                showCheckboxColumn: false,
                 header: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -75,14 +77,17 @@ class _SecondSeccionState extends State<SecondSeccion> {
                           if (nuevo != null) {
                             await widget.controller.createEmployee(nuevo);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Empleado creado')),
+                              const SnackBar(
+                                content: Text('EMPLEADO CREADO EXITOSAMENTE'),
+                                backgroundColor: Colors.green,
+                              ),
                             );
                           }
                         } catch (e) {
-                          debugPrint('Error al abrir formulario crear: $e');
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Error inicializando datos'),
+                              backgroundColor: Colors.red,
                             ),
                           );
                         }
@@ -94,19 +99,69 @@ class _SecondSeccionState extends State<SecondSeccion> {
                 horizontalMargin: 12,
                 headingRowHeight: 48,
                 dataRowHeight: 52,
-                rowsPerPage: 6,
+                rowsPerPage: 8,
                 columns: const [
-                  DataColumn(label: Text('EmpleadoID')),
-                  DataColumn(label: Text('Nombre')),
-                  DataColumn(label: Text('Código')),
-                  DataColumn(label: Text('Correo')),
-                  DataColumn(label: Text('Teléfono')),
-                  DataColumn(label: Text('Estado')),
-                  DataColumn(label: Text('Departamento')),
-                  DataColumn(label: Text('Area')),
-                  DataColumn(label: Text('Puesto')),
-                  DataColumn(label: Text('Fecha Contratación')),
-                  DataColumn(label: Text('Acciones')),
+                  // DataColumn(label: Text('EmpleadoID')),
+                  DataColumn(
+                    label: Text(
+                      'Nombre',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text('DNI', style: TextStyle(color: Colors.white)),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Correo',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Teléfono',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Estado',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Departamento',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text('Area', style: TextStyle(color: Colors.white)),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Puesto',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Fecha Contratación',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Salario',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Acciones',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 ],
                 source: dataSource,
               );
@@ -143,7 +198,6 @@ class EmpleadosDataSource extends DataTableSource {
 
     return DataRow.byIndex(
       index: index,
-      // no manejamos selected persistente; permitimos seleccionar para abrir detalle
       selected: false,
       onSelectChanged: (selected) {
         if (selected == true) {
@@ -160,7 +214,6 @@ class EmpleadosDataSource extends DataTableSource {
         }
       },
       cells: [
-        DataCell(Text(empleado.empleadoId ?? '-')),
         DataCell(Text(empleado.nombre ?? '-')),
         DataCell(Text(empleado.codigoEmpleado ?? '-')),
         DataCell(Text(empleado.correo ?? '-')),
@@ -179,9 +232,15 @@ class EmpleadosDataSource extends DataTableSource {
         DataCell(Text(controller.getPuestoNombre(empleado.puestoId) ?? '-')),
         DataCell(Text(formato(empleado.fechaContratacion))),
         DataCell(
+          Text(
+            empleado.salario != null
+                ? '\L ${empleado.salario!.toStringAsFixed(2)}'
+                : 'L -',
+          ),
+        ),
+        DataCell(
           Row(
             children: [
-              // Ver (abre detalle)
               IconButton(
                 tooltip: 'Ver',
                 icon: const Icon(Icons.visibility),
@@ -216,11 +275,13 @@ class EmpleadosDataSource extends DataTableSource {
                       actualizado.id = empleado.id;
                       await controller.updateEmployee(actualizado);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Empleado actualizado')),
+                        const SnackBar(
+                          content: Text('Empleado actualizado'),
+                          backgroundColor: Colors.green,
+                        ),
                       );
                     }
                   } catch (e) {
-                    debugPrint('Error al abrir formulario editar: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Error inicializando datos'),
@@ -232,7 +293,6 @@ class EmpleadosDataSource extends DataTableSource {
                 color: Colors.blue,
               ),
 
-              // Eliminar
               IconButton(
                 tooltip: 'Eliminar',
                 onPressed: () async {
@@ -258,7 +318,10 @@ class EmpleadosDataSource extends DataTableSource {
                   if (confirm == true && empleado.id != null) {
                     await controller.deleteEmployee(empleado.id!);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Empleado eliminado')),
+                      const SnackBar(
+                        content: Text('Empleado eliminado'),
+                        backgroundColor: Colors.green,
+                      ),
                     );
                   }
                 },
