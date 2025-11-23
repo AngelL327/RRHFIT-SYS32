@@ -33,21 +33,21 @@ class _ReporteDeduccionesPruebaState extends State<ReporteDeduccionesPrueba> {
   final List<Map<String, dynamic>> datosPrueba = [
     // OCTUBRE
     {"mes": "octubre", "anio": 2025, "departamento": "Producción",      "empleados": 36, "rap": 83000.0, "ihss": 122000.0, "isr": 75000.0},
-    {"mes": "octubre", "anio": 2025, "departamento": "Rec. Humanos",    "empleados": 13, "rap": 27000.0, "ihss": 38000.0,  "isr": 20000.0},
+    {"mes": "octubre", "anio": 2025, "departamento": "Recursos Humanos",    "empleados": 13, "rap": 27000.0, "ihss": 38000.0,  "isr": 20000.0},
     {"mes": "octubre", "anio": 2025, "departamento": "Ventas",          "empleados": 21, "rap": 50000.0, "ihss": 70000.0,  "isr": 40000.0},
     {"mes": "octubre", "anio": 2025, "departamento": "Administración",  "empleados": 10, "rap": 18000.0, "ihss": 25000.0,  "isr": 17000.0},
     {"mes": "octubre", "anio": 2025, "departamento": "Sistemas",        "empleados": 9,  "rap": 17000.0, "ihss": 24000.0,  "isr": 14000.0},
 
     // SEPTIEMBRE
     {"mes": "septiembre", "anio": 2025, "departamento": "Producción",      "empleados": 35, "rap": 81000.0, "ihss": 118000.0, "isr": 71000.0},
-    {"mes": "septiembre", "anio": 2025, "departamento": "Rec. Humanos",    "empleados": 13, "rap": 26000.0, "ihss": 37500.0,  "isr": 19500.0},
+    {"mes": "septiembre", "anio": 2025, "departamento": "Recursos Humanos",    "empleados": 13, "rap": 26000.0, "ihss": 37500.0,  "isr": 19500.0},
     {"mes": "septiembre", "anio": 2025, "departamento": "Ventas",          "empleados": 22, "rap": 52000.0, "ihss": 72000.0,  "isr": 41000.0},
     {"mes": "septiembre", "anio": 2025, "departamento": "Administración",  "empleados": 10, "rap": 17500.0, "ihss": 24800.0,  "isr": 16800.0},
     {"mes": "septiembre", "anio": 2025, "departamento": "Sistemas",        "empleados": 9,  "rap": 16500.0, "ihss": 23800.0,  "isr": 13800.0},
 
     // AGOSTO
     {"mes": "agosto", "anio": 2025, "departamento": "Producción",      "empleados": 37, "rap": 85000.0, "ihss": 125000.0, "isr": 78000.0},
-    {"mes": "agosto", "anio": 2025, "departamento": "Rec. Humanos",    "empleados": 12, "rap": 25000.0, "ihss": 35000.0,  "isr": 19000.0},
+    {"mes": "agosto", "anio": 2025, "departamento": "Recursos Humanos",    "empleados": 12, "rap": 25000.0, "ihss": 35000.0,  "isr": 19000.0},
     {"mes": "agosto", "anio": 2025, "departamento": "Ventas",          "empleados": 20, "rap": 48000.0, "ihss": 68000.0,  "isr": 39000.0},
     {"mes": "agosto", "anio": 2025, "departamento": "Administración",  "empleados": 11, "rap": 19000.0, "ihss": 26000.0,  "isr": 17500.0},
     {"mes": "agosto", "anio": 2025, "departamento": "Sistemas",        "empleados": 9,  "rap": 17500.0, "ihss": 24500.0,  "isr": 14200.0},

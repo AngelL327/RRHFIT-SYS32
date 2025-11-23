@@ -196,8 +196,9 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
           ),
           TextButton(
             style: TextButton.styleFrom(
-              backgroundColor:
-                  Color(0xFFF57C00), // Fondo rojo para acción peligrosa
+              backgroundColor: Color(
+                0xFFF57C00,
+              ), // Fondo rojo para acción peligrosa
               foregroundColor: Colors.white, // Texto blanco
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -232,7 +233,9 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Todas las nóminas han sido eliminadas correctamente"),
+          content: const Text(
+            "Todas las nóminas han sido eliminadas correctamente",
+          ),
           backgroundColor: cardColors[2],
         ),
       );
@@ -339,62 +342,189 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
         ),
 
         content: SizedBox(
-          width: 350, // ancho más grande
+          width: 350,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _row("Nombre", data['nombre'] ?? "", color: Colors.white),
-                _row("DNI", data['dni'] ?? "", color: Colors.white),
-                _row(
-                  "Sueldo Base",
-                  _formatCurrency(data['sueldo_base'] ?? 0),
-                  color: Colors.white,
+                Row(
+                  children: [
+                    const Icon(Icons.person, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Nombre",
+                        data['nombre'] ?? "",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                _row(
-                  "Horas Extra",
-                  "${data['horas_extra'] ?? 0}",
-                  color: Colors.white,
+
+                Row(
+                  children: [
+                    const Icon(Icons.badge, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "DNI",
+                        data['dni'] ?? "",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                _row(
-                  "Pago Horas Extra",
-                  _formatCurrency(data['pago_horas_extra'] ?? 0),
-                  color: Colors.white,
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.monetization_on,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Sueldo Base",
+                        _formatCurrency(data['sueldo_base'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                _row(
-                  "RAP (1.5%)",
-                  _formatCurrency(data['rap'] ?? 0),
-                  color: Colors.white,
+
+                Row(
+                  children: [
+                    const Icon(Icons.timer, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Horas Extra",
+                        "${data['horas_extra'] ?? 0}",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                _row(
-                  "IHSS (3.5%)",
-                  _formatCurrency(data['seguro_social'] ?? 0),
-                  color: Colors.white,
+
+                Row(
+                  children: [
+                    const Icon(Icons.paid, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Pago Horas Extra",
+                        _formatCurrency(data['pago_horas_extra'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                _row(
-                  "ISR",
-                  _formatCurrency(data['isr'] ?? 0),
-                  color: Colors.white,
+
+                Row(
+                  children: [
+                    const Icon(Icons.money_off, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "RAP (1.5%)",
+                        _formatCurrency(data['rap'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.health_and_safety,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "IHSS (3.5%)",
+                        _formatCurrency(data['seguro_social'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.account_balance,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "ISR",
+                        _formatCurrency(data['isr'] ?? 0),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+
                 const Divider(color: Colors.grey),
-                _row(
-                  "Total Deducciones",
-                  _formatCurrency(data['total_deducciones'] ?? 0),
-                  bold: true,
-                  color: const Color.fromARGB(255, 255, 255, 255),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.remove_circle,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Total Deducciones",
+                        _formatCurrency(data['total_deducciones'] ?? 0),
+                        bold: true,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                _row(
-                  "Sueldo Neto",
-                  _formatCurrency(data['sueldo_neto'] ?? 0),
-                  bold: true,
-                  color: Color.fromARGB(255, 255, 255, 255),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Sueldo Neto",
+                        _formatCurrency(data['sueldo_neto'] ?? 0),
+                        bold: true,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                _row(
-                  "Fecha",
-                  fecha != null
-                      ? DateFormat('dd/MM/yyyy HH:mm').format(fecha)
-                      : "—",
-                  color: Colors.white,
+
+                Row(
+                  children: [
+                    const Icon(Icons.date_range, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _row(
+                        "Fecha",
+                        fecha != null
+                            ? DateFormat('dd/MM/yyyy HH:mm').format(fecha)
+                            : "—",
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -452,7 +582,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: Color(0xFFFBF8F6),
       body: Column(
         children: [
           // CABECERA
@@ -460,11 +590,8 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             decoration: BoxDecoration(
-              color: cardColors[4],
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
-              ),
+              color: cardColors[0],
+
               boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
@@ -489,7 +616,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 10,
                         ),
-                        prefixIcon: Icon(Icons.search, color: cardColors[4]),
+                        prefixIcon: Icon(Icons.search, color: cardColors[0]),
                       ),
                       onChanged: (v) => setState(() => _busqueda = v),
                     ),
@@ -512,7 +639,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                         ),
                   label: const Text("Todos"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                    backgroundColor: Color(0xFFFBF8F6),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -524,7 +651,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                   ),
                   label: const Text("Borrar Todo"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                    backgroundColor: Color(0xFFFBF8F6),
                   ),
                 ),
               ],
@@ -560,11 +687,9 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                         .toList();
 
                     return DataTable2(
-                      headingRowColor: WidgetStateProperty.all(
-                        cardColors[4].withOpacity(0.9),
-                      ),
+                      headingRowColor: WidgetStateProperty.all(cardColors[0]),
                       headingTextStyle: const TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFFF7F4F1),
                         fontWeight: FontWeight.bold,
                       ),
                       columns: const [
@@ -608,7 +733,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                                 _formatCurrency(data['sueldo_neto'] ?? 0),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                                  color: Color(0xFF2E7D32),
                                 ),
                               ),
                             ),
@@ -616,8 +741,8 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                               ElevatedButton(
                                 onPressed: () => _showDetallesDialog(d),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: cardColors[4],
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: cardColors[1],
+                                  foregroundColor: Color(0xFFFBF8F6),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                     vertical: 8,

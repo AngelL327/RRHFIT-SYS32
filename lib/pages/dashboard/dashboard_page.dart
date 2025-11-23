@@ -151,7 +151,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Color(0xFFFBF8F6),
                     ),
                     items: ['Todos', ...departamentos.keys].map((dept) {
                       return DropdownMenuItem<String>(
