@@ -221,7 +221,7 @@ class _ReportePlanillaLocalState extends State<ReportePlanillaLocal> {
         iconTheme: const IconThemeData(color: Color(0xFFFBF8F6)),
         title: const Padding(
           padding: EdgeInsets.only(left: 16),
-          child: Text('Reportes Mensuales de Planilla', style: TextStyle(color: Colors.white)),
+          child: Text('Reportes mensuales de planilla', style: TextStyle(color: Colors.white)),
         ),
         centerTitle: false,
       ),
@@ -284,9 +284,9 @@ class _ReportePlanillaLocalState extends State<ReportePlanillaLocal> {
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                         child: Row(
                           children: [
-                            Expanded(flex: 3, child: Text("Departamento de RRHH", style: TextStyle(fontSize: 12, color: Colors.grey[700]))),
+                            Expanded(flex: 3, child: Text("Departamento de RRHH", style: TextStyle(fontSize: 20, color: Colors.grey[700]))),
                             const Expanded(flex: 4, child: SizedBox()),
-                            Expanded(flex: 3, child: Align(alignment: Alignment.centerRight, child: Text('Fecha: $fechaGenerado', style: TextStyle(fontSize: 12, color: Colors.grey[700])))),
+                            Expanded(flex: 3, child: Align(alignment: Alignment.centerRight, child: Text('Fecha: $fechaGenerado', style: TextStyle(fontSize: 20, color: Colors.grey[700])))),
                           ],
                         ),
                       ),
@@ -412,7 +412,7 @@ class _ReportePlanillaLocalState extends State<ReportePlanillaLocal> {
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: datos.map((d) {
                                           final depto = d['departamento_nombre'] as String;
-                                          final sueldo = d['total_salarios'] as double;
+                                          final sueldo = (d['total_salarios'] as double) - (d['total_deducciones'] as double);
                                           final color = cardColors[datosPruebaPlanilla.indexWhere((e) => e['departamento_nombre'] == depto) % cardColors.length];
                                           final double barHeight = maxValue > 0 ? (sueldo / maxValue * maxBarHeight).toDouble() : 0.0;
 
@@ -496,8 +496,8 @@ class _ReportePlanillaLocalState extends State<ReportePlanillaLocal> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Generado por: $generadoPor', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-                            Text('Página 1 / 1', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                            Text('Generado por: $generadoPor', style: TextStyle(fontSize: 20, color: Colors.grey[700])),
+                            Text('Página 1 / 1', style: TextStyle(fontSize: 20, color: Colors.grey[700])),
                           ],
                         ),
                       ),

@@ -8,6 +8,7 @@ import 'package:rrhfit_sys32/core/theme.dart';
 import 'package:flutter/services.dart';
 import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/pages/reporte_planilla_local.dart';
+import 'package:rrhfit_sys32/pages/reporte_deducciones_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -233,7 +234,7 @@ class _ReportePlanillaScreenState extends State<ReportePlanillaScreen> {
           child: Padding(
             padding: EdgeInsets.only(left: 16),
             child: Text(
-              'VVista general reporte deducciones',
+              'Vista general reporte deducciones',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -250,7 +251,9 @@ class _ReportePlanillaScreenState extends State<ReportePlanillaScreen> {
               ),
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ReportePlanillaLocal()),
+                MaterialPageRoute(
+                  builder: (_) => const ReporteDeduccionesPrueba(),
+                ),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
@@ -535,7 +538,16 @@ class _ReportePlanillaScreenState extends State<ReportePlanillaScreen> {
                       ),
                     ),
                   ),
-
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: const Text(
+                      '**Visualización de las deducciones en cada departamento**',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
                   const SizedBox(height: 80),
 
                   // GRÁFICAS (MANTENIDAS IGUAL)

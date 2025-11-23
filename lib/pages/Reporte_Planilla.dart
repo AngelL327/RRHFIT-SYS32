@@ -167,7 +167,7 @@ class _ReportePlanillaFirestoreState extends State<ReportePlanillaFirestore1> {
           alignment: Alignment.centerLeft,
           child: Padding(
             padding: EdgeInsets.only(left: 16),
-            child: Text('Vista General Reporte Planilla', style: TextStyle(color: Colors.white)),
+            child: Text('Vista general reporte planilla', style: TextStyle(color: Colors.white)),
           ),
         ),
         actions: [
