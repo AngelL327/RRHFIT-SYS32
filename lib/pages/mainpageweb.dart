@@ -10,11 +10,13 @@ import 'package:rrhfit_sys32/pages/empleados/tracker_page.dart';
 class MainPageweb extends StatefulWidget {
   final String empleadoId;
   final String empleadoNombre;
+  final String empleadoUid;
 
   const MainPageweb({
     super.key,
     required this.empleadoId,
     required this.empleadoNombre,
+    required this.empleadoUid,
   });
 
   @override
@@ -26,22 +28,25 @@ class _MainPageState extends State<MainPageweb> {
 
   late String empleadoId;
   late String empleadoNombre;
+  late String empleadoUid;
 
   @override
   void initState() {
     super.initState();
     empleadoId = widget.empleadoId;
     empleadoNombre = widget.empleadoNombre;
+    empleadoUid = widget.empleadoUid;
   }
 
   List<Widget> get webPages => [
         TrackerPage(
-        empleadoId: empleadoId,   // agregar este parámetro
-        empleadoUid: empleadoId,  // mantener empleadoUid como antes
+        empleadoId: empleadoId,  
+        empleadoUid: empleadoId,  
       ),
         SolicitudesEmpleadoPage(
           empleadoId: empleadoId,
           empleadoNombre: empleadoNombre,
+          empleadoUid: empleadoUid,
         ),
         MiPerfilPage(empleadoId: empleadoId),
       ];

@@ -35,7 +35,7 @@ class _MainPageState extends State<MainPage> {
 
   List<Widget> get webPages => [
     TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
-    SolicitudesEmpleadoPage(empleadoId: empleadoId, empleadoNombre: ''),
+    SolicitudesEmpleadoPage(empleadoId: empleadoId, empleadoNombre: '', empleadoUid: empleadoUid),
     MiPerfilPage(empleadoId: empleadoId),
     TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
     EmpleadoMainPage(),
