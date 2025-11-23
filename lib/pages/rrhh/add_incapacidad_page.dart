@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:flutter/services.dart';
 import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/logic/empleados_functions.dart';
 import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
@@ -165,25 +166,36 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
 
   Future<void> _submit() async {
     // If user typed a name but didn't pick from the autocomplete list,
-    // try to match it to an empleado by name so we can proceed without error.
+    // try to match it to an empleado by name. Require selecting an existing
+    // empleado when the empleados list is available.
     if (_selectedEmpleado == null) {
       final typed = _empleadoTyped.trim();
-      if (typed.isNotEmpty) {
+      if (_empleados.isNotEmpty) {
+        // If there are empleados to choose from, the user must select one
+        if (typed.isEmpty) {
+          setState(() => _asyncError = 'Seleccione un empleado existente antes de guardar');
+          return;
+        }
         final idx = _empleados.indexWhere((e) => e.nombre.toLowerCase() == typed.toLowerCase());
-        if (idx != -1) _selectedEmpleado = _empleados[idx];
+        if (idx == -1) {
+          setState(() => _asyncError = 'Empleado no encontrado. Seleccione un empleado existente de la lista');
+          return;
+        }
+        _selectedEmpleado = _empleados[idx];
+      } else {
+        // If no empleados are loaded, fall back to using the current user id/text fields.
+        // Leave _selectedEmpleado null; later checks will allow using _userIdCtrl as fallback.
       }
-    }
-
-    // If still null and we have empleados loaded, default to the first one.
-    if (_selectedEmpleado == null && _empleados.isNotEmpty) {
-      _selectedEmpleado = _empleados.first;
-      _empleadoTyped = _selectedEmpleado!.nombre;
     }
 
     // Run synchronous validators first (field validators)
     if (!_formKey.currentState!.validate()) return;
 
-    // Validate date presence and ordering
+    // Validate date presence and ordering. Fecha de expediente is required.
+    if (_fechaExpediente == null) {
+      setState(() => _asyncError = 'Por favor seleccione la fecha de expediente');
+      return;
+    }
     if (_fechaInicio == null || _fechaFin == null) {
       setState(() => _asyncError = 'Por favor seleccione las fechas de inicio y fin de incapacidad');
       return;
@@ -197,7 +209,7 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     final now = DateTime.now();
     final earliest = DateTime(now.year - 1, now.month, now.day);
     final latest = DateTime(now.year + 1, now.month, now.day);
-    if (_fechaInicio!.isBefore(earliest) || _fechaFin!.isBefore(earliest) || _fechaInicio!.isAfter(latest) || _fechaFin!.isAfter(latest)) {
+    if (_fechaExpediente!.isBefore(earliest) || _fechaExpediente!.isAfter(latest) || _fechaInicio!.isBefore(earliest) || _fechaFin!.isBefore(earliest) || _fechaInicio!.isAfter(latest) || _fechaFin!.isAfter(latest)) {
       setState(() => _asyncError = 'Las fechas deben estar dentro de un año hacia atrás y un año hacia adelante desde hoy');
       return;
     }
@@ -286,7 +298,7 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
       numCertificado: numCert.isEmpty ? 'N/A' : numCert,
       enteEmisor: enteEmisor.isEmpty ? 'N/A' : enteEmisor,
       fechaSolicitud: _fechaSolicitud,
-      fechaExpediente: _fechaExpediente ?? _fechaSolicitud,
+      fechaExpediente: _fechaExpediente!,
       fechaInicioIncapacidad: _fechaInicio!,
       fechaFinIncapacidad: _fechaFin!,
       estado: _estado,
@@ -311,7 +323,7 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     Size size = MediaQuery.of(context).size;
     return SizedBox(
       width: size.width * 0.5,
-      height: size.height * 0.7,
+      height: size.height * 0.85,
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -364,7 +376,16 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                         return TextFormField(
                           controller: textEditingController,
                           focusNode: focusNode,
-                          decoration: const InputDecoration(labelText: 'Empleado'),
+                          decoration: InputDecoration(
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Text('Empleado'),
+                                SizedBox(width: 4),
+                                Text('*', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
                           // keep track of what's typed so we can try to match on submit
                           onChanged: (v) => _empleadoTyped = v,
                           // validator ensures an empleado is chosen when empleados exist
@@ -412,7 +433,21 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _numCertCtrl,
-                  decoration: const InputDecoration(labelText: 'Número de certificado'),
+                  decoration: InputDecoration(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text('Número de certificado'),
+                        SizedBox(width: 4),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(8),
+                  ],
                   validator: (v) {
                     final s = v?.trim() ?? '';
                     if (s.isEmpty) return 'Ingrese el número de certificado';
@@ -424,7 +459,16 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _enteEmisorCtrl,
-                  decoration: const InputDecoration(labelText: 'Ente emisor'),
+                  decoration: InputDecoration(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text('Ente emisor'),
+                        SizedBox(width: 4),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
                   validator: (v) {
                     final s = v?.trim() ?? '';
                     if (s.isEmpty) return 'Ingrese el ente emisor';
@@ -444,7 +488,14 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Fecha de expediente'),
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text('Fecha de expediente'),
+                      SizedBox(width: 4),
+                      Text('*', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
                   subtitle: Text(_fechaExpediente != null ? '${_fechaExpediente!.toLocal()}'.split(' ')[0] : 'No asignada'),
                   trailing: IconButton(
                     icon: const Icon(Icons.calendar_today),
@@ -453,7 +504,14 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Fecha inicio de incapacidad'),
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text('Fecha inicio de incapacidad'),
+                      SizedBox(width: 4),
+                      Text('*', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
                   subtitle: Text(_fechaInicio != null ? '${_fechaInicio!.toLocal()}'.split(' ')[0] : 'No asignada'),
                   trailing: IconButton(
                     icon: const Icon(Icons.calendar_today),
@@ -462,7 +520,14 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Fecha fin de incapacidad'),
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text('Fecha fin de incapacidad'),
+                      SizedBox(width: 4),
+                      Text('*', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
                   subtitle: Text(_fechaFin != null ? '${_fechaFin!.toLocal()}'.split(' ')[0] : 'No asignada'),
                   trailing: IconButton(
                     icon: const Icon(Icons.calendar_today),
@@ -481,7 +546,16 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _motivoCtrl,
-                  decoration: const InputDecoration(labelText: 'Motivo'),
+                  decoration: InputDecoration(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text('Motivo'),
+                        SizedBox(width: 4),
+                        Text('*', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
                   maxLines: 4,
                   validator: (v) {
                     final s = v?.trim() ?? '';
