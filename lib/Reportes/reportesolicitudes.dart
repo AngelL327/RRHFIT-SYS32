@@ -40,21 +40,90 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Calcula los datos igual que en tu widget de pantalla
+    // toma los docs pasados desde el widget (debe estar antes de usarlos)
     final docs = widget.docs;
+
+    // --- calcula agregados a partir de `docs` ---
+    final Map<String, int> porDepto = {};
+    final Map<String, Map<String, int>> deptoPorEstado =
+        {}; // depto -> {estado->count}
+    final Map<String, int> tipoCounts = {};
+
+    for (var d in docs) {
+      final data = d.data() as Map<String, dynamic>;
+
+      final depto = data["departamento"]?.toString().trim();
+      final estado = (data["estado"] ?? "Pendiente").toString();
+      final tipo = (data["tipo"] ?? "Otro").toString();
+
+      // Solo procesar si el departamento existe y no está vacío
+      if (depto == null || depto.isEmpty) continue;
+
+      // total por depto
+      porDepto[depto] = (porDepto[depto] ?? 0) + 1;
+
+      // conteo por estado dentro de cada depto
+      deptoPorEstado[depto] ??= {"Aprobada": 0, "Rechazada": 0, "Pendiente": 0};
+      deptoPorEstado[depto]![estado] =
+          (deptoPorEstado[depto]![estado] ?? 0) + 1;
+
+      // conteo por tipo
+      tipoCounts[tipo] = (tipoCounts[tipo] ?? 0) + 1;
+    }
+
+    // determina departamento con más solicitudes
+    String topDept = "Sin datos";
+    if (porDepto.isNotEmpty) {
+      topDept = porDepto.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
+    }
+
+    // prepara valores para la primera barra: estados del departamento topDept
+    final estadoMap =
+        deptoPorEstado[topDept] ??
+        {"Aprobada": 0, "Rechazada": 0, "Pendiente": 0};
+    final List<String> estadosLabels = [
+      "Aprobadas",
+      "Rechazadas",
+      "Pendientes",
+    ];
+    final List<int> estadosValues = [
+      estadoMap["Aprobada"] ?? 0,
+      estadoMap["Rechazada"] ?? 0,
+      estadoMap["Pendiente"] ?? 0,
+    ];
+
+    // colores (puedes ajustar)
+    final List<Color> estadosColors = const [
+      Color(0xFF2E8B57), // aprobadas
+      Color(0xFF1FA9D6), // rechazadas
+      Color(0xFFF57C00), // pendientes
+    ];
+
+    // prepara valores para la segunda barra: tipos de solicitud (top N)
+    final tipoEntries = tipoCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final topTipoEntries = tipoEntries.take(6).toList();
+    final List<String> tiposLabels = topTipoEntries.map((e) => e.key).toList();
+    final List<int> tiposValues = topTipoEntries.map((e) => e.value).toList();
+    final List<Color> tiposColors = [
+      const Color(0xFF2E8B57),
+      const Color(0xFF29B6F6),
+      const Color(0xFFFFA726),
+      const Color(0xFFAB47BC),
+      const Color(0xFFFF7043),
+      const Color(0xFF78909C),
+    ].take(tiposLabels.length).toList();
+
+    // Calcula totales que usabas antes (puedes mantenerlos)
     final totalPend = docs.where((d) => d["estado"] == "Pendiente").length;
     final totalApr = docs.where((d) => d["estado"] == "Aprobada").length;
     final totalRec = docs.where((d) => d["estado"] == "Rechazada").length;
     final totalGlobal = totalPend + totalApr + totalRec;
-
-    final Map<String, int> porDepto = {};
-    for (var d in docs) {
-      final data = d.data() as Map<String, dynamic>;
-      final depto = (data["departamento"] ?? "Sin especificar").toString();
-      porDepto[depto] = (porDepto[depto] ?? 0) + 1;
-    }
     final totalDeptos = porDepto.values.fold<int>(0, (a, b) => a + b);
 
+    // --- UI ---
     return Scaffold(
       appBar: AppBar(title: const Text("Generar Reporte PDF")),
       body: SingleChildScrollView(
@@ -72,11 +141,10 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
               ),
               const SizedBox(height: 20),
 
-              // --- Usamos Wrap en lugar de Row ---
               Wrap(
                 direction: Axis.vertical,
-                spacing: 10, // separación horizontal
-                runSpacing: 10, // separación vertical
+                spacing: 10,
+                runSpacing: 10,
                 alignment: WrapAlignment.center,
                 children: [
                   Row(
@@ -132,16 +200,12 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
                         key: _keyBar1,
                         child: SizedBox(
                           width: 450,
-                          height: 250,
+                          height: 260,
                           child: _buildBarWidget(
-                            "Área de ventas",
-                            const ["Aprobadas", "Rechazadas", "Pendientes"],
-                            const [4, 2, 2],
-                            const [
-                              Color(0xFF2E8B57),
-                              Color(0xFF1FA9D6),
-                              Color(0xFFF57C00),
-                            ],
+                            "Área: $topDept",
+                            estadosLabels,
+                            estadosValues,
+                            estadosColors,
                           ),
                         ),
                       ),
@@ -149,20 +213,12 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
                         key: _keyBar2,
                         child: SizedBox(
                           width: 450,
-                          height: 250,
+                          height: 260,
                           child: _buildBarWidget(
                             "Tipo de solicitud",
-                            const [
-                              "Permisos médicos",
-                              "Vacaciones",
-                              "Cambio de turno",
-                            ],
-                            const [4, 2, 2],
-                            const [
-                              Color(0xFF2E8B57),
-                              Color(0xFF29B6F6),
-                              Color(0xFFFFA726),
-                            ],
+                            tiposLabels,
+                            tiposValues,
+                            tiposColors,
                           ),
                         ),
                       ),
@@ -242,11 +298,13 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
     final totalGlobal = totalPend + totalApr + totalRec;
 
     final Map<String, int> porDepto = {};
-    for (var d in docs) {
+    docs.forEach((d) {
       final data = d.data() as Map<String, dynamic>;
-      final depto = (data["departamento"] ?? "Sin especificar").toString();
-      porDepto[depto] = (porDepto[depto] ?? 0) + 1;
-    }
+      final depto = data["departamento"]?.toString();
+      if (depto != null && depto.isNotEmpty) {
+        porDepto[depto] = (porDepto[depto] ?? 0) + 1;
+      }
+    });
     final totalDeptos = porDepto.values.fold<int>(0, (a, b) => a + b);
 
     // Página única estilo landscape (ajusta si quieres)
@@ -495,9 +553,11 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
     List<int> values,
     List<Color> colors,
   ) {
+    final total = values.fold<int>(0, (a, b) => a + b);
     final maxY = values.isEmpty
         ? 1
         : (values.reduce((a, b) => a > b ? a : b).toDouble() + 1);
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -505,11 +565,16 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
         side: BorderSide(color: Colors.blue.shade100),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(2.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 1),
+            Text(
+              titulo,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+
+            // --- Gráfico de barras ---
             SizedBox(
               height: 160,
               child: BarChart(
@@ -529,7 +594,7 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           final idx = value.toInt();
-                          if (idx >= 0 && idx < categories.length)
+                          if (idx >= 0 && idx < categories.length) {
                             return Text(
                               categories[idx],
                               textAlign: TextAlign.center,
@@ -538,6 +603,7 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
                                 color: ui.Color.fromARGB(255, 17, 14, 14),
                               ),
                             );
+                          }
                           return const Text('');
                         },
                       ),
@@ -558,8 +624,10 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            // Tabla simple
+
+            const SizedBox(height: 3),
+
+            // --- Tabla simple debajo del gráfico ---
             Column(
               children: List.generate(categories.length, (i) {
                 return Row(
@@ -579,6 +647,20 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
                   ],
                 );
               }),
+            ),
+             const SizedBox(height: 1),
+           
+            // --- Total general ---
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                "Total: $total solicitudes",
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: ui.Color.fromARGB(255, 10, 10, 10),
+                ),
+              ),
             ),
           ],
         ),
