@@ -676,111 +676,118 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   }
 
   Widget _buildCreateScreenDialog() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Crear Solicitud",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 24),
-        DropdownButtonFormField<String>(
-          initialValue: _tipoSolicitud,
-          items: ["Vacaciones", "Permiso médico", "Cambio de turno"]
-              .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
-              .toList(),
-          onChanged: (val) => setState(() => _tipoSolicitud = val!),
-          decoration: InputDecoration(
-            labelText: "Tipo de Solicitud",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.white,
+    return Container(
+      padding: const EdgeInsets.all(16), // Espaciado interno
+    decoration: BoxDecoration(
+      color: const Color.fromARGB(255, 255, 255, 255), // Color de fondo
+      borderRadius: BorderRadius.circular(12), // Opcional: bordes redondeados
+    ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Crear Solicitud",
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-        ),
-        const SizedBox(height: 16),
-
-        EmpleadoAutocomplete(
-          empleadoCtrl: _empleadoCtrl,
-          codigoCtrl: _codigoCtrl,
-          departamentoCtrl: _departamentoCtrl, 
-          onEmpleadoSeleccionado: (id) {
-            setState(() {
-              _empleadoId = id;
-            });
-          },
-          onDepartamentoSeleccionado: (id) {
+          const SizedBox(height: 24),
+          DropdownButtonFormField<String>(
+            initialValue: _tipoSolicitud,
+            items: ["Vacaciones", "Permiso médico", "Cambio de turno"]
+                .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
+                .toList(),
+            onChanged: (val) => setState(() => _tipoSolicitud = val!),
+            decoration: InputDecoration(
+              labelText: "Tipo de Solicitud",
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
       
-          
-          },
-        ),
+          EmpleadoAutocomplete(
+            empleadoCtrl: _empleadoCtrl,
+            codigoCtrl: _codigoCtrl,
+            departamentoCtrl: _departamentoCtrl, 
+            onEmpleadoSeleccionado: (id) {
+              setState(() {
+                _empleadoId = id;
+              });
+            },
+            onDepartamentoSeleccionado: (id) {
         
-        const SizedBox(height: 16),
-        TextField(
-          controller: _puestoCtrl,
-          decoration: const InputDecoration(
-            labelText: "Puesto",
-            border: OutlineInputBorder(),
+            
+            },
           ),
-        ),
-     
-        const SizedBox(height: 16),
-        TextField(
-          controller: _descripcionCtrl,
-          maxLines: 3,
-          decoration: InputDecoration(
-            labelText: "Descripción",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.white,
+          
+          const SizedBox(height: 16),
+          TextField(
+            controller: _puestoCtrl,
+            decoration: const InputDecoration(
+              labelText: "Puesto",
+              border: OutlineInputBorder(),
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.blueAccent),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+       
+          const SizedBox(height: 16),
+          TextField(
+            controller: _descripcionCtrl,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: "Descripción",
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.blueAccent),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () async {
+                    DateTime? fecha = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (fecha != null) setState(() => _fechaSeleccionada = fecha);
+                  },
+                  child: Text(
+                    _fechaSeleccionada == null
+                        ? "Seleccionar Fecha"
+                        : "Fecha: ${_fechaSeleccionada!.toString().split(" ")[0]}",
                   ),
                 ),
-                onPressed: () async {
-                  DateTime? fecha = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                  );
-                  if (fecha != null) setState(() => _fechaSeleccionada = fecha);
-                },
-                child: Text(
-                  _fechaSeleccionada == null
-                      ? "Seleccionar Fecha"
-                      : "Fecha: ${_fechaSeleccionada!.toString().split(" ")[0]}",
-                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () async {
+              await _guardarSolicitud();
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50),
+              backgroundColor: Colors.blueAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 32),
-        ElevatedButton(
-          onPressed: () async {
-            await _guardarSolicitud();
-            Navigator.of(context).pop();
-          },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-            backgroundColor: Colors.blueAccent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            child: const Text("Crear Solicitud", style: TextStyle(fontSize: 16)),
           ),
-          child: const Text("Crear Solicitud", style: TextStyle(fontSize: 16)),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

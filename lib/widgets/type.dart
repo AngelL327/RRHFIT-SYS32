@@ -4,10 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmpleadoAutocomplete extends StatefulWidget {
   final TextEditingController empleadoCtrl;
-  final TextEditingController codigoCtrl; // el usuario lo llena manualmente
-  final TextEditingController departamentoCtrl; // nuevo campo: departamento
+  final TextEditingController codigoCtrl;
+  final TextEditingController departamentoCtrl;
+
   final void Function(String empleadoId)? onEmpleadoSeleccionado;
   final void Function(String departamentoId)? onDepartamentoSeleccionado;
+  
 
   const EmpleadoAutocomplete({
     super.key,
@@ -24,13 +26,27 @@ class EmpleadoAutocomplete extends StatefulWidget {
 
 class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  String? _codigoCorrecto; // se guarda el código real del empleado
+
+  String? _codigoCorrecto;
+  String? _empleadoValido;
+  String? _departamentoValido;
+
+  // 🔹 Función para mostrar mensajes
+  void _mensaje(String texto, {bool ok = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(texto),
+        backgroundColor: ok ? Colors.green : Colors.red,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        /// 🔹 AUTOCOMPLETE DE EMPLEADO
+      
         TypeAheadField<Map<String, dynamic>>(
           controller: widget.empleadoCtrl,
           suggestionsCallback: (pattern) async {
@@ -56,65 +72,75 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
           builder: (context, controller, focusNode) => TextField(
             controller: controller,
             focusNode: focusNode,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Empleado",
-              border: OutlineInputBorder(),
-              hintText: "Escribe el nombre del empleado...",
+              border: const OutlineInputBorder(),
               filled: true,
               fillColor: Colors.white,
+              errorText: _empleadoValido == "error"
+                  ? "Empleado no existe"
+                  : null,
             ),
+            onChanged: (value) async {
+              // VALIDAR SI EXISTE EN BASE DE DATOS
+              if (value.isEmpty) return;
+
+              final snap = await _db
+                  .collection("empleados")
+                  .where("nombre", isEqualTo: value)
+                  .get();
+
+              if (snap.docs.isEmpty) {
+                setState(() => _empleadoValido = "error");
+              } else {
+                setState(() => _empleadoValido = "ok");
+              }
+            },
           ),
 
-          itemBuilder: (context, suggestion) => ListTile(
-            title: Text(suggestion["nombre"]),
-          ),
+          itemBuilder: (context, suggestion) {
+            return ListTile(
+              title: Text(suggestion["nombre"]),
+            );
+          },
 
           onSelected: (suggestion) {
             widget.empleadoCtrl.text = suggestion["nombre"];
-            _codigoCorrecto = suggestion["codigo_empleado"]; // guardamos el real
+            widget.codigoCtrl.text = suggestion["codigo_empleado"]; 
+            _codigoCorrecto = suggestion["codigo_empleado"];
             widget.onEmpleadoSeleccionado?.call(suggestion["id"]);
+
+            setState(() => _empleadoValido = "ok");
+            _mensaje("Empleado seleccionado correctamente", ok: true);
           },
-
-          decorationBuilder: (context, child) => Material(
-            type: MaterialType.card,
-            elevation: 6,
-            borderRadius: BorderRadius.circular(12),
-            child: child,
-          ),
-
-          itemSeparatorBuilder: (context, index) => const Divider(height: 1),
         ),
 
         const SizedBox(height: 10),
 
-        ///  CAMPO DE CÓDIGO (VALIDACIÓN MANUAL)
         TextField(
           controller: widget.codigoCtrl,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: "Código de empleado",
-            border: OutlineInputBorder(),
-            hintText: "Ingresa tu código de empleado",
+            border: const OutlineInputBorder(),
             filled: true,
             fillColor: Colors.white,
+            errorText: (widget.codigoCtrl.text.isNotEmpty &&
+                    widget.codigoCtrl.text != _codigoCorrecto)
+                ? "Código incorrecto"
+                : null,
           ),
           onChanged: (value) {
-            if (_codigoCorrecto != null ) {
-              if (value.trim() != _codigoCorrecto) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(" Código verificado correctamente"),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              } 
+            if (_codigoCorrecto == null) return;
+
+            if (value.trim() == _codigoCorrecto) {
+              _mensaje("Código verificado correctamente", ok: true);
             }
           },
         ),
 
         const SizedBox(height: 20),
 
-        /// 🔹 AUTOCOMPLETE DE DEPARTAMENTO (nuevo)
+      
         TypeAheadField<Map<String, dynamic>>(
           controller: widget.departamentoCtrl,
           suggestionsCallback: (pattern) async {
@@ -128,10 +154,9 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
                 .get();
 
             return snapshot.docs.map((doc) {
-              final data = doc.data();
               return {
                 "id": doc.id,
-                "nombre": data["nombre"] ?? '',
+                "nombre": doc["nombre"] ?? '',
               };
             }).toList();
           },
@@ -139,32 +164,44 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
           builder: (context, controller, focusNode) => TextField(
             controller: controller,
             focusNode: focusNode,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Departamento",
-              border: OutlineInputBorder(),
-              hintText: "Escribe el nombre del departamento...",
+              border: const OutlineInputBorder(),
               filled: true,
               fillColor: Colors.white,
+              errorText: _departamentoValido == "error"
+                  ? "Departamento no existe"
+                  : null,
             ),
+            onChanged: (value) async {
+              if (value.isEmpty) return;
+
+              final snap = await _db
+                  .collection("departamento")
+                  .where("nombre", isEqualTo: value)
+                  .get();
+
+              if (snap.docs.isEmpty) {
+                setState(() => _departamentoValido = "error");
+              } else {
+                setState(() => _departamentoValido = "ok");
+              }
+            },
           ),
 
-          itemBuilder: (context, suggestion) => ListTile(
-            title: Text(suggestion["nombre"]),
-          ),
+          itemBuilder: (context, suggestion) {
+            return ListTile(
+              title: Text(suggestion["nombre"]),
+            );
+          },
 
           onSelected: (suggestion) {
             widget.departamentoCtrl.text = suggestion["nombre"];
             widget.onDepartamentoSeleccionado?.call(suggestion["id"]);
+
+            setState(() => _departamentoValido = "ok");
+            _mensaje("Departamento seleccionado", ok: true);
           },
-
-          decorationBuilder: (context, child) => Material(
-            type: MaterialType.card,
-            elevation: 6,
-            borderRadius: BorderRadius.circular(12),
-            child: child,
-          ),
-
-          itemSeparatorBuilder: (context, index) => const Divider(height: 1),
         ),
       ],
     );

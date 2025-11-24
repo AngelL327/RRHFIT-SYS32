@@ -48,7 +48,6 @@ class _MainPageState extends State<MainPage> {
     SidebarXItem(icon: Icons.access_time, label: 'Asistencia'),
     SidebarXItem(icon: Icons.assignment, label: 'Solicitudes'),
     SidebarXItem(icon: Icons.healing, label: 'Incapacidades'),
-    SidebarXItem(icon: Icons.local_offer, label: 'Vouchers'),
     SidebarXItem(icon: Icons.attach_money, label: 'Nomina'),
     SidebarXItem(icon: Icons.exit_to_app, label: 'Configuracion'),
   ];
@@ -65,7 +64,7 @@ class _MainPageState extends State<MainPage> {
     const AsistenciaScreen(),
     const SolicitudesScreen(),
     const IncapacidadesScreen(),
-    VoucherScreen(),
+   
     PlanillasScreen(),
     const PerfilPage(),
   ];

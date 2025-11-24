@@ -55,10 +55,14 @@ class ReporteSolicitudesWidget extends StatelessWidget {
                     ),
                   );
                 },
-
                 icon: const Icon(Icons.picture_as_pdf),
                 label: const Text("Generar Reporte PDF"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E8B57), // color del botón
+                  foregroundColor: Colors.white, // color del texto e ícono
+                ),
               ),
+
               const SizedBox(height: 20),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,7 +92,7 @@ class ReporteSolicitudesWidget extends StatelessWidget {
                     ],
                   ),
 
-                   const Spacer(), // Espacio entre las dos donas
+                  const Spacer(), // Espacio entre las dos donas
                   //  Segunda dona con su título arriba
                   Column(
                     children: [

@@ -135,6 +135,10 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
               ElevatedButton.icon(
                 icon: const Icon(Icons.picture_as_pdf),
                 label: const Text("Generar y Descargar PDF"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E8B57), // color del botón
+                  foregroundColor: Colors.white, // color del texto e ícono
+                ),
                 onPressed: _isGenerating
                     ? null
                     : () => _onGeneratePdfPressed(docs),
@@ -648,8 +652,8 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
                 );
               }),
             ),
-             const SizedBox(height: 1),
-           
+            const SizedBox(height: 1),
+
             // --- Total general ---
             Align(
               alignment: Alignment.centerRight,
