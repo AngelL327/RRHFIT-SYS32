@@ -522,6 +522,7 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                           children: [
                             pw.Expanded(
                               child: pw.Text(
+                              textAlign: pw.TextAlign.center, 
                                 evento.evento,
                                 style: ttf != null
                                     ? pw.TextStyle(font: ttf, fontSize: 10)
@@ -530,6 +531,7 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
                             ),
                             pw.Expanded(
                               child: pw.Text(
+                              textAlign: pw.TextAlign.center,
                                 evento.hora,
                                 style: ttf != null
                                     ? pw.TextStyle(font: ttf, fontSize: 10)
@@ -675,13 +677,25 @@ class GenerateAsistenciaPDFScreen extends StatelessWidget {
             ),
           );
         }
-
-        return PdfPreview(
+ return Theme(
+        data: ThemeData(
+          primaryColor: AppTheme.primary,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppTheme.primary,
+            primary: AppTheme.primary,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppTheme.primary,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        child: PdfPreview(
           canChangeOrientation: false,
           canDebug: false,
           maxPageWidth: 700,
           previewPageMargin: const EdgeInsets.all(20),
           build: (format) => _buildPdf(format),
+        ),
         );
       },
     );
