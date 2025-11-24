@@ -67,8 +67,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
           ),
         ),
       );
-    } catch (e, st) {
-      debugPrint('Error generando preview: $e\n$st');
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,

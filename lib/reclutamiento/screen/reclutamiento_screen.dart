@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:features_tour/features_tour.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -13,6 +14,8 @@ class ReclutamientoScreen extends StatefulWidget {
 }
 
 class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
+  final tourController = FeaturesTourController('ReclutamientoScreen');
+
   List<Map<String, String>> departamentos = [];
   List<Map<String, String>> areas = [];
   List<Map<String, String>> puestos = [];
@@ -25,6 +28,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
   void initState() {
     super.initState();
     _loadDropdowns();
+    tourController.start(context);
   }
 
   Future<void> _loadDropdowns() async {
@@ -90,7 +94,12 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Crear vacante'),
+          title: FeaturesTour(
+            controller: tourController,
+            index: 0,
+            introduce: Text("Aquí puedes crear una nueva vacante"),
+            child: Text('Crear vacante'),
+          ),
           content: StatefulBuilder(
             builder: (context, setState) {
               return SizedBox(
@@ -377,7 +386,12 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Reclutamiento'),
+        title: FeaturesTour(
+          controller: tourController,
+          index: 1,
+          introduce: Text("Esta es la sección de reclutamiento"),
+          child: const Text('Reclutamiento'),
+        ),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
         elevation: 2,
@@ -431,13 +445,22 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Gestión de Vacantes',
-                                style: Theme.of(context).textTheme.headlineSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
+                              FeaturesTour(
+                                controller: tourController,
+                                index: 2,
+                                introduce: Text(
+                                  "En esta seccion puedes ver el resumen de las vacantes",
+                                ),
+                                child: Text(
+                                  'Gestión de Vacantes',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -458,11 +481,16 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
               const SizedBox(height: 24),
 
               // SECCIÓN DE ESTADÍSTICAS
-              Text(
-                'Resumen de Vacantes',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+              FeaturesTour(
+                controller: tourController,
+                index: 3,
+                introduce: Text("Aquí puedes ver un resumen de las vacantes"),
+                child: Text(
+                  'Resumen de Vacantes',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -547,20 +575,34 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                       // Segunda fila de estadísticas
                       Row(
                         children: [
-                          _buildStatsCard(
-                            title: 'Vacantes Ocupadas',
-                            value: vacantesOcupadas.toString(),
-                            icon: Icons.person,
-                            color: Colors.purple.shade600,
-                            subtitle: 'Asignadas',
+                          FeaturesTour(
+                            controller: tourController,
+                            index: 4,
+                            introduce: Text(
+                              "Número de vacantes que están actualmente ocupadas",
+                            ),
+                            child: _buildStatsCard(
+                              title: 'Vacantes Ocupadas',
+                              value: vacantesOcupadas.toString(),
+                              icon: Icons.person,
+                              color: Colors.purple.shade600,
+                              subtitle: 'Asignadas',
+                            ),
                           ),
                           const SizedBox(width: 12),
-                          _buildStatsCard(
-                            title: 'Por Vencer',
-                            value: vacantesPorVencer.toString(),
-                            icon: Icons.warning,
-                            color: Colors.orange.shade600,
-                            subtitle: 'Próximas',
+                          FeaturesTour(
+                            controller: tourController,
+                            index: 5,
+                            introduce: Text(
+                              "Número de vacantes que están próximas a vencer",
+                            ),
+                            child: _buildStatsCard(
+                              title: 'Por Vencer',
+                              value: vacantesPorVencer.toString(),
+                              icon: Icons.warning,
+                              color: Colors.orange.shade600,
+                              subtitle: 'Próximas',
+                            ),
                           ),
                         ],
                       ),
@@ -569,20 +611,34 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                       // Tercera fila de estadísticas
                       Row(
                         children: [
-                          _buildStatsCard(
-                            title: 'Expiradas',
-                            value: vacantesExpiradas.toString(),
-                            icon: Icons.error_outline,
-                            color: Colors.red.shade600,
-                            subtitle: 'Vencidas',
+                          FeaturesTour(
+                            controller: tourController,
+                            index: 6,
+                            introduce: Text(
+                              "Número de vacantes que han expirado",
+                            ),
+                            child: _buildStatsCard(
+                              title: 'Expiradas',
+                              value: vacantesExpiradas.toString(),
+                              icon: Icons.error_outline,
+                              color: Colors.red.shade600,
+                              subtitle: 'Vencidas',
+                            ),
                           ),
                           const SizedBox(width: 12),
-                          _buildStatsCard(
-                            title: 'Tasa Ocupación',
-                            value: '${tasaOcupacion.toStringAsFixed(1)}%',
-                            icon: Icons.trending_up,
-                            color: Colors.teal.shade600,
-                            subtitle: 'Eficiencia',
+                          FeaturesTour(
+                            controller: tourController,
+                            index: 7,
+                            introduce: Text(
+                              "Porcentaje de vacantes ocupadas respecto al total",
+                            ),
+                            child: _buildStatsCard(
+                              title: 'Tasa Ocupación',
+                              value: '${tasaOcupacion.toStringAsFixed(1)}%',
+                              icon: Icons.trending_up,
+                              color: Colors.teal.shade600,
+                              subtitle: 'Eficiencia',
+                            ),
                           ),
                         ],
                       ),

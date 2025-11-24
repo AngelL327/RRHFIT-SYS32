@@ -1,3 +1,4 @@
+import 'package:features_tour/features_tour.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,6 +24,34 @@ Future<void> main() async {
   if (kIsWeb) {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
   }
+
+  FeaturesTour.setGlobalConfig(
+    force: null,
+
+    /// Configuration for the `preDialog` widget.
+    preDialogConfig: PreDialogConfig(
+      title: 'Tour de la aplicación',
+      content:
+          'Bienvenido al tour de la sección. Te guiaremos a través de las principales características.',
+      acceptButtonLabel: "Comenzar",
+      dismissButtonLabel: "Descartar",
+    ),
+
+    /// Configuration for the `child` widget.
+    childConfig: ChildConfig(backgroundColor: Colors.black54),
+
+    /// Configuration for the `Skip` text button.
+    skipConfig: SkipConfig(text: 'OMITIR'),
+
+    /// Configuration for the `Next` text button.
+    nextConfig: NextConfig(text: 'SIGUIENTE'),
+
+    /// Configuration for the `Done` text button.
+    doneConfig: DoneConfig(text: 'LISTO'),
+
+    /// Configuration for the `introduce` widget, can know as the description.
+    introduceConfig: IntroduceConfig(),
+  );
 
   runApp(const MyApp());
 }

@@ -1,3 +1,4 @@
+import 'package:features_tour/features_tour.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
@@ -17,9 +18,12 @@ class SecondSeccion extends StatefulWidget {
 class _SecondSeccionState extends State<SecondSeccion> {
   late final EmpleadosDataSource dataSource;
 
+  final tourController = FeaturesTourController('SecondSeccion');
+
   @override
   void initState() {
     super.initState();
+    tourController.start(context);
     dataSource = EmpleadosDataSource(
       context: context,
       empleados: [],
@@ -60,38 +64,43 @@ class _SecondSeccionState extends State<SecondSeccion> {
                       'Empleados',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    CustomButton(
-                      bgColor: Colors.green,
-                      fgColor: Colors.white,
-                      icono: const Icon(Icons.person_add),
-                      btnTitle: "Crear",
-                      onPressed: () async {
-                        try {
-                          await widget.controller.ready;
+                    FeaturesTour(
+                      controller: tourController,
+                      index: 1,
+                      introduce: Text("Aquí puedes crear un nuevo empleado"),
+                      child: CustomButton(
+                        bgColor: Colors.green,
+                        fgColor: Colors.white,
+                        icono: const Icon(Icons.person_add),
+                        btnTitle: "Crear",
+                        onPressed: () async {
+                          try {
+                            await widget.controller.ready;
 
-                          final nuevo = await showDialog<Empleado?>(
-                            context: context,
-                            builder: (_) =>
-                                EmpleadoForm(controller: widget.controller),
-                          );
-                          if (nuevo != null) {
-                            await widget.controller.createEmployee(nuevo);
+                            final nuevo = await showDialog<Empleado?>(
+                              context: context,
+                              builder: (_) =>
+                                  EmpleadoForm(controller: widget.controller),
+                            );
+                            if (nuevo != null) {
+                              await widget.controller.createEmployee(nuevo);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('EMPLEADO CREADO EXITOSAMENTE'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('EMPLEADO CREADO EXITOSAMENTE'),
-                                backgroundColor: Colors.green,
+                                content: Text('Error inicializando datos'),
+                                backgroundColor: Colors.red,
                               ),
                             );
                           }
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Error inicializando datos'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -101,7 +110,6 @@ class _SecondSeccionState extends State<SecondSeccion> {
                 dataRowHeight: 52,
                 rowsPerPage: 8,
                 columns: const [
-                  // DataColumn(label: Text('EmpleadoID')),
                   DataColumn(
                     label: Text(
                       'Nombre',

@@ -1,3 +1,4 @@
+import 'package:features_tour/features_tour.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
@@ -35,7 +36,11 @@ class _MainPageState extends State<MainPage> {
 
   List<Widget> get webPages => [
     TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
-    SolicitudesEmpleadoPage(empleadoId: empleadoId, empleadoNombre: '', empleadoUid: empleadoUid),
+    SolicitudesEmpleadoPage(
+      empleadoId: empleadoId,
+      empleadoNombre: '',
+      empleadoUid: empleadoUid,
+    ),
     MiPerfilPage(empleadoId: empleadoId),
     TrackerPage(empleadoId: empleadoId, empleadoUid: empleadoUid),
     EmpleadoMainPage(),
@@ -64,7 +69,7 @@ class _MainPageState extends State<MainPage> {
     const AsistenciaScreen(),
     const SolicitudesScreen(),
     const IncapacidadesScreen(),
-   
+
     PlanillasScreen(),
     const PerfilPage(),
   ];

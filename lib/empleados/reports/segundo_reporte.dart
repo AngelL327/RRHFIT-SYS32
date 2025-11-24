@@ -17,9 +17,7 @@ class SegundoReporte extends StatefulWidget {
 
 class _SegundoReporteState extends State<SegundoReporte> {
   final EmpleadoController _emplController = EmpleadoController();
-
   final DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
-
   final DateTime _endDate = DateTime.now();
 
   int counter = 0;
