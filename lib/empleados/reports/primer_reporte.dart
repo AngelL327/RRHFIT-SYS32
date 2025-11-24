@@ -218,7 +218,7 @@ class _PrimerReporteState extends State<PrimerReporte> {
             CustomButton(
               icono: const Icon(Icons.picture_as_pdf_rounded),
               btnTitle: "Reporte Asistencia Perfecta",
-              bgColor: Colors.blueAccent,
+              bgColor: Colors.green,
               fgColor: Colors.white,
               onPressed: _isLoading ? null : _showReporteDialog,
             ),

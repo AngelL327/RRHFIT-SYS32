@@ -113,61 +113,61 @@ class _SecondSeccionState extends State<SecondSeccion> {
                   DataColumn(
                     label: Text(
                       'Nombre',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
-                    label: Text('DNI', style: TextStyle(color: Colors.white)),
+                    label: Text('DNI', style: TextStyle(color: Colors.black)),
                   ),
                   DataColumn(
                     label: Text(
                       'Correo',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
                     label: Text(
                       'Teléfono',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
                     label: Text(
                       'Estado',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
                     label: Text(
                       'Departamento',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
-                    label: Text('Area', style: TextStyle(color: Colors.white)),
+                    label: Text('Area', style: TextStyle(color: Colors.black)),
                   ),
                   DataColumn(
                     label: Text(
                       'Puesto',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
                     label: Text(
                       'Fecha Contratación',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
                     label: Text(
                       'Salario',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                   DataColumn(
                     label: Text(
                       'Acciones',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                 ],

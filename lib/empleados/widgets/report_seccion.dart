@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/empleados/reports/primer_reporte.dart';
-import 'package:rrhfit_sys32/empleados/reports/segundo_reporte.dart';
+// import 'package:rrhfit_sys32/empleados/reports/segundo_reporte.dart';
 
 class ReportSeccion extends StatelessWidget {
   const ReportSeccion({super.key});
@@ -13,7 +13,10 @@ class ReportSeccion extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [PrimerReporte(), SegundoReporte()],
+          children: [
+            PrimerReporte(),
+            // SegundoReporte()
+          ],
         ),
       ],
     );
