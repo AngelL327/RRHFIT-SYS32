@@ -13,7 +13,7 @@ class _FirstSeccionState extends State<FirstSeccion> {
   final columns = [
     "EmpleadoID",
     "Nombre",
-    "Codigo",
+    "DNI",
     "Correo",
     "Telefono",
     "Estado",

@@ -85,8 +85,10 @@ class _SecondSeccionState extends State<SecondSeccion> {
                             if (nuevo != null) {
                               await widget.controller.createEmployee(nuevo);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('EMPLEADO CREADO EXITOSAMENTE'),
+                                SnackBar(
+                                  content: Text(
+                                    'EMPLEADO CREADO EXITOSAMENTE: ${nuevo.nombre}, DNI: ${nuevo.codigoEmpleado}',
+                                  ),
                                   backgroundColor: Colors.green,
                                 ),
                               );
@@ -283,8 +285,10 @@ class EmpleadosDataSource extends DataTableSource {
                       actualizado.id = empleado.id;
                       await controller.updateEmployee(actualizado);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Empleado actualizado'),
+                        SnackBar(
+                          content: Text(
+                            'EMPLEADO ACTUALIZADO EXITOSAMENTE: ${actualizado.nombre} , DNI: ${actualizado.codigoEmpleado}',
+                          ),
                           backgroundColor: Colors.green,
                         ),
                       );
@@ -308,8 +312,24 @@ class EmpleadosDataSource extends DataTableSource {
                     context: context,
                     builder: (_) => AlertDialog(
                       title: const Text('Confirmar eliminación'),
-                      content: Text(
-                        'Eliminar a ${empleado.nombre ?? 'este empleado'}?',
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Eliminar a ${empleado.nombre ?? 'este empleado'}?',
+                          ),
+                          Text("DNI: ${empleado.codigoEmpleado ?? '-'}"),
+                          Text(
+                            "Área: ${controller.getAreaNombre(empleado.areaId) ?? '-'}",
+                          ),
+                          Text(
+                            "Puesto: ${controller.getPuestoNombre(empleado.puestoId) ?? '-'}",
+                          ),
+                          Text(
+                            "Fecha de ingreso: ${empleado.fechaContratacion ?? '-'}",
+                          ),
+                        ],
                       ),
                       actions: [
                         TextButton(
@@ -326,8 +346,10 @@ class EmpleadosDataSource extends DataTableSource {
                   if (confirm == true && empleado.id != null) {
                     await controller.deleteEmployee(empleado.id!);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Empleado eliminado'),
+                      SnackBar(
+                        content: Text(
+                          'EMPLEADO ELIMINADO EXITOSAMENTE: ${empleado.nombre} , DNI: ${empleado.codigoEmpleado}',
+                        ),
                         backgroundColor: Colors.green,
                       ),
                     );

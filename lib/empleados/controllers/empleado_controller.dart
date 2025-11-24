@@ -339,7 +339,7 @@ class EmpleadoController with ChangeNotifier {
           return (e.empleadoId ?? '').toLowerCase().contains(q);
         case 'Nombre':
           return (e.nombre ?? '').toLowerCase().contains(q);
-        case 'Codigo':
+        case 'DNI':
           return (e.codigoEmpleado ?? '').toLowerCase().contains(q);
         case 'Correo':
           return (e.correo ?? '').toLowerCase().contains(q);
