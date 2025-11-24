@@ -34,6 +34,16 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
   String _tipoIncapacidad = TiposIncapacidades.enfermedad;
   final TextEditingController _numCertCtrl = TextEditingController();
   final TextEditingController _enteEmisorCtrl = TextEditingController();
+  // Options for ente emisor dropdown
+  final List<String> _enteOptions = [
+    'IHSS',
+    'Medical Center',
+    'Hospital del Valle',
+    'Hospital Bendaña',
+    'Policlínica',
+    'Otro',
+  ];
+  String? _selectedEnte;
   DateTime _fechaSolicitud = DateTime.now();
   DateTime? _fechaExpediente;
   DateTime? _fechaInicio;
@@ -64,6 +74,8 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     }
     // prepare future to load empleados; UI will use a FutureBuilder
     _empleadosFuture = getAllEmpleados();
+    // initialize selected ente from controller if present
+    _selectedEnte = _enteEmisorCtrl.text.isNotEmpty ? _enteEmisorCtrl.text : _enteOptions.first;
   }
 
   // we use [_empleadosFuture] + FutureBuilder in build instead of a manual loader
@@ -149,15 +161,15 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     }
   }
 
-  Future<void> _pickDate(BuildContext ctx, DateTime? initial, Function(DateTime) onPicked) async {
+  Future<void> _pickDate(BuildContext ctx, DateTime? initial, Function(DateTime) onPicked, {DateTime? firstDate, DateTime? lastDate}) async {
     final now = DateTime.now();
+    final first = firstDate ?? DateTime(now.year - 1, now.month, now.day);
+    final last = lastDate ?? DateTime(now.year + 1, now.month, now.day);
     final picked = await showDatePicker(
       context: ctx,
       initialDate: initial ?? now,
-      // Restrict selectable dates to a reasonable window: not more than 1 year in the past
-      // and not more than 1 year in the future from today.
-      firstDate: DateTime(now.year - 1, now.month, now.day),
-      lastDate: DateTime(now.year + 1, now.month, now.day),
+      firstDate: first,
+      lastDate: last,
     );
     if (picked != null) onPicked(picked);
   }
@@ -205,17 +217,27 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
       return;
     }
 
-    // Validate date range: not more than 1 year in the past or future from today
+    // Validate date ranges:
+    // - Fecha de expediente: within +/- 1 month from today
+    // - Fecha inicio/fin: within +/- 1 year from today
     final now = DateTime.now();
-    final earliest = DateTime(now.year - 1, now.month, now.day);
-    final latest = DateTime(now.year + 1, now.month, now.day);
-    if (_fechaExpediente!.isBefore(earliest) || _fechaExpediente!.isAfter(latest) || _fechaInicio!.isBefore(earliest) || _fechaFin!.isBefore(earliest) || _fechaInicio!.isAfter(latest) || _fechaFin!.isAfter(latest)) {
-      setState(() => _asyncError = 'Las fechas deben estar dentro de un año hacia atrás y un año hacia adelante desde hoy');
+    final expedienteEarliest = DateTime(now.year, now.month - 1, now.day);
+    final expedienteLatest = DateTime(now.year, now.month + 1, now.day);
+    final earliestYear = DateTime(now.year - 1, now.month, now.day);
+    final latestYear = DateTime(now.year + 1, now.month, now.day);
+
+    if (_fechaExpediente!.isBefore(expedienteEarliest) || _fechaExpediente!.isAfter(expedienteLatest)) {
+      setState(() => _asyncError = 'La fecha de expediente debe estar dentro de 1 mes hacia atrás o 1 mes hacia adelante desde hoy');
+      return;
+    }
+
+    if (_fechaInicio!.isBefore(earliestYear) || _fechaFin!.isBefore(earliestYear) || _fechaInicio!.isAfter(latestYear) || _fechaFin!.isAfter(latestYear)) {
+      setState(() => _asyncError = 'Las fechas de inicio/fin deben estar dentro de un año hacia atrás y un año hacia adelante desde hoy');
       return;
     }
   // Trim inputs and enforce length limits before further checks
   String numCert = _numCertCtrl.text.trim();
-  String enteEmisor = _enteEmisorCtrl.text.trim();
+  String enteEmisor = (_selectedEnte != null && _selectedEnte!.isNotEmpty) ? _selectedEnte!.trim() : _enteEmisorCtrl.text.trim();
   String motivo = _motivoCtrl.text.trim();
   // Use uploaded document URL if present (file picker replaces URL input)
   String documento = _documentPublicUrl?.trim() ?? '';
@@ -244,10 +266,9 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
       return;
     }
 
-    // numCert pattern: digits only, length between 4 and 8
-    final digitsOnly = RegExp(r'^\d{4,8}$');
-    if (!digitsOnly.hasMatch(numCert)) {
-      setState(() => _asyncError = 'El número de certificado debe contener sólo dígitos (4-8 caracteres)');
+    // numCert: only enforce length between 4 and 8 characters
+    if (numCert.length < 4 || numCert.length > 8) {
+      setState(() => _asyncError = 'El número de certificado debe tener entre 4 y 8 caracteres');
       return;
     }
 
@@ -278,9 +299,9 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
           });
           return;
         }
-        // check duplicate certificate recently used (same certificate number)
-        final dup = existing.where((e) => e.numCertificado.trim() == numCert).toList();
-        if (dup.isNotEmpty) {
+        // check duplicate certificate using a direct query (more efficient)
+        final dupExists = await hasIncapacidadWithCert(empleadoId, numCert);
+        if (dupExists) {
           setState(() {
             _asyncError = 'El número de certificado ya está registrado para este empleado';
             _submitting = false;
@@ -443,22 +464,19 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                       ],
                     ),
                   ),
-                  keyboardType: TextInputType.number,
                   inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(8),
                   ],
                   validator: (v) {
                     final s = v?.trim() ?? '';
                     if (s.isEmpty) return 'Ingrese el número de certificado';
-                    if (s.length < 4 || s.length > 8) return 'Deben ser 4-8 dígitos';
-                    if (int.tryParse(s) == null) return 'El número debe contener sólo dígitos';
+                    if (s.length < 4 || s.length > 8) return 'Deben ser 4-8 caracteres';
                     return null;
                   },
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
-                  controller: _enteEmisorCtrl,
+                DropdownButtonFormField<String>(
+                  value: _selectedEnte,
                   decoration: InputDecoration(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -469,8 +487,16 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                       ],
                     ),
                   ),
+                  items: _enteOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  onChanged: (v) {
+                    setState(() {
+                      _selectedEnte = v;
+                      // keep controller in sync for any existing code that reads it
+                      _enteEmisorCtrl.text = v ?? '';
+                    });
+                  },
                   validator: (v) {
-                    final s = v?.trim() ?? '';
+                    final s = (v ?? '').trim();
                     if (s.isEmpty) return 'Ingrese el ente emisor';
                     if (s.length > 64) return 'Máximo 64 caracteres';
                     return null;
@@ -483,7 +509,18 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                   subtitle: Text('${_fechaSolicitud.toLocal()}'.split(' ')[0]),
                   trailing: IconButton(
                     icon: const Icon(Icons.calendar_today),
-                    onPressed: () => _pickDate(context, _fechaSolicitud, (d) => setState(() => _fechaSolicitud = d)),
+                    onPressed: () {
+                      final now = DateTime.now();
+                      // limit to max 6 months ahead from today
+                      final sixMonthsAhead = DateTime(now.year, now.month + 6, now.day);
+                      _pickDate(
+                        context,
+                        _fechaSolicitud,
+                        (d) => setState(() => _fechaSolicitud = d),
+                        firstDate: DateTime(now.year - 1, now.month, now.day),
+                        lastDate: sixMonthsAhead,
+                      );
+                    },
                   ),
                 ),
                 ListTile(
@@ -499,7 +536,18 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                   subtitle: Text(_fechaExpediente != null ? '${_fechaExpediente!.toLocal()}'.split(' ')[0] : 'No asignada'),
                   trailing: IconButton(
                     icon: const Icon(Icons.calendar_today),
-                    onPressed: () => _pickDate(context, _fechaExpediente, (d) => setState(() => _fechaExpediente = d)),
+                    onPressed: () {
+                      final now = DateTime.now();
+                      final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
+                      final oneMonthAhead = DateTime(now.year, now.month + 1, now.day);
+                      _pickDate(
+                        context,
+                        _fechaExpediente,
+                        (d) => setState(() => _fechaExpediente = d),
+                        firstDate: oneMonthAgo,
+                        lastDate: oneMonthAhead,
+                      );
+                    },
                   ),
                 ),
                 ListTile(

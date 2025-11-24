@@ -86,6 +86,20 @@ class GeneratePDFButton<T> extends StatelessWidget {
           // build table data
           final tableData = data.map((d) => rowMapper(d)).toList();
 
+          // If there's a 'Periodo Incapacidad' column, prefer a line break after
+          // the '#' by inserting a zero-width space right after it. This gives the
+          // PDF text wrapper a good breaking opportunity without forcing a newline.
+          final periodoIndex = tableHeaders.indexWhere((h) => h.toLowerCase().contains('periodo'));
+          if (periodoIndex != -1) {
+            for (var r = 0; r < tableData.length; r++) {
+              final row = tableData[r];
+              if (periodoIndex < row.length) {
+                // Replace '#' with a newline so the period is forced onto two lines.
+                row[periodoIndex] = row[periodoIndex].replaceAll('#', '#\n');
+              }
+            }
+          }
+
           // prepare column widths
           final Map<int, pw.FlexColumnWidth> widths = {};
           for (var i = 0; i < tableHeaders.length; i++) {

@@ -151,6 +151,24 @@ Future<List<IncapacidadModel>> getIncapacidadesByYear(int year) async {
   return incapacidades;
 }
 
+/// Check if there exists an incapacidad for [empleadoID] with the same [numCertificado].
+/// Returns true if at least one document matches.
+Future<bool> hasIncapacidadWithCert(String empleadoID, String numCertificado) async {
+  try {
+    final q = await FirebaseFirestore.instance
+        .collection(COLLECTION_INCAPACIDADES)
+        .where('tipo', isEqualTo: TipoSolicitud.incapacidad)
+        .where('uid', isEqualTo: empleadoID)
+        .where('numCertificado', isEqualTo: numCertificado)
+        .limit(1)
+        .get();
+    return q.docs.isNotEmpty;
+  } catch (e) {
+    // On error, be conservative and return false (no duplicate found).
+    return false;
+  }
+}
+
 
 Future<bool> addIncapacidad(IncapacidadModel inc) async {
   try {

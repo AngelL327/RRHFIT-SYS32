@@ -16,17 +16,17 @@ class IncapacidadRow {
 
   // Opcional: ayuda para convertir a lista si el PDF espera List<String>
   List<String> toStringList() {
+    final inicio = formatDate(incapacidad.fechaInicioIncapacidad);
+    final fin = formatDate(incapacidad.fechaFinIncapacidad);
+    final periodo = '$inicio#$fin';
     return [
       formatDate(incapacidad.fechaSolicitud),
-      formatDate(incapacidad.fechaInicioIncapacidad),
-      formatDate(incapacidad.fechaFinIncapacidad),
+      periodo,
       incapacidad.tipoIncapacidad,
       incapacidad.estado,
       incapacidad.usuario,
       "${incapacidad.enteEmisor}\n#${incapacidad.numCertificado}",
-      // empleado?.correo ?? '',
       incapacidad.motivo.length > 30 ? '${incapacidad.motivo.substring(0, 30)}...' : incapacidad.motivo,
-      // area?.nombre ?? 'No asignada',
     ];
   }
 }
