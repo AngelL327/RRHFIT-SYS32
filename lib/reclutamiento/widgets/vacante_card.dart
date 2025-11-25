@@ -156,9 +156,9 @@ class ImprovedVacanteCard extends StatelessWidget {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Ver detalles'),
-                      SizedBox(width: 4),
                       Icon(Icons.visibility, size: 16),
+                      SizedBox(width: 4),
+                      Text('Ver detalles'),
                     ],
                   ),
                 ),

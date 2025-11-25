@@ -66,7 +66,7 @@ class _SecondSeccionState extends State<SecondSeccion> {
                     ),
                     FeaturesTour(
                       controller: tourController,
-                      index: 1,
+                      index: 0,
                       introduce: Text("Aquí puedes crear un nuevo empleado"),
                       child: CustomButton(
                         bgColor: Colors.green,
@@ -111,62 +111,117 @@ class _SecondSeccionState extends State<SecondSeccion> {
                 headingRowHeight: 48,
                 dataRowHeight: 52,
                 rowsPerPage: 8,
-                columns: const [
+                columns: [
                   DataColumn(
-                    label: Text(
-                      'Nombre',
-                      style: TextStyle(color: Colors.black),
+                    label: FeaturesTour(
+                      controller: tourController,
+                      index: 1,
+                      introduce: const Text(
+                        "En esta columna está el nombre del empleado",
+                      ),
+                      child: const Text(
+                        'Nombre',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   DataColumn(
-                    label: Text('DNI', style: TextStyle(color: Colors.black)),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Correo',
-                      style: TextStyle(color: Colors.black),
+                    label: FeaturesTour(
+                      controller: tourController,
+                      index: 2,
+                      introduce: Text(
+                        "En esta columna está el código del empleado",
+                      ),
+                      child: Text(
+                        'Código',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   DataColumn(
-                    label: Text(
-                      'Teléfono',
-                      style: TextStyle(color: Colors.black),
+                    label: FeaturesTour(
+                      controller: tourController,
+                      index: 3,
+                      introduce: Text(
+                        "En esta columna está el correo del empleado",
+                      ),
+                      child: Text(
+                        'Correo',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   DataColumn(
-                    label: Text(
-                      'Estado',
-                      style: TextStyle(color: Colors.black),
+                    label: FeaturesTour(
+                      controller: tourController,
+                      index: 4,
+                      introduce: Text(
+                        "En esta columna está el teléfono del empleado",
+                      ),
+                      child: Text(
+                        'Teléfono',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   DataColumn(
-                    label: Text(
-                      'Departamento',
-                      style: TextStyle(color: Colors.black),
+                    label: FeaturesTour(
+                      controller: tourController,
+                      index: 5,
+                      introduce: Text(
+                        "En esta columna está el estado del empleado",
+                      ),
+                      child: Text(
+                        'Estado',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   DataColumn(
-                    label: Text('Area', style: TextStyle(color: Colors.black)),
+                    label: FeaturesTour(
+                      controller: tourController,
+                      index: 6,
+                      introduce: Text(
+                        "En esta columna está el departamento del empleado",
+                      ),
+                      child: Text(
+                        'Departamento',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
                   ),
                   DataColumn(
+                    label: FeaturesTour(
+                      controller: tourController,
+                      index: 7,
+                      introduce: Text(
+                        "En esta columna está el área del empleado",
+                      ),
+                      child: Text(
+                        'Area',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  ),
+                  const DataColumn(
                     label: Text(
                       'Puesto',
                       style: TextStyle(color: Colors.black),
                     ),
                   ),
-                  DataColumn(
+                  const DataColumn(
                     label: Text(
                       'Fecha Contratación',
                       style: TextStyle(color: Colors.black),
                     ),
                   ),
-                  DataColumn(
+                  const DataColumn(
                     label: Text(
                       'Salario',
                       style: TextStyle(color: Colors.black),
                     ),
                   ),
-                  DataColumn(
+                  const DataColumn(
                     label: Text(
                       'Acciones',
                       style: TextStyle(color: Colors.black),
