@@ -14,7 +14,7 @@ class AsistenciaScreen extends StatefulWidget {
 class _AsistenciaScreenState extends State<AsistenciaScreen> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final TextEditingController _notaCtrl = TextEditingController();
-  
+
   String? _usuarioSeleccionadoUid;
   String? _usuarioSeleccionadoNombre;
   TimeOfDay? _entradaManual;
@@ -49,12 +49,16 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
     final ahora = DateTime.now();
     final fechaId = _getFechaDocId(ahora);
     final horaFormato = DateFormat('HH:mm:ss').format(ahora);
-    
-    final docRef = _getRegistrosCollection(_usuarioSeleccionadoUid!).doc(fechaId);
+
+    final docRef = _getRegistrosCollection(
+      _usuarioSeleccionadoUid!,
+    ).doc(fechaId);
     final doc = await docRef.get();
 
     final Map<String, dynamic> datos = {
-      'fecha': DateFormat('yyyy-MM-dd').format(DateTime(ahora.year, ahora.month, ahora.day)),
+      'fecha': DateFormat(
+        'yyyy-MM-dd',
+      ).format(DateTime(ahora.year, ahora.month, ahora.day)),
       'ultimaActualizacion': FieldValue.serverTimestamp(),
     };
 
@@ -85,7 +89,10 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
 
       case 'AlmuerzoFin':
         if (!doc.exists || docData?['almuerzoInicio'] == null) {
-          _mostrarSnackbar("Primero registre el inicio de almuerzo.", Colors.orange);
+          _mostrarSnackbar(
+            "Primero registre el inicio de almuerzo.",
+            Colors.orange,
+          );
           return;
         }
         if (docData?['almuerzoFin'] != null) {
@@ -103,7 +110,7 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
         }
         datos['salida'] = horaFormato;
         datos['salidaTimestamp'] = Timestamp.fromDate(ahora);
-        
+
         // Calcular horas trabajadas
         await _calcularYGuardarHoras(docRef, docData ?? {}, datos);
         break;
@@ -136,32 +143,52 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
 
     // Entrada
     if (_entradaManual != null) {
-      final entrada = DateTime(fecha.year, fecha.month, fecha.day,
-          _entradaManual!.hour, _entradaManual!.minute);
+      final entrada = DateTime(
+        fecha.year,
+        fecha.month,
+        fecha.day,
+        _entradaManual!.hour,
+        _entradaManual!.minute,
+      );
       datos['entrada'] = DateFormat('HH:mm:ss').format(entrada);
       datos['entradaTimestamp'] = Timestamp.fromDate(entrada);
     }
 
     // Salida
     if (_salidaManual != null) {
-      final salida = DateTime(fecha.year, fecha.month, fecha.day,
-          _salidaManual!.hour, _salidaManual!.minute);
+      final salida = DateTime(
+        fecha.year,
+        fecha.month,
+        fecha.day,
+        _salidaManual!.hour,
+        _salidaManual!.minute,
+      );
       datos['salida'] = DateFormat('HH:mm:ss').format(salida);
       datos['salidaTimestamp'] = Timestamp.fromDate(salida);
     }
 
     // Almuerzo Inicio
     if (_almuerzoInicioManual != null) {
-      final almuerzoInicio = DateTime(fecha.year, fecha.month, fecha.day,
-          _almuerzoInicioManual!.hour, _almuerzoInicioManual!.minute);
+      final almuerzoInicio = DateTime(
+        fecha.year,
+        fecha.month,
+        fecha.day,
+        _almuerzoInicioManual!.hour,
+        _almuerzoInicioManual!.minute,
+      );
       datos['almuerzoInicio'] = DateFormat('HH:mm:ss').format(almuerzoInicio);
       datos['almuerzoInicioTimestamp'] = Timestamp.fromDate(almuerzoInicio);
     }
 
     // Almuerzo Fin
     if (_almuerzoFinManual != null) {
-      final almuerzoFin = DateTime(fecha.year, fecha.month, fecha.day,
-          _almuerzoFinManual!.hour, _almuerzoFinManual!.minute);
+      final almuerzoFin = DateTime(
+        fecha.year,
+        fecha.month,
+        fecha.day,
+        _almuerzoFinManual!.hour,
+        _almuerzoFinManual!.minute,
+      );
       datos['almuerzoFin'] = DateFormat('HH:mm:ss').format(almuerzoFin);
       datos['almuerzoFinTimestamp'] = Timestamp.fromDate(almuerzoFin);
     }
@@ -171,7 +198,9 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
       datos['notas'] = _notaCtrl.text;
     }
 
-    final docRef = _getRegistrosCollection(_usuarioSeleccionadoUid!).doc(fechaId);
+    final docRef = _getRegistrosCollection(
+      _usuarioSeleccionadoUid!,
+    ).doc(fechaId);
 
     // Calcular horas si hay entrada y salida
     if (_entradaManual != null && _salidaManual != null) {
@@ -181,7 +210,7 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
     await docRef.set(datos, SetOptions(merge: true));
 
     _mostrarSnackbar("Registro manual guardado exitosamente.", Colors.green);
-    
+
     // Limpiar campos
     setState(() {
       _entradaManual = null;
@@ -199,7 +228,9 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
     Map<String, dynamic> datosNuevos,
   ) async {
     try {
-      final entradaTs = datosNuevos['entradaTimestamp'] ?? datosExistentes['entradaTimestamp'];
+      final entradaTs =
+          datosNuevos['entradaTimestamp'] ??
+          datosExistentes['entradaTimestamp'];
       final salidaTs = datosNuevos['salidaTimestamp'];
 
       if (entradaTs == null || salidaTs == null) return;
@@ -210,8 +241,12 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
       Duration total = salida.difference(entrada);
 
       // Restar tiempo de almuerzo si existe
-      final almuerzoInicioTs = datosNuevos['almuerzoInicioTimestamp'] ?? datosExistentes['almuerzoInicioTimestamp'];
-      final almuerzoFinTs = datosNuevos['almuerzoFinTimestamp'] ?? datosExistentes['almuerzoFinTimestamp'];
+      final almuerzoInicioTs =
+          datosNuevos['almuerzoInicioTimestamp'] ??
+          datosExistentes['almuerzoInicioTimestamp'];
+      final almuerzoFinTs =
+          datosNuevos['almuerzoFinTimestamp'] ??
+          datosExistentes['almuerzoFinTimestamp'];
 
       if (almuerzoInicioTs != null && almuerzoFinTs != null) {
         DateTime almuerzoInicio = (almuerzoInicioTs as Timestamp).toDate();
@@ -230,7 +265,9 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
       double horasDecimales = total.inMinutes / 60.0;
 
       datosNuevos['horasTrabajadas'] = formatearDuracion(total);
-      datosNuevos['horasDecimales'] = double.parse(horasDecimales.toStringAsFixed(2));
+      datosNuevos['horasDecimales'] = double.parse(
+        horasDecimales.toStringAsFixed(2),
+      );
       datosNuevos['totalMinutos'] = total.inMinutes;
     } catch (e) {
       print('Error al calcular horas: $e');
@@ -312,26 +349,64 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFF2E7D32),
+        elevation: 0,
+        centerTitle: false,
+
         title: const Text(
           'Asistencia Manual - Registro para personal sin computadora',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor:AppTheme.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.primary,
-                Color.fromRGBO(50, 200, 120, 1),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white, size: 28),
+            tooltip: "¿Qué es esta sección?",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: const Color(0xFF2E7D32),
+
+                  title: const Text(
+                    "Acerca de asistencia",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  content: const Text(
+                    "En esta sección puedes registrar manualmente la asistencia del personal "
+                    "que no cuenta con computadora.\n\n"
+                    "Permite:\n"
+                    "• Registrar entrada, salida e inicio/fin de almuerzo\n"
+                    "• Corregir o ingresar registros de días anteriores\n"
+                    "• Agregar notas adicionales\n"
+                    "• Calcular automáticamente las horas trabajadas\n\n"
+                    "Toda la información se guarda en tiempo real en Firestore.",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+
+                  actions: [
+                    TextButton(
+                      child: const Text(
+                        "Cerrar",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-        ),
+        ],
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -375,7 +450,7 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            
+
                             // Dropdown de usuarios
                             StreamBuilder<QuerySnapshot>(
                               stream: _db.collection('usuarios').snapshots(),
@@ -394,26 +469,32 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                                     prefixIcon: const Icon(Icons.person),
                                   ),
                                   value: _usuarioSeleccionadoUid,
-                                  items: usuarios.map<DropdownMenuItem<String>>((u) {
-                                    final data = u.data() as Map<String, dynamic>;
-                                    final nombre = data['nombre'] ?? 'Sin nombre';
-                                    final uid = data['uid'] ?? u.id;
-                                    return DropdownMenuItem<String>(
-                                      value: uid,
-                                      child: Text(nombre),
-                                    );
-                                  }).toList(),
+                                  items: usuarios.map<DropdownMenuItem<String>>(
+                                    (u) {
+                                      final data =
+                                          u.data() as Map<String, dynamic>;
+                                      final nombre =
+                                          data['nombre'] ?? 'Sin nombre';
+                                      final uid = data['uid'] ?? u.id;
+                                      return DropdownMenuItem<String>(
+                                        value: uid,
+                                        child: Text(nombre),
+                                      );
+                                    },
+                                  ).toList(),
                                   onChanged: (val) {
                                     setState(() {
                                       _usuarioSeleccionadoUid = val;
-                                      final usuario = usuarios.firstWhere(
-                                        (u) {
-                                          final data = u.data() as Map<String, dynamic>;
-                                          return (data['uid'] ?? u.id) == val;
-                                        },
-                                      );
-                                      final userData = usuario.data() as Map<String, dynamic>;
-                                      _usuarioSeleccionadoNombre = userData['nombre'] ?? 'Sin nombre';
+                                      final usuario = usuarios.firstWhere((u) {
+                                        final data =
+                                            u.data() as Map<String, dynamic>;
+                                        return (data['uid'] ?? u.id) == val;
+                                      });
+                                      final userData =
+                                          usuario.data()
+                                              as Map<String, dynamic>;
+                                      _usuarioSeleccionadoNombre =
+                                          userData['nombre'] ?? 'Sin nombre';
                                     });
                                   },
                                 );
@@ -425,20 +506,28 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                               children: [
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
                                     child: ElevatedButton(
-                                      onPressed: () => registrarAsistencia("Entrada"),
+                                      onPressed: () =>
+                                          registrarAsistencia("Entrada"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.green,
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
+                                        ),
                                       ),
                                       child: const Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(Icons.login, size: 20),
                                           SizedBox(height: 4),
-                                          Text("Entrada", style: TextStyle(fontSize: 12)),
+                                          Text(
+                                            "Entrada",
+                                            style: TextStyle(fontSize: 12),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -446,20 +535,28 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                                 ),
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
                                     child: ElevatedButton(
-                                      onPressed: () => registrarAsistencia("AlmuerzoInicio"),
+                                      onPressed: () =>
+                                          registrarAsistencia("AlmuerzoInicio"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.orange,
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
+                                        ),
                                       ),
                                       child: const Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(Icons.restaurant, size: 20),
                                           SizedBox(height: 4),
-                                          Text("Inicio", style: TextStyle(fontSize: 12)),
+                                          Text(
+                                            "Inicio",
+                                            style: TextStyle(fontSize: 12),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -467,20 +564,28 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                                 ),
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
                                     child: ElevatedButton(
-                                      onPressed: () => registrarAsistencia("AlmuerzoFin"),
+                                      onPressed: () =>
+                                          registrarAsistencia("AlmuerzoFin"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.orange.shade700,
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
+                                        ),
                                       ),
                                       child: const Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(Icons.restaurant_menu, size: 20),
                                           SizedBox(height: 4),
-                                          Text("Fin", style: TextStyle(fontSize: 12)),
+                                          Text(
+                                            "Fin",
+                                            style: TextStyle(fontSize: 12),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -488,20 +593,28 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                                 ),
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
                                     child: ElevatedButton(
-                                      onPressed: () => registrarAsistencia("Salida"),
+                                      onPressed: () =>
+                                          registrarAsistencia("Salida"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
+                                        ),
                                       ),
                                       child: const Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(Icons.logout, size: 20),
                                           SizedBox(height: 4),
-                                          Text("Salida", style: TextStyle(fontSize: 12)),
+                                          Text(
+                                            "Salida",
+                                            style: TextStyle(fontSize: 12),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -537,9 +650,14 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
 
                             // Selector de fecha
                             ListTile(
-                              leading: const Icon(Icons.calendar_today, color: Colors.blue),
+                              leading: const Icon(
+                                Icons.calendar_today,
+                                color: Colors.blue,
+                              ),
                               title: Text(
-                                DateFormat('dd/MM/yyyy').format(_fechaSeleccionada),
+                                DateFormat(
+                                  'dd/MM/yyyy',
+                                ).format(_fechaSeleccionada),
                                 style: const TextStyle(fontSize: 16),
                               ),
                               subtitle: const Text('Fecha del registro'),
@@ -560,7 +678,8 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                               _entradaManual,
                               Icons.login,
                               Colors.green,
-                              (picked) => setState(() => _entradaManual = picked),
+                              (picked) =>
+                                  setState(() => _entradaManual = picked),
                             ),
                             const SizedBox(height: 12),
                             _buildCampoTiempo(
@@ -568,7 +687,8 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                               _salidaManual,
                               Icons.logout,
                               Colors.red,
-                              (picked) => setState(() => _salidaManual = picked),
+                              (picked) =>
+                                  setState(() => _salidaManual = picked),
                             ),
                             const SizedBox(height: 12),
                             _buildCampoTiempo(
@@ -576,7 +696,9 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                               _almuerzoInicioManual,
                               Icons.restaurant,
                               Colors.orange,
-                              (picked) => setState(() => _almuerzoInicioManual = picked),
+                              (picked) => setState(
+                                () => _almuerzoInicioManual = picked,
+                              ),
                             ),
                             const SizedBox(height: 12),
                             _buildCampoTiempo(
@@ -584,7 +706,8 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                               _almuerzoFinManual,
                               Icons.restaurant_menu,
                               Colors.orange,
-                              (picked) => setState(() => _almuerzoFinManual = picked),
+                              (picked) =>
+                                  setState(() => _almuerzoFinManual = picked),
                             ),
                             const SizedBox(height: 16),
 
@@ -609,7 +732,12 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                                 icon: const Icon(Icons.save),
                                 label: const Text("Guardar Registro Manual"),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromRGBO(0, 150, 32, 1),
+                                  backgroundColor: const Color.fromRGBO(
+                                    0,
+                                    150,
+                                    32,
+                                    1,
+                                  ),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 32,
@@ -659,9 +787,7 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
                         ],
                       ),
                       const Divider(height: 30),
-                      Expanded(
-                        child: _buildRegistrosTabla(),
-                      ),
+                      Expanded(child: _buildRegistrosTabla()),
                     ],
                   ),
                 ),
@@ -689,9 +815,7 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Text('Error: ${snapshot.error}'),
-          );
+          return Center(child: Text('Error: ${snapshot.error}'));
         }
 
         final registros = snapshot.data ?? [];
@@ -701,18 +825,11 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.inbox,
-                  size: 80,
-                  color: Colors.grey[300],
-                ),
+                Icon(Icons.inbox, size: 80, color: Colors.grey[300]),
                 const SizedBox(height: 16),
                 Text(
                   "No hay registros para hoy",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -722,9 +839,7 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
-            headingRowColor: MaterialStateProperty.all(
-              Colors.green.shade50,
-            ),
+            headingRowColor: MaterialStateProperty.all(Colors.green.shade50),
             headingTextStyle: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -738,14 +853,16 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
               DataColumn(label: Text("Horas")),
             ],
             rows: registros.map((r) {
-              return DataRow(cells: [
-                DataCell(Text(r['nombre'] ?? '-')),
-                DataCell(Text(r['entrada'] ?? '--:--')),
-                DataCell(Text(r['almuerzoInicio'] ?? '--:--')),
-                DataCell(Text(r['almuerzoFin'] ?? '--:--')),
-                DataCell(Text(r['salida'] ?? '--:--')),
-                DataCell(Text(r['horasTrabajadas'] ?? '--:--:--')),
-              ]);
+              return DataRow(
+                cells: [
+                  DataCell(Text(r['nombre'] ?? '-')),
+                  DataCell(Text(r['entrada'] ?? '--:--')),
+                  DataCell(Text(r['almuerzoInicio'] ?? '--:--')),
+                  DataCell(Text(r['almuerzoFin'] ?? '--:--')),
+                  DataCell(Text(r['salida'] ?? '--:--')),
+                  DataCell(Text(r['horasTrabajadas'] ?? '--:--:--')),
+                ],
+              );
             }).toList(),
           ),
         );
@@ -755,40 +872,39 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
 
   // Stream que obtiene los registros de hoy
   Stream<List<Map<String, dynamic>>> _getRegistrosStream(String fechaHoy) {
-    return _db
-        .collection('usuarios')
-        .snapshots()
-        .asyncMap((usuariosSnapshot) async {
-          final registros = <Map<String, dynamic>>[];
-          
-          for (var usuarioDoc in usuariosSnapshot.docs) {
-            final usuarioData = usuarioDoc.data() as Map<String, dynamic>;
-            final empleadoUid = usuarioData['uid'] ?? usuarioDoc.id;
-            final nombre = usuarioData['nombre'] ?? 'Sin nombre';
-            
-            // Obtener registro del día para este usuario
-            final registroDoc = await _db
-                .collection('asistenciasEmpleados')
-                .doc(empleadoUid)
-                .collection('registros')
-                .doc(fechaHoy)
-                .get();
-            
-            if (registroDoc.exists) {
-              final data = registroDoc.data() as Map<String, dynamic>;
-              registros.add({
-                'nombre': nombre,
-                'entrada': data['entrada'],
-                'salida': data['salida'],
-                'almuerzoInicio': data['almuerzoInicio'],
-                'almuerzoFin': data['almuerzoFin'],
-                'horasTrabajadas': data['horasTrabajadas'],
-              });
-            }
-          }
-          
-          return registros;
-        });
+    return _db.collection('usuarios').snapshots().asyncMap((
+      usuariosSnapshot,
+    ) async {
+      final registros = <Map<String, dynamic>>[];
+
+      for (var usuarioDoc in usuariosSnapshot.docs) {
+        final usuarioData = usuarioDoc.data() as Map<String, dynamic>;
+        final empleadoUid = usuarioData['uid'] ?? usuarioDoc.id;
+        final nombre = usuarioData['nombre'] ?? 'Sin nombre';
+
+        // Obtener registro del día para este usuario
+        final registroDoc = await _db
+            .collection('asistenciasEmpleados')
+            .doc(empleadoUid)
+            .collection('registros')
+            .doc(fechaHoy)
+            .get();
+
+        if (registroDoc.exists) {
+          final data = registroDoc.data() as Map<String, dynamic>;
+          registros.add({
+            'nombre': nombre,
+            'entrada': data['entrada'],
+            'salida': data['salida'],
+            'almuerzoInicio': data['almuerzoInicio'],
+            'almuerzoFin': data['almuerzoFin'],
+            'horasTrabajadas': data['horasTrabajadas'],
+          });
+        }
+      }
+
+      return registros;
+    });
   }
 
   // Widget auxiliar para campos de tiempo
@@ -804,9 +920,7 @@ class _AsistenciaScreenState extends State<AsistenciaScreen> {
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           prefixIcon: Icon(icono, color: color),
           suffixIcon: const Icon(Icons.access_time),
         ),

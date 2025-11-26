@@ -78,7 +78,7 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
               filled: true,
               fillColor: Colors.white,
               errorText: _empleadoValido == "error"
-                  ? "Empleado no existe"
+                  ? " Seleccione uno de los empleados sugeridos."
                   : null,
             ),
             onChanged: (value) async {
@@ -170,7 +170,7 @@ class _EmpleadoAutocompleteState extends State<EmpleadoAutocomplete> {
               filled: true,
               fillColor: Colors.white,
               errorText: _departamentoValido == "error"
-                  ? "Departamento no existe"
+                  ? " Seleccione uno de los departamentos sugeridos "
                   : null,
             ),
             onChanged: (value) async {

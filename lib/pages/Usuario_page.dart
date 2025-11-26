@@ -21,25 +21,22 @@ class _PerfilPageState extends State<PerfilPage> {
   }
 
   Future<void> loadUserInfo() async {
-    // Opción 1: Obtener datos del usuario actual de Firebase Auth
     final user = FirebaseAuth.instance.currentUser;
-    
+
     if (user != null) {
       setState(() {
         userEmail = user.email ?? 'No email';
-        // Para el nombre, puedes usar displayName si lo tienes configurado
-        userName = user.displayName ?? 'Usuario';
+        userName = user.displayName ?? 'Administrador';
       });
     } else {
-      // Opción 2: Obtener datos de SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final nombre = prefs.getString('nombre') ?? '';
       final apellido = prefs.getString('apellido') ?? '';
       final email = prefs.getString('email') ?? '';
-      
+
       setState(() {
         userName = '$nombre $apellido'.trim();
-        if (userName.isEmpty) userName = 'Usuario';
+        if (userName.isEmpty) userName = 'Administrador';
         userEmail = email.isNotEmpty ? email : 'No email';
       });
     }
@@ -47,11 +44,10 @@ class _PerfilPageState extends State<PerfilPage> {
 
   Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
-    
-    // Opcional: Limpiar SharedPreferences al cerrar sesión
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    
+
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -62,63 +58,144 @@ class _PerfilPageState extends State<PerfilPage> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width > 700;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF6FF),
-      body: Column(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFF1D9FCB),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(50)),
+      backgroundColor: Colors.white,
+      body: isWide
+          ? Row(
+              children: [
+                // ---------------- PANEL IZQUIERDO ---------------- //
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0xFF1A7B94),
+                          Color(0xFF2C9FB6),
+                          Color(0xFF9ADFE8),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(
+                            'assets/images/fittlay.png',
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Panel de Administrador Fittlay',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ---------------- PANEL DERECHO ---------------- //
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 500),
+                      child: _buildProfileCard(),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Center(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: _buildProfileCard(),
+                ),
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-            width: double.infinity,
+    );
+  }
+
+  // ---------------------- TARJETA DE PERFIL ---------------------- //
+  Widget _buildProfileCard() {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            "PERFIL ADMIN",
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2C9FB6),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Icon(Icons.admin_panel_settings,
+              size: 60, color: Colors.black87),
+          const SizedBox(height: 18),
+
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 1.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                const CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 50, color: Colors.blue),
+                const Text(
+                  "Administrador",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 10),
+
                 Text(
                   userName,
-                  style: const TextStyle(fontSize: 22, color: Colors.white),
+                  style: const TextStyle(fontSize: 18),
                 ),
+                const SizedBox(height: 5),
+
                 Text(
                   userEmail,
-                  style: const TextStyle(fontSize: 16, color: Colors.white70),
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
+
+                ElevatedButton.icon(
+                  onPressed: logout,
+                  icon: const Icon(Icons.logout, color: Colors.white),
+                  label: const Text(
+                    "CERRAR SESIÓN",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    minimumSize: const Size(160, 45),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                )
               ],
-            ),
-          ),
-          const SizedBox(height: 30),
-          const Text(
-            'Sobre mi',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Soy un estudiante de la UNAH.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.black87),
-            ),
-          ),
-          const SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: logout,
-            icon: const Icon(Icons.logout, color: Colors.white),
-            label: const Text('Cerrar sesión'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              textStyle: const TextStyle(fontSize: 16),
             ),
           ),
         ],

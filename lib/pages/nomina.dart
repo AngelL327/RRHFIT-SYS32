@@ -583,6 +583,64 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFBF8F6),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF2E7D32),
+        elevation: 0,
+        centerTitle: false, // Mantiene el título a la izquierda
+
+        title: const Text(
+          'Nómina - Gestión y visualización de nómina de empleados',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white, size: 28),
+            tooltip: "¿Qué es esta sección?",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: const Color(0xFF2E7D32),
+                  title: const Text(
+                    "Acerca de la Nómina",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  content: const Text(
+                    "Esta sección permite generar y administrar la nómina de empleados.\n\n"
+                    "Puedes:\n"
+                    "• Calcular deducciones\n"
+                    "• Generar pagos individuales o masivos\n"
+                    "• Usar el botón 'Todos' para extraer los datos de todos los empleados y calcular automáticamente\n"
+                    "• Eliminar todos los datos generados cuando sea necesario\n"
+                    "• Ver detalles completos y gestionar los vouchers vinculados\n\n"
+                    "Todo se actualiza automáticamente en tiempo real.",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+
+                  actions: [
+                    TextButton(
+                      child: const Text(
+                        "Cerrar",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+
       body: Column(
         children: [
           // CABECERA

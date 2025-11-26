@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rrhfit_sys32/widgets/type.dart';
@@ -7,16 +7,15 @@ import 'package:rrhfit_sys32/pages/empleados/solicitar_incapacidad_page.dart';
 
 class SolicitudesScreen extends StatefulWidget {
   const SolicitudesScreen({super.key});
-  
 
   @override
   State<SolicitudesScreen> createState() => _SolicitudesScreenState();
-  
 }
 
 class _SolicitudesScreenState extends State<SolicitudesScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
- 
+  String?
+  _departamentoIdSeleccionado; // aquí guardaremos el ID real del departamento
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -27,9 +26,6 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   final TextEditingController _descripcionCtrl = TextEditingController();
   final TextEditingController _puestoCtrl = TextEditingController();
   final TextEditingController _codigoCtrl = TextEditingController();
-  
-
-
 
   String? _empleadoId;
   String _tipoSolicitud = "Vacaciones";
@@ -39,50 +35,111 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   String _tipoFiltro = "Todos";
 
   Future<void> _guardarSolicitud() async {
-  if (_empleadoCtrl == null) {  
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Por favor selecciona un empleado")),
-    );    
-    return;
+    try {
+      // Lista de departamentos válidos (IDs)
+      final List<String> departamentosValidos = [
+        "Pq9yWMvEpFCNCSP0BPvh",
+        "cSp2PYb3nOT9hV49qF4D",
+        "sGZFP2jHDK2v6gjyWd3r",
+        "uh8jHSxUmUXufhbmGjTQ",
+        "wir7mpTi0bbZExvjVr1T",
+      ];
+
+      // Validar departamento seleccionado
+      if (_departamentoIdSeleccionado == null ||
+          !departamentosValidos.contains(_departamentoIdSeleccionado)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("El departamento seleccionado no es válido"),
+          ),
+        );
+        return;
+      }
+
+      // 1. Validar empleado seleccionado
+      if (_empleadoId == null || _empleadoCtrl.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Selecciona un empleado válido de la lista"),
+          ),
+        );
+        return;
+      }
+
+      // 2. Cargar empleado desde BD
+      final empSnap = await _db.collection("empleados").doc(_empleadoId).get();
+      if (!empSnap.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Empleado no encontrado en la base de datos"),
+          ),
+        );
+        return;
+      }
+      final data = empSnap.data() as Map<String, dynamic>;
+
+      // 3. Validar código (opcional, si quieres forzar que coincida con la BD)
+      final codigoReal = (data['codigo_empleado'] ?? '').toString();
+      if (_codigoCtrl.text.trim().toLowerCase() !=
+          codigoReal.trim().toLowerCase()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("El código no coincide con el empleado seleccionado"),
+          ),
+        );
+        return;
+      }
+
+      // 4. Validar puesto
+      if (_puestoCtrl.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("El puesto no puede ir vacío")),
+        );
+        return;
+      }
+
+      // 5. Validar fecha
+      if (_fechaSeleccionada == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Selecciona una fecha")));
+        return;
+      }
+
+      // 6. Guardar en solicitudes
+      await _db.collection("solicitudes").add({
+        "empleado": _empleadoCtrl.text.trim(),
+        "empleadoId": _empleadoId,
+        "codigo": codigoReal.trim(), // siempre usamos el código de la BD
+        "departamento": _departamentoCtrl.text.trim(),
+        "puesto": _puestoCtrl.text.trim(),
+        "descripcion": _descripcionCtrl.text.trim(),
+        "tipo": _tipoSolicitud,
+        "fecha": _fechaSeleccionada,
+        "estado": "Pendiente",
+        "creadoEn": FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Solicitud creada correctamente")),
+      );
+
+      // 7. Limpiar formulario
+      _empleadoCtrl.clear();
+      _departamentoCtrl.clear();
+      _puestoCtrl.clear();
+      _codigoCtrl.clear();
+      _descripcionCtrl.clear();
+      _fechaSeleccionada = null;
+      _empleadoId = null;
+
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error al crear solicitud: $e")));
+    }
   }
-
-  if (_empleadoCtrl.text.isEmpty ||
-      _departamentoCtrl.text.isEmpty ||
-      _descripcionCtrl.text.isEmpty ||
-      _fechaSeleccionada == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Por favor, llena todos los campos")),
-    );
-    return;
-  }
-
-  await _db.collection("solicitudes").add({
-
-    "empleado": _empleadoCtrl.text,
-    "departamento": _departamentoCtrl.text,
-    "descripcion": _descripcionCtrl.text,
-    "tipo": _tipoSolicitud,
-    "fecha": _fechaSeleccionada,
-    "estado": "Pendiente",
-    "creadoEn": FieldValue.serverTimestamp(),
-    "codigo": _codigoCtrl.text.isEmpty ? "Sin código" : _codigoCtrl.text,
-    "puesto": _puestoCtrl.text.isEmpty ? "Empleado" : _puestoCtrl.text,
-  });
-
-  setState(() {
-    _empleadoCtrl.clear();
-    _departamentoCtrl.clear();
-    _descripcionCtrl.clear();
-    _fechaSeleccionada = null;
-    _tipoSolicitud = "Vacaciones";
-
-  });
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text("Solicitud creada correctamente")),
-  );
-}
-
 
   Future<void> _actualizarEstado(String docId, String nuevoEstado) async {
     await _db.collection("solicitudes").doc(docId).update({
@@ -95,31 +152,64 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Solicitudes- Gestión de solicitudes de empleados',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        backgroundColor: const Color.fromRGBO(0, 150, 32, 1),
-        foregroundColor: const Color.fromARGB(255, 251, 255, 250),
+        backgroundColor: const Color(0xFF2E7D32),
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
 
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(0, 150, 32, 1),
-                Color.fromRGBO(50, 200, 120, 1),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
+        title: const Text(
+          'Solicitudes - Gestión de solicitudes de empleados',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white, size: 28),
+            tooltip: "¿Qué es esta sección?",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: const Color(0xFF2E7D32),
+
+                  title: const Text(
+                    "Acerca de Solicitudes",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  content: const Text(
+                    "En esta sección puedes gestionar todas las solicitudes enviadas por "
+                    "los empleados, como vacaciones, permisos médicos y cambios de turno.\n\n"
+                    "Puedes:\n"
+                    "• Crear nuevas solicitudes\n"
+                    "• Revisar solicitudes pendientes\n"
+                    "• Aprobar o rechazar solicitudes\n"
+                    "• Ver reportes y estadísticas completas\n\n"
+                    "Todo se actualiza automáticamente en tiempo real.",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+
+                  actions: [
+                    TextButton(
+                      child: const Text(
+                        "Cerrar",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
+
       body: _currentIndex == 0 ? _buildListScreen() : _buildCreateScreen(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -147,19 +237,14 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   }
 
   Widget _buildListScreen() {
-    
     String _estadoFiltro = "Pendiente";
-
 
     return DefaultTabController(
       length: 4,
       child: Column(
         children: [
           StreamBuilder<QuerySnapshot>(
-            stream: _db
-                .collection("solicitudes")
-              
-                .snapshots(),
+            stream: _db.collection("solicitudes").snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const Padding(
@@ -678,10 +763,10 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
   Widget _buildCreateScreenDialog() {
     return Container(
       padding: const EdgeInsets.all(16), // Espaciado interno
-    decoration: BoxDecoration(
-      color: const Color.fromARGB(255, 255, 255, 255), // Color de fondo
-      borderRadius: BorderRadius.circular(12), // Opcional: bordes redondeados
-    ),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 255, 255, 255), // Color de fondo
+        borderRadius: BorderRadius.circular(12), // Opcional: bordes redondeados
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -699,28 +784,27 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
             onChanged: (val) => setState(() => _tipoSolicitud = val!),
             decoration: InputDecoration(
               labelText: "Tipo de Solicitud",
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
           ),
           const SizedBox(height: 16),
-      
+
           EmpleadoAutocomplete(
             empleadoCtrl: _empleadoCtrl,
             codigoCtrl: _codigoCtrl,
-            departamentoCtrl: _departamentoCtrl, 
-            onEmpleadoSeleccionado: (id) {
-              setState(() {
-                _empleadoId = id;
-              });
+            departamentoCtrl: _departamentoCtrl,
+            onDepartamentoSeleccionado: (departamentoId) {
+              _departamentoIdSeleccionado = departamentoId;
             },
-            onDepartamentoSeleccionado: (id) {
-        
-            
+            onEmpleadoSeleccionado: (empleadoId) {
+              _empleadoId = empleadoId;
             },
           ),
-          
+
           const SizedBox(height: 16),
           TextField(
             controller: _puestoCtrl,
@@ -729,14 +813,16 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
               border: OutlineInputBorder(),
             ),
           ),
-       
+
           const SizedBox(height: 16),
           TextField(
             controller: _descripcionCtrl,
             maxLines: 3,
             decoration: InputDecoration(
               labelText: "Descripción",
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
@@ -760,7 +846,8 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2030),
                     );
-                    if (fecha != null) setState(() => _fechaSeleccionada = fecha);
+                    if (fecha != null)
+                      setState(() => _fechaSeleccionada = fecha);
                   },
                   child: Text(
                     _fechaSeleccionada == null
@@ -784,7 +871,10 @@ class _SolicitudesScreenState extends State<SolicitudesScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text("Crear Solicitud", style: TextStyle(fontSize: 16)),
+            child: const Text(
+              "Crear Solicitud",
+              style: TextStyle(fontSize: 16),
+            ),
           ),
         ],
       ),
