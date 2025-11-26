@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/empleados/controllers/empleado_controller.dart';
 
 class VacanteDetailScreen extends StatefulWidget {
   final DocumentSnapshot vacante;
@@ -22,6 +23,8 @@ class VacanteDetailScreen extends StatefulWidget {
 }
 
 class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
+  get firestoree => null;
+
   Future<void> _showPostularCandidatoDialog() async {
     final _formKey = GlobalKey<FormState>();
 
@@ -32,6 +35,8 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
     final salarioController = TextEditingController();
     final numeroCuentaController = TextEditingController();
     final codigoEmplasivoController = TextEditingController();
+
+    final firestoree = FirebaseFirestore.instance;
 
     // Mover las variables de fecha aquí y usar ValueNotifier para manejar el estado
     ValueNotifier<DateTime?> fechaNacimiento = ValueNotifier<DateTime?>(null);
@@ -192,8 +197,15 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 labelText: 'Nombre completo',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) =>
-                  value?.isEmpty == true ? 'Campo requerido' : null,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El nombre es obligatorio';
+                }
+                if (!RegExp(r'^[a-zA-ZÀ-ÿ\s]+$').hasMatch(value)) {
+                  return 'El nombre solo debe contener letras y espacios';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -202,8 +214,17 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 labelText: 'Correo electrónico',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) =>
-                  value?.isEmpty == true ? 'Campo requerido' : null,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El correo es obligatorio';
+                }
+                if (!RegExp(
+                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                ).hasMatch(value)) {
+                  return 'Ingrese un correo válido';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -212,8 +233,15 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 labelText: 'Teléfono',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) =>
-                  value?.isEmpty == true ? 'Campo requerido' : null,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El teléfono es obligatorio';
+                }
+                if (!RegExp(r'^\+?[0-9]{8}$').hasMatch(value)) {
+                  return 'Ingrese un número de teléfono válido (con 8 dígitos)';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -222,8 +250,16 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 labelText: 'Dirección',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) =>
-                  value?.isEmpty == true ? 'Campo requerido' : null,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'La dirección es obligatoria';
+                }
+                if (value.length > 256) {
+                  return 'La dirección no debe exceder los 256 caracteres';
+                }
+
+                return null;
+              },
             ),
           ],
         ),
@@ -238,6 +274,8 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
     String? estado,
     ValueChanged<String?> onEstadoChanged,
   ) {
+    final EmpleadoController emp = EmpleadoController();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -261,8 +299,20 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 prefixText: ' L',
               ),
               keyboardType: TextInputType.number,
-              validator: (value) =>
-                  value?.isEmpty == true ? 'Campo requerido' : null,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El salario es obligatorio';
+                }
+                final salario = double.tryParse(value);
+                if (salario == null || salario <= 0) {
+                  return 'Ingrese un salario válido mayor que cero';
+                }
+                if (salario < 8000) {
+                  return 'La cantidad minima a ingresar es L8,000.00';
+                }
+
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -271,8 +321,16 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 labelText: 'Número de cuenta',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) =>
-                  value?.isEmpty == true ? 'Campo requerido' : null,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El número de cuenta es obligatorio';
+                }
+                // El numero de cuenta debe ser numérico
+                if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                  return 'El número de cuenta debe ser numérico';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -281,8 +339,21 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 labelText: 'DNI',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) =>
-                  value?.isEmpty == true ? 'Campo requerido' : null,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El DNI es obligatorio';
+                }
+                // El DNI debe ser numérico y tener 13 dígitos
+                if (!RegExp(r'^[0-9]{13}$').hasMatch(value)) {
+                  return 'El DNI debe ser numérico y tener 13 dígitos';
+                }
+
+                final existe = emp.checkDNI(value);
+                if (existe == true) {
+                  return 'El DNI ya existe ';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
@@ -296,6 +367,12 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
                 'Inactivo',
               ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: onEstadoChanged,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'El estado es obligatorio';
+                }
+                return null;
+              },
             ),
           ],
         ),
@@ -327,6 +404,30 @@ class _VacanteDetailScreenState extends State<VacanteDetailScreen> {
             ValueListenableBuilder<DateTime?>(
               valueListenable: fechaNacimiento,
               builder: (context, value, child) {
+                // verificar que la fecha no menor a 18 años
+                if (value != null) {
+                  final today = DateTime.now();
+                  final age = today.year - value.year;
+                  if (age < 18 ||
+                      (age == 18 &&
+                          (today.month < value.month ||
+                              (today.month == value.month &&
+                                  today.day < value.day)))) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      fechaNacimiento.value = null; // Resetear la fecha
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Colors.red,
+                          showCloseIcon: true,
+                          content: Text(
+                            'El candidato debe ser mayor de 18 años.',
+                          ),
+                        ),
+                      );
+                    });
+                  }
+                }
+
                 return _buildDatePickerWithListener(
                   label: 'Fecha de nacimiento',
                   selectedDate: value,

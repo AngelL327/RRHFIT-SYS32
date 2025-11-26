@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:features_tour/features_tour.dart';
 import 'package:flutter/material.dart';
@@ -387,13 +389,63 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white, size: 28),
+            tooltip: "¿Qué es esta sección?",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: const Color(0xFF2E7D32),
+
+                  title: const Text(
+                    "Acerca del Reclutamiento",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  content: const Text(
+                    "Esta sección permite crear y asignar vacantes laborales "
+                    "relacionados con los empleados de Fittlay.\n\n"
+                    "En este panel puedes:\n"
+                    "• Ver las vacantes activas\n"
+                    "• Crear vacantes \n"
+                    "• Asignar empleados a vacantes\n"
+                    "• Visualizar las vacantes ocupadas \n"
+                    "Toda la información se obtiene en tiempo real",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+
+                  actions: [
+                    TextButton(
+                      child: const Text(
+                        "Cerrar",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
         title: FeaturesTour(
           controller: tourController,
           index: 1,
           introduce: Text("Esta es la sección de reclutamiento"),
-          child: const Text('Reclutamiento'),
+          child: const Text(
+            'Reclutamiento - Administra y monitorea el estado de las vacantes laborales ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
-        backgroundColor: AppTheme.primary,
+        backgroundColor: Color(0xFF2E7D32),
         foregroundColor: Colors.white,
         elevation: 2,
       ),
@@ -413,12 +465,12 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Colors.blue.shade700, Colors.blue.shade600],
+                    colors: [Colors.green.shade700, Colors.green.shade600],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.shade300.withOpacity(0.3),
+                      color: Colors.black87.withOpacity(0.2),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -464,13 +516,6 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                'Administra y monitorea el estado de las vacantes laborales',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.white.withOpacity(0.9),
-                                    ),
-                              ),
                             ],
                           ),
                         ),
@@ -507,7 +552,16 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          CircularProgressIndicator(),
+                          SizedBox(width: 12),
+                          Text('Cargando estadísticas...'),
+                        ],
+                      ),
+                    );
                   }
 
                   final docs = snapshot.data?.docs ?? [];
@@ -659,7 +713,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.blue.shade600, Colors.blue.shade400],
+                    colors: [Colors.green.shade600, Colors.green.shade400],
                   ),
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
@@ -685,6 +739,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
+                  // clipBehavior: Clip.antiAlias,
                 ),
               ),
               const SizedBox(height: 24),

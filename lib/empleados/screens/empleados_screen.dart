@@ -32,6 +32,63 @@ class _EmpleadosScreenState extends State<EmpleadosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF2E7D32),
+        title: const Text(
+          'Empleados - Gestión de Empleados',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white, size: 28),
+            tooltip: "¿Qué es esta sección?",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: const Color(0xFF2E7D32),
+
+                  title: const Text(
+                    "Acerca de los Empleados",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  content: const Text(
+                    "Esta sección permite visualizar, administrar y generar empleados "
+                    "En este panel puedes:\n"
+                    "• Ver lista de empleados\n"
+                    "• Actualizar empleados\n"
+                    "• Filtrar empleados \n"
+                    "• Generar reportes de asistencia perfecta\n"
+                    "Toda la información se obtiene en tiempo real ",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+
+                  actions: [
+                    TextButton(
+                      child: const Text(
+                        "Cerrar",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Scrollbar(

@@ -27,19 +27,25 @@ class EmpleadoDetalleScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey[700]),
+          Icon(icon, size: 18, color: Colors.white),
           const SizedBox(width: 10),
           SizedBox(
             width: 150,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.w400),
+              style: const TextStyle(
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -215,6 +221,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: Card(
+                            color: Color(0xFF2E7D32),
                             elevation: 2,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -230,6 +237,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
+                                      color: Colors.white,
                                     ),
                                   ),
                                   const Divider(),
@@ -254,6 +262,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
+                                      color: Colors.white,
                                     ),
                                   ),
                                   const Divider(),
@@ -293,6 +302,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                           child: Column(
                             children: [
                               Card(
+                                color: Color(0xFF2E7D32),
                                 elevation: 2,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -308,6 +318,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
+                                          color: Colors.white,
                                         ),
                                       ),
                                       const Divider(),
@@ -353,6 +364,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                               const SizedBox(height: 12),
 
                               Card(
+                                color: Color(0xFF2E7D32),
                                 elevation: 2,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -368,6 +380,7 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
+                                          color: Colors.white,
                                         ),
                                       ),
                                       const Divider(),
@@ -389,8 +402,8 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                               const SizedBox(height: 12),
 
                               Card(
+                                color: Color(0xFF2E7D32),
                                 elevation: 0,
-                                color: Colors.grey[50],
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -415,9 +428,20 @@ class EmpleadoDetalleScreen extends StatelessWidget {
                     Row(
                       children: [
                         TextButton.icon(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.grey.shade200,
+                            ),
+                          ),
                           onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back),
-                          label: const Text('Volver'),
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.black87,
+                          ),
+                          label: const Text(
+                            'Volver',
+                            style: TextStyle(color: Colors.black87),
+                          ),
                         ),
                         const SizedBox(width: 8),
                       ],
