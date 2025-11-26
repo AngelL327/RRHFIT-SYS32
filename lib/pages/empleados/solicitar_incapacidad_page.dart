@@ -100,6 +100,23 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
       return;
     }
 
+    // Range validations similar to admin form:
+    final now = DateTime.now();
+    final expedienteEarliest = DateTime(now.year, now.month - 3, now.day);
+    final expedienteLatest = DateTime(now.year, now.month + 3, now.day);
+    final earliestYear = DateTime(now.year - 1, now.month, now.day);
+    final latestYear = DateTime(now.year + 1, now.month, now.day);
+
+    if (_fechaExpediente.isBefore(expedienteEarliest) || _fechaExpediente.isAfter(expedienteLatest)) {
+      _mostrarError('La fecha de expediente debe estar dentro de 3 meses hacia atrás o 3 meses hacia adelante desde hoy');
+      return;
+    }
+
+    if (_fechaInicioIncapacidad.isBefore(earliestYear) || _fechaFinIncapacidad.isBefore(earliestYear) || _fechaInicioIncapacidad.isAfter(latestYear) || _fechaFinIncapacidad.isAfter(latestYear)) {
+      _mostrarError('Las fechas de inicio/fin deben estar dentro de un año hacia atrás y un año hacia adelante desde hoy');
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });
@@ -224,9 +241,19 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
         return;
     }
 
+    // Ensure firstDate/lastDate are in proper order
+    if (firstDate.isAfter(lastDate)) {
+      lastDate = firstDate.add(const Duration(days: 1));
+    }
+
+    // Clamp initialDate into allowed range to avoid showDatePicker assertion
+    DateTime initial = initialDate;
+    if (initial.isBefore(firstDate)) initial = firstDate;
+    if (initial.isAfter(lastDate)) initial = lastDate;
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: initial,
       firstDate: firstDate,
       lastDate: lastDate,
       builder: (context, child) {
@@ -458,15 +485,19 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
               ),
               child: TextFormField(
                 controller: _numCertificadoCtrl,
+                maxLength: 8,
                 decoration: const InputDecoration(
                   contentPadding: EdgeInsets.all(16),
                   border: InputBorder.none,
-                  hintText: 'Ej: CERT-2024-001',
+                  hintText: 'Ej: CERT-001',
                   prefixIcon: Icon(Icons.confirmation_number, color: Color(0xFF2E7D32)),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingresa el número de certificado';
+                  }
+                  if(value.trim().length < 4 || value.trim().length > 8) {
+                    return 'El número de certificado debe tener entre 4 y 8 caracteres';
                   }
                   return null;
                 },
@@ -491,14 +522,27 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey[300]!),
               ),
-              child: TextFormField(
-                controller: _enteEmisorCtrl,
+              child: DropdownButtonFormField<String>(
+                initialValue: _enteEmisorCtrl.text.isNotEmpty ? _enteEmisorCtrl.text : null,
                 decoration: const InputDecoration(
                   contentPadding: EdgeInsets.all(16),
                   border: InputBorder.none,
                   hintText: 'Ej: Hospital San Felipe',
                   prefixIcon: Icon(Icons.local_hospital, color: Color(0xFF2E7D32)),
                 ),
+                items: [
+                  'IHSS',
+                  'Medical Center',
+                  'Hospital del Valle',
+                  'Hospital Bendaña',
+                  'Policlínica',
+                  'Otro',
+                ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                onChanged: (v) {
+                  setState(() {
+                    _enteEmisorCtrl.text = v ?? '';
+                  });
+                },
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingresa el ente emisor';
@@ -637,6 +681,7 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
               child: TextFormField(
                 controller: _motivoCtrl,
                 maxLines: 4,
+                maxLength: 256,
                 decoration: const InputDecoration(
                   contentPadding: EdgeInsets.all(16),
                   border: InputBorder.none,
@@ -693,7 +738,7 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        _nombreArchivo ?? 'Seleccionar archivo (PDF, JPG, PNG)',
+                        _nombreArchivo ?? 'Seleccionar archivo (PDF, PNG)',
                         style: TextStyle(
                           fontSize: 16,
                           color: _nombreArchivo != null 

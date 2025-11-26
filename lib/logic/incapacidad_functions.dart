@@ -181,6 +181,20 @@ Future<bool> addIncapacidad(IncapacidadModel inc) async {
   }
 }
 
+/// Update an existing incapacidad document by id.
+Future<bool> updateIncapacidad(IncapacidadModel inc) async {
+  try {
+    if (inc.id.isEmpty) return false;
+    await FirebaseFirestore.instance
+        .collection(COLLECTION_INCAPACIDADES)
+        .doc(inc.id)
+        .update(inc.toJson());
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 Future<bool> deleteIncapacidad(String id) async {
   try {
     await FirebaseFirestore.instance

@@ -14,6 +14,7 @@ import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_model.dart';
 import 'package:rrhfit_sys32/widgets/alert_message.dart';
+import 'package:rrhfit_sys32/pages/rrhh/add_incapacidad_page.dart';
 
 
 Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function? setState}) {
@@ -272,6 +273,30 @@ Widget buildDetallesDialog(BuildContext context, IncapacidadModel inc, {Function
               },
               label: const Text('Eliminar'),
               icon: const Icon(Icons.delete, color: Colors.red),
+            ),
+          ],
+        ),
+        const SizedBox(width: 8),
+        // Edit button
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton.icon(
+              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              onPressed: () async {
+                try {
+                  final result = await showAddIncapacidadDialog(context, initial: inc);
+                  if (result == true) {
+                    Navigator.pop(context);
+                    successScaffoldMsg(context, 'Incapacidad actualizada correctamente');
+                    if (setState != null) setState();
+                  }
+                } catch (e) {
+                  successScaffoldMsg(context, 'Error al editar: $e');
+                }
+              },
+              icon: const Icon(Icons.edit, color: Colors.blue),
+              label: const Text('Editar'),
             ),
           ],
         ),

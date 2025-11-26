@@ -14,11 +14,11 @@ import 'package:rrhfit_sys32/logic/utilities/tipos_solicitudes.dart';
 import 'package:rrhfit_sys32/widgets/alert_message.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:rrhfit_sys32/logic/utilities/documentos_supabase.dart';
-import 'dart:typed_data';
 
 // New: extract the form into a reusable widget that can be embedded inside an AlertDialog
 class AddIncapacidadForm extends StatefulWidget {
-  const AddIncapacidadForm({super.key});
+  final IncapacidadModel? initial;
+  const AddIncapacidadForm({super.key, this.initial});
 
   @override
   State<AddIncapacidadForm> createState() => _AddIncapacidadFormState();
@@ -63,10 +63,36 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
   bool _submitting = false;
   String? _asyncError; // errors from async checks (overlap, duplicate)
   bool _autoSelectedInitialized = false;
+  bool _empleadoFocusListenerAttached = false;
+  bool _empleadoTouched = false;
+  // Focus nodes and touched flags for inline validation visuals
+  final FocusNode _numCertFocusNode = FocusNode();
+  final FocusNode _motivoFocusNode = FocusNode();
+  bool _numCertTouched = false;
+  bool _motivoTouched = false;
+  bool _enteTouched = false;
 
   @override
   void initState() {
     super.initState();
+    // If editing an existing incapacidad, prefill fields
+    final existing = widget.initial;
+    if (existing != null) {
+      _userIdCtrl.text = existing.userId;
+      _usuarioCtrl.text = existing.usuario;
+      _tipoSolicitud = existing.tipoSolicitud;
+      _tipoIncapacidad = existing.tipoIncapacidad;
+      _numCertCtrl.text = existing.numCertificado;
+      _enteEmisorCtrl.text = existing.enteEmisor;
+      _selectedEnte = existing.enteEmisor;
+      _fechaSolicitud = existing.fechaSolicitud;
+      _fechaExpediente = existing.fechaExpediente;
+      _fechaInicio = existing.fechaInicioIncapacidad;
+      _fechaFin = existing.fechaFinIncapacidad;
+      _estado = existing.estado;
+      _motivoCtrl.text = existing.motivo;
+      _documentPublicUrl = existing.documentoUrl;
+    }
     final user = Global().currentUser;
     if (user != null) {
       _userIdCtrl.text = user.uid;
@@ -76,6 +102,19 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     _empleadosFuture = getAllEmpleados();
     // initialize selected ente from controller if present
     _selectedEnte = _enteEmisorCtrl.text.isNotEmpty ? _enteEmisorCtrl.text : _enteOptions.first;
+    // attach focus listeners to detect blur for inline validation
+    _numCertFocusNode.addListener(() {
+      if (!mounted) return;
+      if (!_numCertFocusNode.hasFocus) {
+        setState(() => _numCertTouched = true);
+      }
+    });
+    _motivoFocusNode.addListener(() {
+      if (!mounted) return;
+      if (!_motivoFocusNode.hasFocus) {
+        setState(() => _motivoTouched = true);
+      }
+    });
   }
 
   // we use [_empleadosFuture] + FutureBuilder in build instead of a manual loader
@@ -88,7 +127,47 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     _numCertCtrl.dispose();
     _enteEmisorCtrl.dispose();
     _motivoCtrl.dispose();
+    _numCertFocusNode.dispose();
+    _motivoFocusNode.dispose();
     super.dispose();
+  }
+
+  // Validation helpers used for inline visual feedback
+  bool _isNumCertValid() {
+    final s = _numCertCtrl.text.trim();
+    return s.isNotEmpty && s.length >= 4 && s.length <= 8;
+  }
+
+  bool _isMotivoValid() {
+    final s = _motivoCtrl.text.trim();
+    return s.isNotEmpty && s.length >= 5 && s.length <= 256;
+  }
+
+  bool _isEmpleadoValid() {
+    if (_empleados.isNotEmpty) return _selectedEmpleado != null;
+    // if no empleados list available, consider any filled text as valid
+    return _empleadoTyped.trim().isNotEmpty;
+  }
+
+  bool _isEnteValid() {
+    return _selectedEnte != null && _selectedEnte!.trim().isNotEmpty;
+  }
+
+  InputDecoration _buildDecoration({required Widget label, String? hint, required bool touched, required bool valid}) {
+    Color borderColor;
+    if (!touched) {
+      borderColor = Colors.grey.shade400;
+    } else {
+      borderColor = valid ? Colors.green.shade600 : Colors.red.shade700;
+    }
+    return InputDecoration(
+      label: label,
+      hintText: hint,
+      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor)),
+      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 2.0)),
+      errorBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red.shade700)),
+      focusedErrorBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.red.shade700, width: 2.0)),
+    );
   }
 
   Future<void> _pickAndUploadDocument() async {
@@ -163,11 +242,21 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
 
   Future<void> _pickDate(BuildContext ctx, DateTime? initial, Function(DateTime) onPicked, {DateTime? firstDate, DateTime? lastDate}) async {
     final now = DateTime.now();
-    final first = firstDate ?? DateTime(now.year - 1, now.month, now.day);
-    final last = lastDate ?? DateTime(now.year + 1, now.month, now.day);
+    DateTime first = firstDate ?? DateTime(now.year - 1, now.month, now.day);
+    DateTime last = lastDate ?? DateTime(now.year + 1, now.month, now.day);
+    // Ensure first <= last
+    if (first.isAfter(last)) {
+      final tmp = first;
+      first = last;
+      last = tmp;
+    }
+    // Clamp initial into the [first, last] range to avoid assertion when editing older records
+    DateTime initialEffective = initial ?? now;
+    if (initialEffective.isBefore(first)) initialEffective = first;
+    if (initialEffective.isAfter(last)) initialEffective = last;
     final picked = await showDatePicker(
       context: ctx,
-      initialDate: initial ?? now,
+      initialDate: initialEffective,
       firstDate: first,
       lastDate: last,
     );
@@ -221,13 +310,13 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
     // - Fecha de expediente: within +/- 1 month from today
     // - Fecha inicio/fin: within +/- 1 year from today
     final now = DateTime.now();
-    final expedienteEarliest = DateTime(now.year, now.month - 1, now.day);
-    final expedienteLatest = DateTime(now.year, now.month + 1, now.day);
+    final expedienteEarliest = DateTime(now.year, now.month - 3, now.day);
+    final expedienteLatest = DateTime(now.year, now.month + 3, now.day);
     final earliestYear = DateTime(now.year - 1, now.month, now.day);
     final latestYear = DateTime(now.year + 1, now.month, now.day);
 
     if (_fechaExpediente!.isBefore(expedienteEarliest) || _fechaExpediente!.isAfter(expedienteLatest)) {
-      setState(() => _asyncError = 'La fecha de expediente debe estar dentro de 1 mes hacia atrás o 1 mes hacia adelante desde hoy');
+      setState(() => _asyncError = 'La fecha de expediente debe estar dentro de 3 meses hacia atrás o 3 meses hacia adelante desde hoy');
       return;
     }
 
@@ -326,12 +415,40 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
       motivo: motivo.isEmpty ? 'N/A' : motivo,
       documentoUrl: documento,
     );
-      final success = await addIncapacidad(inc);
-      if (success) {
-        successScaffoldMsg(context, 'Incapacidad creada correctamente');
-        Navigator.of(context).pop(true);
+      bool success;
+      if (widget.initial != null) {
+        // preserve the document id when updating
+        final updated = IncapacidadModel(
+          id: widget.initial!.id,
+          userId: inc.userId,
+          usuario: inc.usuario,
+          tipoSolicitud: inc.tipoSolicitud,
+          tipoIncapacidad: inc.tipoIncapacidad,
+          numCertificado: inc.numCertificado,
+          enteEmisor: inc.enteEmisor,
+          fechaSolicitud: inc.fechaSolicitud,
+          fechaExpediente: inc.fechaExpediente,
+          fechaInicioIncapacidad: inc.fechaInicioIncapacidad,
+          fechaFinIncapacidad: inc.fechaFinIncapacidad,
+          estado: inc.estado,
+          motivo: inc.motivo,
+          documentoUrl: inc.documentoUrl,
+        );
+        success = await updateIncapacidad(updated);
+        if (success) {
+          successScaffoldMsg(context, 'Incapacidad actualizada correctamente');
+          Navigator.of(context).pop(true);
+        } else {
+          setState(() => _asyncError = 'Error al actualizar la incapacidad');
+        }
       } else {
-        setState(() => _asyncError = 'Error al crear la incapacidad');
+        success = await addIncapacidad(inc);
+        if (success) {
+          successScaffoldMsg(context, 'Incapacidad creada correctamente');
+          Navigator.of(context).pop(true);
+        } else {
+          setState(() => _asyncError = 'Error al crear la incapacidad');
+        }
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -394,10 +511,29 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                             textEditingController.selection = TextSelection.collapsed(offset: _empleadoTyped.length);
                           }
                         });
+                        // Attach a one-time focus listener so when the field loses focus
+                        // and the user left it empty, we restore the selected empleado's name.
+                        if (!_empleadoFocusListenerAttached) {
+                          _empleadoFocusListenerAttached = true;
+                          focusNode.addListener(() {
+                            if (!mounted) return;
+                            if (!focusNode.hasFocus) {
+                              // on blur: mark touched and if field is empty but we have a selected empleado, restore it
+                              setState(() => _empleadoTouched = true);
+                              if ((textEditingController.text.trim().isEmpty) && _selectedEmpleado != null) {
+                                final name = _selectedEmpleado!.nombre;
+                                textEditingController.text = name;
+                                textEditingController.selection = TextSelection.collapsed(offset: name.length);
+                                // also keep internal typed tracker in sync
+                                _empleadoTyped = name;
+                              }
+                            }
+                          });
+                        }
                         return TextFormField(
                           controller: textEditingController,
                           focusNode: focusNode,
-                          decoration: InputDecoration(
+                          decoration: _buildDecoration(
                             label: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [
@@ -406,9 +542,16 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                                 Text('*', style: TextStyle(color: Colors.red)),
                               ],
                             ),
+                            hint: 'Ej. Juan Pérez',
+                            touched: _empleadoTouched,
+                            valid: _isEmpleadoValid(),
                           ),
                           // keep track of what's typed so we can try to match on submit
-                          onChanged: (v) => _empleadoTyped = v,
+                          onChanged: (v) => setState(() {
+                            _empleadoTyped = v;
+                            // mark touched as user typed
+                            _empleadoTouched = true;
+                          }),
                           // validator ensures an empleado is chosen when empleados exist
                           validator: (v) {
                             if (_empleados.isNotEmpty && _selectedEmpleado == null) {
@@ -425,6 +568,16 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                         setState(() {
                           _selectedEmpleado = selection;
                           _empleadoTyped = selection.nombre;
+                          // update the field controller immediately so UI shows selection
+                          // (the controller passed here is the same instance used by the field)
+                          // Use addPostFrameCallback to avoid mutating during build cycles
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+                            try {
+                              // find any active EditableText controllers and set text
+                              // but simplest is to set _empleadoTyped and let the fieldViewBuilder sync it
+                            } catch (_) {}
+                          });
                         });
                       },
                     );
@@ -454,7 +607,8 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _numCertCtrl,
-                  decoration: InputDecoration(
+                  focusNode: _numCertFocusNode,
+                  decoration: _buildDecoration(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
@@ -463,10 +617,14 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
+                    hint: 'Ej. 123456',
+                    touched: _numCertTouched,
+                    valid: _isNumCertValid(),
                   ),
                   inputFormatters: [
                     LengthLimitingTextInputFormatter(8),
                   ],
+                  onChanged: (v) => setState(() => _numCertTouched = true),
                   validator: (v) {
                     final s = v?.trim() ?? '';
                     if (s.isEmpty) return 'Ingrese el número de certificado';
@@ -486,8 +644,25 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
+                    hintText: 'Ej. Clínica Los Andes',
                   ),
-                  items: _enteOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  items: (() {
+                    // Ensure the currently selected value appears exactly once in the items list
+                    final List<String> list = List<String>.from(_enteOptions);
+                    if (_selectedEnte != null && _selectedEnte!.trim().isNotEmpty && !list.contains(_selectedEnte)) {
+                      list.insert(0, _selectedEnte!);
+                    }
+                    // Deduplicate preserving order
+                    final seen = <String>{};
+                    final deduped = <String>[];
+                    for (var v in list) {
+                      if (!seen.contains(v)) {
+                        seen.add(v);
+                        deduped.add(v);
+                      }
+                    }
+                    return deduped.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList();
+                  })(),
                   onChanged: (v) {
                     setState(() {
                       _selectedEnte = v;
@@ -603,6 +778,7 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                         Text('*', style: TextStyle(color: Colors.red)),
                       ],
                     ),
+                    hintText: 'Ej. Dolor abdominal, diagnóstico y observaciones breves',
                   ),
                   maxLines: 4,
                   validator: (v) {
@@ -624,7 +800,7 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
                         ElevatedButton.icon(
                           onPressed: _uploadingDocument ? null : _pickAndUploadDocument,
                           icon: const Icon(Icons.attach_file),
-                          label: Text(_selectedFileName == null ? 'Seleccionar archivo (pdf/png)' : 'Cambiar archivo'),
+                          label: Text(_selectedFileName == null ? 'Seleccionar archivo (pdf/png)' : 'Cambiar archivo',),
                         ),
                         const SizedBox(width: 8),
                         if (_uploadingDocument) const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
@@ -686,14 +862,13 @@ class _AddIncapacidadFormState extends State<AddIncapacidadForm> {
 }
 
 /// Helper to show the Add Incapacidad form inside an AlertDialog.
-Future<bool?> showAddIncapacidadDialog(BuildContext context) {
+Future<bool?> showAddIncapacidadDialog(BuildContext context, {IncapacidadModel? initial}) {
   return showDialog<bool>(
     context: context,
     builder: (context) {
       return AlertDialog(
-        
-        title: const Text('Nueva Incapacidad'),
-        content: const AddIncapacidadForm(),
+        title: Text(initial == null ? 'Nueva Incapacidad' : 'Editar Incapacidad'),
+        content: AddIncapacidadForm(initial: initial),
       );
     },
   );

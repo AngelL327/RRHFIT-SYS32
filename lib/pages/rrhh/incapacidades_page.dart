@@ -445,6 +445,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                   // );
                   return Padding(
                     padding: const EdgeInsets.all(30),
+                    
                     child: tableGenerator(sorted, context, columns, dataRows),
                   );
                 },

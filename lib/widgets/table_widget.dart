@@ -14,6 +14,10 @@ Widget tableGenerator(List<IncapacidadModel> sorted, BuildContext context, List<
     child: PaginatedDataTable2(
       minWidth: 900,
       horizontalMargin: 8,
+      header: const Text(
+                      'Incapacidades',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
       columnSpacing: 2,
       headingTextStyle: const TextStyle(
         fontWeight: FontWeight.bold,
