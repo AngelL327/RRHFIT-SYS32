@@ -687,19 +687,24 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                   onPressed: _cargando ? null : _generarNominaTodos,
                   icon: _cargando
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(color: Colors.white),
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Icon(
-                          Icons.people,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
-                  label: const Text("Todos"),
+                      : const Icon(Icons.people, color: Colors.black),
+                  label: Text(
+                    _cargando
+                        ? "Cargando nómina, por favor espere..."
+                        : "Todos",
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFBF8F6),
                   ),
                 ),
+
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _cargando ? null : _borrarTodasLasNominas,
@@ -733,8 +738,25 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                       .orderBy("fecha_generada", descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData)
-                      return const Center(child: CircularProgressIndicator());
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text(
+                              "Cargando la nómina...",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontStyle: FontStyle
+                                    .italic, // opcional, lo puedes quitar
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
 
                     var docs = snapshot.data!.docs
                         .where(

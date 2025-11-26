@@ -34,44 +34,41 @@ class _DashboardPageState extends State<DashboardPage> {
 
       // Map de nóminas por empleado_id
       final Map<String, Map<String, dynamic>> nominasMap = {
-        for (var doc in nomSnapshot.docs) doc['empleado_id']: doc.data()
+        for (var doc in nomSnapshot.docs) doc['empleado_id']: doc.data(),
       };
 
       // Lista de empleados con sus deducciones reales
       final List<Map<String, dynamic>> empleados = empSnapshot.docs.map((doc) {
-  final data = doc.data();
-  final nom = nominasMap[data['empleado_id']] ?? {
-    'rap': 0,
-    'seguro_social': 0,
-    'isr': 0,
-    'sueldo_base': 0
-  };
-  
-  double rap = (nom['rap'] ?? 0).toDouble();
-  double seguroSocial = (nom['seguro_social'] ?? 0).toDouble();
-  double isr = (nom['isr'] ?? 0).toDouble();
-  double salario = (nom['sueldo_base'] ?? 0).toDouble();
+        final data = doc.data();
+        final nom =
+            nominasMap[data['empleado_id']] ??
+            {'rap': 0, 'seguro_social': 0, 'isr': 0, 'sueldo_base': 0};
 
-  return {
-    "nombre": data["nombre"] ?? '',
-    "departamento_id": data["departamento_id"] ?? '',
-    "estado": data["estado"] ?? 'Activo',
-    "salario": salario,
-    "rap": rap,
-    "seguro_social": seguroSocial,
-    "isr": isr,
-    "total_deducciones": rap + seguroSocial + isr,
-  };
-}).toList();
+        double rap = (nom['rap'] ?? 0).toDouble();
+        double seguroSocial = (nom['seguro_social'] ?? 0).toDouble();
+        double isr = (nom['isr'] ?? 0).toDouble();
+        double salario = (nom['sueldo_base'] ?? 0).toDouble();
 
+        return {
+          "nombre": data["nombre"] ?? '',
+          "departamento_id": data["departamento_id"] ?? '',
+          "estado": data["estado"] ?? 'Activo',
+          "salario": salario,
+          "rap": rap,
+          "seguro_social": seguroSocial,
+          "isr": isr,
+          "total_deducciones": rap + seguroSocial + isr,
+        };
+      }).toList();
 
       final Map<String, List<Map<String, dynamic>>> temp = {};
 
       for (var doc in deptSnapshot.docs) {
         final deptId = doc.id;
         final nombreDepto = doc.data()["nombre"] ?? '';
-        temp[nombreDepto] =
-            empleados.where((e) => e["departamento_id"] == deptId).toList();
+        temp[nombreDepto] = empleados
+            .where((e) => e["departamento_id"] == deptId)
+            .toList();
       }
 
       setState(() {
@@ -102,9 +99,7 @@ class _DashboardPageState extends State<DashboardPage> {
           .where((e) => e['estado'] == 'Activo')
           .length;
     } else {
-      return departamentos[depto]!
-          .where((e) => e['estado'] == 'Activo')
-          .length;
+      return departamentos[depto]!.where((e) => e['estado'] == 'Activo').length;
     }
   }
 
@@ -115,9 +110,7 @@ class _DashboardPageState extends State<DashboardPage> {
           .where((e) => e['estado'] != 'Activo')
           .length;
     } else {
-      return departamentos[depto]!
-          .where((e) => e['estado'] != 'Activo')
-          .length;
+      return departamentos[depto]!.where((e) => e['estado'] != 'Activo').length;
     }
   }
 
@@ -125,12 +118,92 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     if (loading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text(
+                "Cargando datos administractivos ...",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF2E7D32),
+        elevation: 0,
+        centerTitle: false,
+
+        title: const Text(
+          'Dashboard Administrativo - Fittlay',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 18,
+          ),
+        ),
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white, size: 28),
+            tooltip: "¿Qué es esta sección?",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: const Color(0xFF2E7D32),
+
+                  title: const Text(
+                    "Acerca del Dashboard",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  content: const Text(
+                    "Esta sección permite visualizar, administrar y generar reportes "
+                    "relacionados con los empleados y departamentos de Fittlay.\n\n"
+                    "En este panel puedes:\n"
+                    "• Ver empleados activos e inactivos\n"
+                    "• Filtrar empleados por departamento\n"
+                    "• Consultar salarios, ISR, RAP y Seguro Social\n"
+                    "• Generar reportes de planilla\n"
+                    "• Descargar reportes de deducciones y voucher\n\n"
+                    "Toda la información se obtiene en tiempo real desde Firestore.",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+
+                  actions: [
+                    TextButton(
+                      child: const Text(
+                        "Cerrar",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -147,18 +220,22 @@ class _DashboardPageState extends State<DashboardPage> {
                     decoration: InputDecoration(
                       labelText: 'Filtrar por Departamento',
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       filled: true,
                       fillColor: Color(0xFFFBF8F6),
                     ),
                     items: ['Todos', ...departamentos.keys].map((dept) {
                       return DropdownMenuItem<String>(
                         value: dept,
-                        child: Text(dept,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text(
+                          dept,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -189,9 +266,13 @@ class _DashboardPageState extends State<DashboardPage> {
                         backgroundColor: AppTheme.primary,
                         foregroundColor: AppTheme.cream,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         textStyle: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -213,9 +294,13 @@ class _DashboardPageState extends State<DashboardPage> {
                         backgroundColor: AppTheme.accent,
                         foregroundColor: AppTheme.cream,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         textStyle: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -270,9 +355,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   }
 
                   double totalSalario = listaEmpleados.fold(
-                      0, (sum, e) => sum + (e['salario'] as double));
+                    0,
+                    (sum, e) => sum + (e['salario'] as double),
+                  );
                   double totalDeducciones = listaEmpleados.fold(
-                      0, (sum, e) => sum + (e['total_deducciones'] as double));
+                    0,
+                    (sum, e) => sum + (e['total_deducciones'] as double),
+                  );
 
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -283,16 +372,19 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             depto,
                             style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           Column(
@@ -300,40 +392,56 @@ class _DashboardPageState extends State<DashboardPage> {
                               return ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 dense: true,
-                                title: Text(emp['nombre'],
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87)),
+                                title: Text(
+                                  emp['nombre'],
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                                 subtitle: RichText(
                                   text: TextSpan(
                                     style: const TextStyle(fontSize: 12),
                                     children: [
                                       TextSpan(
                                         text: "Salario: ",
-                                        style: const TextStyle(color: Colors.black87),
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                        ),
                                       ),
                                       TextSpan(
-                                        text: _formatCurrency(emp['salario'] as double),
-                                        style: TextStyle(color: AppTheme.primary),
+                                        text: _formatCurrency(
+                                          emp['salario'] as double,
+                                        ),
+                                        style: TextStyle(
+                                          color: AppTheme.primary,
+                                        ),
                                       ),
                                       const TextSpan(
-                                          text: "\nDeducciones:\n",
-                                          style: TextStyle(color: Colors.black87)),
+                                        text: "\nDeducciones:\n",
+                                        style: TextStyle(color: Colors.black87),
+                                      ),
                                       TextSpan(
                                         text:
                                             "ISR: ${_formatCurrency(emp['isr'] as double)}\n",
-                                        style: TextStyle(color: AppTheme.accent),
+                                        style: TextStyle(
+                                          color: AppTheme.accent,
+                                        ),
                                       ),
                                       TextSpan(
                                         text:
                                             "RAP: ${_formatCurrency(emp['rap'] as double)}\n",
-                                        style: TextStyle(color: AppTheme.accent),
+                                        style: TextStyle(
+                                          color: AppTheme.accent,
+                                        ),
                                       ),
                                       TextSpan(
                                         text:
                                             "Seguro Social: ${_formatCurrency(emp['seguro_social'] as double)}",
-                                        style: TextStyle(color: AppTheme.accent),
+                                        style: TextStyle(
+                                          color: AppTheme.accent,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -345,20 +453,26 @@ class _DashboardPageState extends State<DashboardPage> {
                           RichText(
                             text: TextSpan(
                               style: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold),
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                               children: [
                                 const TextSpan(
-                                    text: "Total Salarios: ",
-                                    style: TextStyle(color: Colors.black87)),
+                                  text: "Total Salarios: ",
+                                  style: TextStyle(color: Colors.black87),
+                                ),
                                 TextSpan(
-                                    text: _formatCurrency(totalSalario),
-                                    style: TextStyle(color: AppTheme.primary)),
+                                  text: _formatCurrency(totalSalario),
+                                  style: TextStyle(color: AppTheme.primary),
+                                ),
                                 const TextSpan(
-                                    text: "\nTotal Deducciones: ",
-                                    style: TextStyle(color: Colors.black87)),
+                                  text: "\nTotal Deducciones: ",
+                                  style: TextStyle(color: Colors.black87),
+                                ),
                                 TextSpan(
-                                    text: _formatCurrency(totalDeducciones),
-                                    style: TextStyle(color: AppTheme.accent)),
+                                  text: _formatCurrency(totalDeducciones),
+                                  style: TextStyle(color: AppTheme.accent),
+                                ),
                               ],
                             ),
                           ),
@@ -412,15 +526,22 @@ class _StatusCard extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 28),
             const SizedBox(height: 8),
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(value.toString(),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold)),
+            Text(
+              value.toString(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),

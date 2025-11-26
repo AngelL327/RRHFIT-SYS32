@@ -232,7 +232,24 @@ class _GenerarReportePageState extends State<GenerarReportePage> {
               ),
 
               const SizedBox(height: 24),
-              if (_isGenerating) const CircularProgressIndicator(),
+              if (_isGenerating)
+                const Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Column(
+                    children: [
+                      CircularProgressIndicator(color: Colors.green),
+                      SizedBox(height: 12),
+                      Text(
+                        "Generando reporte, por favor espere...",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black, // cámbialo si lo quieres blanco
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
