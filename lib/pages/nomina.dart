@@ -21,6 +21,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
   final _dniCtrl = TextEditingController();
   final _sueldoCtrl = TextEditingController();
   String _areaId = "";
+  
 
   final List<Color> cardColors = [
     const Color(0xFF2E7D32),
@@ -177,7 +178,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: const Text(
-          "Esta acción NO se puede deshacer.\nSe eliminarán todas las nóminas y vouchers.",
+          "Esta acción NO se puede deshacer.\nSe eliminarán todas las nóminas generadas.",
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -647,17 +648,7 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            decoration: BoxDecoration(
-              color: cardColors[0],
-
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(color: cardColors[0]),
             child: Row(
               children: [
                 Expanded(
@@ -767,11 +758,12 @@ class _PlanillasScreenState extends State<PlanillasScreen> {
                         .toList();
 
                     return DataTable2(
-                      headingRowColor: WidgetStateProperty.all(cardColors[0]),
+                      headingRowColor: WidgetStateProperty.all(cardColors[1]),
                       headingTextStyle: const TextStyle(
-                        color: Color(0xFFF7F4F1),
+                        color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
+
                       columns: const [
                         DataColumn(label: Text("Nombre")),
                         DataColumn(label: Text("Sueldo Base")),
