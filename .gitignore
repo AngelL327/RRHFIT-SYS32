@@ -58,3 +58,8 @@ package-lock.json
 package.json
 node_modules/.package-lock.json
 node_modules/
+macos/Flutter/ephemeral/flutter_export_environment.sh
+macos/Flutter/ephemeral/flutter_export_environment.sh
+macos/Flutter/ephemeral/Flutter-Generated.xcconfig
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugins.cmake

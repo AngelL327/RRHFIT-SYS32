@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:features_tour/features_tour.dart';
 import 'package:flutter/material.dart';
+import 'package:rrhfit_sys32/core/theme.dart';
 import 'dart:math';
 
 import 'package:rrhfit_sys32/reclutamiento/screen/vacante_detail_screen.dart';
@@ -392,7 +393,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
           introduce: Text("Esta es la sección de reclutamiento"),
           child: const Text('Reclutamiento'),
         ),
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
         elevation: 2,
       ),
