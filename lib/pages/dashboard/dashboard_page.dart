@@ -183,7 +183,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     "• Filtrar empleados por departamento\n"
                     "• Consultar salarios, ISR, RAP y Seguro Social\n"
                     "• Generar reportes de planilla\n"
-                    "• Descargar reportes de deducciones y voucher\n\n"
+                    "• Sintetizar toda la informacion mostrada aqui \n\n"
                     "Toda la información se obtiene en tiempo real desde Firestore.",
                     style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
