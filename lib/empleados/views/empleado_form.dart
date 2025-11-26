@@ -334,8 +334,9 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                     labelText: 'Nombre',
                     hintText: "Lionel Andrés Messi Cuccittini",
                   ),
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Ingrese nombre' : null,
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? 'Ingrese su nombre completo'
+                      : null,
                 ),
                 TextFormField(
                   controller: codigo,
@@ -346,7 +347,10 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                   validator: (v) {
                     final bool esNumeroDNI = esSoloNumerosDNI(v.toString());
                     if (v == null || v.isEmpty || !esNumeroDNI) {
-                      return 'Ingrese DNI válido de 13 dígitos';
+                      return 'Ingrese DNI válido, debe contener 13 dígitos';
+                    }
+                    if (v.length != 13) {
+                      return 'El DNI debe contener exactamente 13 dígitos';
                     }
                     return null;
                   },
@@ -362,7 +366,7 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                         ),
                         validator: (v) {
                           if (v == null || v.isEmpty || !v.contains("@"))
-                            return 'Ingrese correo';
+                            return 'Debe ingresar un correo válido';
                           return null;
                         },
                       ),
@@ -378,7 +382,7 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                         validator: (v) {
                           final bool esNumero = esSoloNumeros(v.toString());
                           if (v == null || v.isEmpty || !esNumero) {
-                            return 'Ingrese teléfono';
+                            return 'Debe ingresar un teléfono válido';
                           }
                           return null;
                         },
@@ -401,10 +405,46 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                     });
                   },
                   decoration: const InputDecoration(labelText: 'Estado'),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) {
+                      return 'Seleccione el estado del empleado';
+                    }
+                    return null;
+                  },
                 ),
                 TextFormField(
                   controller: direccion,
                   decoration: const InputDecoration(labelText: 'Dirección'),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) {
+                      return 'Debe ingresar una dirección';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: salario,
+                  decoration: const InputDecoration(
+                    labelText: 'Salario',
+                    hintText: "Ej: 5000.00",
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) {
+                      return 'Ingrese el salario del empleado';
+                    }
+                    final salarioValue = double.tryParse(v);
+                    if (salarioValue == null || salarioValue < 0) {
+                      return 'El salario debe ser un número válido';
+                    }
+                    if (salarioValue < 8000) {
+                      return 'El salario mínimo es de 8000';
+                    }
+
+                    return null;
+                  },
                 ),
                 TextFormField(
                   controller: numeroCuenta,
@@ -412,6 +452,17 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                     labelText: 'Número de cuenta',
                     hintText: "Ej: 744718183",
                   ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return null;
+                    final bool esNumero = esSoloNumeros(v);
+                    if (!esNumero) {
+                      return 'Debe ingresar un número de cuenta válido';
+                    }
+                    if (v.length != 8) {
+                      return 'El número de cuenta debe contener 8 dígitos';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 8),
                 // dropdowns: Departamento, Area, Puesto
@@ -425,16 +476,7 @@ class _EmpleadoFormState extends State<EmpleadoForm> {
                 const SizedBox(height: 8),
                 _buildPuestoDropdown(),
                 const SizedBox(height: 8),
-                TextFormField(
-                  controller: salario,
-                  decoration: const InputDecoration(
-                    labelText: 'Salario',
-                    hintText: "Ej: 5000.00",
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                ),
+
                 const SizedBox(height: 8),
                 Row(
                   children: [

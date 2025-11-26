@@ -27,9 +27,9 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
 
   @override
   void initState() {
+    tourController.start(context);
     super.initState();
     _loadDropdowns();
-    tourController.start(context);
   }
 
   Future<void> _loadDropdowns() async {
@@ -554,12 +554,17 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                       // Primera fila de estadísticas
                       Row(
                         children: [
-                          _buildStatsCard(
-                            title: 'Total Vacantes',
-                            value: totalVacantes.toString(),
-                            icon: Icons.work_outline,
-                            color: Colors.blue.shade600,
-                            subtitle: 'General',
+                          FeaturesTour(
+                            controller: tourController,
+                            index: 4,
+                            introduce: Text("Número total de vacantes creadas"),
+                            child: _buildStatsCard(
+                              title: 'Total Vacantes',
+                              value: totalVacantes.toString(),
+                              icon: Icons.work_outline,
+                              color: Colors.blue.shade600,
+                              subtitle: 'General',
+                            ),
                           ),
                           const SizedBox(width: 12),
                           _buildStatsCard(
@@ -578,7 +583,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                         children: [
                           FeaturesTour(
                             controller: tourController,
-                            index: 4,
+                            index: 5,
                             introduce: Text(
                               "Número de vacantes que están actualmente ocupadas",
                             ),
@@ -593,7 +598,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                           const SizedBox(width: 12),
                           FeaturesTour(
                             controller: tourController,
-                            index: 5,
+                            index: 6,
                             introduce: Text(
                               "Número de vacantes que están próximas a vencer",
                             ),
@@ -614,7 +619,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                         children: [
                           FeaturesTour(
                             controller: tourController,
-                            index: 6,
+                            index: 7,
                             introduce: Text(
                               "Número de vacantes que han expirado",
                             ),
@@ -629,7 +634,7 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                           const SizedBox(width: 12),
                           FeaturesTour(
                             controller: tourController,
-                            index: 7,
+                            index: 8,
                             introduce: Text(
                               "Porcentaje de vacantes ocupadas respecto al total",
                             ),
@@ -693,11 +698,18 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                     size: 24,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Vacantes Activas',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
+                  FeaturesTour(
+                    controller: tourController,
+                    index: 9,
+                    introduce: Text(
+                      "Aquí se muestran las vacantes que se encuentran activas",
+                    ),
+                    child: Text(
+                      'Vacantes Activas',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
                     ),
                   ),
                 ],
@@ -754,11 +766,18 @@ class _ReclutamientoScreenState extends State<ReclutamientoScreen> {
                 children: [
                   Icon(Icons.person, color: Colors.purple.shade600, size: 24),
                   const SizedBox(width: 8),
-                  Text(
-                    'Vacantes Ocupadas',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
+                  FeaturesTour(
+                    controller: tourController,
+                    index: 10,
+                    introduce: Text(
+                      "Aquí se muestran las vacantes que ya han sido ocupadas",
+                    ),
+                    child: Text(
+                      'Vacantes Ocupadas',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
                     ),
                   ),
                 ],

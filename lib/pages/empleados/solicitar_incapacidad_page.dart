@@ -9,6 +9,7 @@ import 'package:rrhfit_sys32/logic/utilities/estados_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/utilities/tipos_solicitudes.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/utilities/documentos_supabase.dart';
+import 'package:rrhfit_sys32/pages/empleados/document_viewer_dialog.dart';
 
 class SolicitudesEmpleadoPage extends StatefulWidget {
   final String empleadoId; // ID del empleado actual
@@ -1086,34 +1087,36 @@ class _SolicitudesEmpleadoPageState extends State<SolicitudesEmpleadoPage>
                         ),
 
                         // Botón ver documento
-                        if (inc.documentoUrl.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  // Aquí puedes implementar la apertura del documento
-                                  // Por ejemplo, usando url_launcher
-                                  _mostrarExito('Documento: ${inc.documentoUrl}');
-                                },
-                                icon: const Icon(
-                                  Icons.picture_as_pdf,
-                                  size: 18,
-                                ),
-                                label: const Text('Ver Documento'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF2E7D32),
-                                  side: const BorderSide(
-                                    color: Color(0xFF2E7D32),
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
+                    if (inc.documentoUrl.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              mostrarDocumento(
+                                context,
+                                inc.documentoUrl,
+                                'Certificado - ${inc.tipoIncapacidad}',
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.picture_as_pdf,
+                              size: 18,
+                            ),
+                            label: const Text('Ver Documento'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF2E7D32),
+                              side: const BorderSide(
+                                color: Color(0xFF2E7D32),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                           ),
+                        ),
+                      ),
                       ],
                     ),
                   ),
