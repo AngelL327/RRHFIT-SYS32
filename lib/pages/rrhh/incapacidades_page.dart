@@ -1,10 +1,14 @@
+import 'dart:math';
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:rrhfit_sys32/Reportes/reporte_incapacidades_body.dart';
 import 'package:rrhfit_sys32/core/theme.dart';
+import 'package:rrhfit_sys32/globals.dart';
 import 'package:rrhfit_sys32/logic/area_functions.dart';
 import 'package:rrhfit_sys32/logic/empleados_functions.dart';
 import 'package:rrhfit_sys32/logic/models/area_model.dart';
+import 'package:rrhfit_sys32/logic/models/empleado_model.dart';
 import 'package:rrhfit_sys32/logic/models/incapacidad_row.dart';
 import 'package:rrhfit_sys32/logic/utilities/format_date.dart';
 import 'package:rrhfit_sys32/logic/incapacidad_functions.dart';
@@ -35,7 +39,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
     'Empleado': 'empleado',
     'Tipo': 'tipo',
     'Fecha Solicitud': 'fechaSolicitud',
-    'Periodo Incapacidad': 'periodo',
+    'Inicio': 'inicio',
+    'Fin': 'fin',
     'Estado': 'estado',
     'Ente Emisor': 'enteEmisor',
     '# Certificado': 'numCertificado',
@@ -50,9 +55,9 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
     final fechaSolicitud = formatDate(inc.fechaSolicitud).toLowerCase();
     final inicio = formatDate(inc.fechaInicioIncapacidad).toLowerCase();
     final fin = formatDate(inc.fechaFinIncapacidad).toLowerCase();
-    final periodo = '$inicio#$fin';
     final enteEmisor = inc.enteEmisor.toLowerCase();
     final numCertificado = inc.numCertificado.toLowerCase();
+
 
     return empleado.contains(qlc) ||
         tipo.contains(qlc) ||
@@ -60,7 +65,6 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
         fechaSolicitud.contains(qlc) ||
         inicio.contains(qlc) ||
         fin.contains(qlc) ||
-        periodo.contains(qlc) ||
         enteEmisor.contains(qlc) ||
         numCertificado.contains(qlc);
   }
@@ -85,11 +89,8 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
       case 'inicio':
         res = a.fechaInicioIncapacidad.compareTo(b.fechaInicioIncapacidad);
         break;
-      case 'periodo':
-        res = a.fechaInicioIncapacidad.compareTo(b.fechaInicioIncapacidad);
-        if (res == 0) {
-          res = a.fechaFinIncapacidad.compareTo(b.fechaFinIncapacidad);
-        }
+      case 'fin':
+        res = a.fechaFinIncapacidad.compareTo(b.fechaFinIncapacidad);
         break;
       case 'enteEmisor':
         res = a.enteEmisor.toLowerCase().compareTo(b.enteEmisor.toLowerCase());
@@ -107,23 +108,24 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Align(
+            title: const Align(
           alignment: Alignment.centerLeft,
           child: Text(
             'Incapacidades - Gestión de incapacidades de empleados',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        backgroundColor: AppTheme.primary,
+        backgroundColor:  AppTheme.primary,
         foregroundColor: AppTheme.cream,
         elevation: 0,
         centerTitle: true,
+
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppTheme.primary,
-                Color.fromRGBO(50, 200, 120, 1),
+                AppTheme.primary, 
+                Color.fromRGBO(50, 200, 120, 1), 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -141,6 +143,7 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                
                   //Total de solicitudes
                   FutureBuilder<String?>(
                     future: getCountIncapacidades(),
@@ -201,12 +204,12 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
+            
             // Search bar and PDF button
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -216,29 +219,27 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     IconButton(
                       style: AppTheme.lightTheme.elevatedButtonTheme.style,
                       icon: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.add_circle, color: AppTheme.cream, size: 16),
+                          const Icon(Icons.add_circle, color: AppTheme.cream ),
                           const SizedBox(width: 8),
-                          Text(
-                            'Añadir nueva solicitud',
-                            style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
+                          Text('Añadir nueva solicitud', style: TextStyle(color: AppTheme.cream, fontWeight: FontWeight.bold, fontSize: 16),),
                         ],
                       ),
-                      tooltip: 'Añadir nueva solicitud de incapacidad',
+                      tooltip: 'Añade una nueva solicitud de incapacidad a un empleado',
                       onPressed: () async {
                         final created = await showAddIncapacidadDialog(context);
-                        if (!mounted) return; // avoid setState after dispose
                         if (created == true) {
                           setState(() {});
                         }
                       },
                     ),
-
+              
+              
+              
+              
                     // Open dialog to select month/year and generate PDF
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
                       child: ElevatedButton.icon(
                         style: AppTheme.lightTheme.elevatedButtonTheme.style,
                         icon: const Icon(Icons.picture_as_pdf),
@@ -252,80 +253,60 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                               return StatefulBuilder(builder: (context, setDialogState) {
                                 return AlertDialog(
                                   title: const Text('Seleccionar periodo del reporte'),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
+                                  content: Row(
                                     children: [
-                                      Row(
-                                        children: [
-                                          DropdownButton<int?>(
-                                            value: dialogMonth,
-                                            hint: const Text('Mes (Todos)'),
-                                            items: [
-                                              DropdownMenuItem<int?>(value: null, child: Text('Todos')),
-                                              for (var m = 1; m <= 12; m++)
-                                                DropdownMenuItem<int?>(
-                                                    value: m,
-                                                    child: Text('${m.toString().padLeft(2, '0')} - ${_monthName(m)}')),
-                                            ],
-                                            onChanged: (val) => setDialogState(() => dialogMonth = val),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          DropdownButton<int?>(
-                                            value: dialogYear,
-                                            hint: const Text('Año'),
-                                            items: _yearItems(),
-                                            onChanged: (val) => setDialogState(() => dialogYear = val),
-                                          ),
+                                      DropdownButton<int?>(
+                                        value: dialogMonth,
+                                        hint: const Text('Mes (Todos)'),
+                                        items: [
+                                          DropdownMenuItem<int?>(value: null, child: Text('Todos')),
+                                          for (var m = 1; m <= 12; m++) DropdownMenuItem<int?>(value: m, child: Text('${m.toString().padLeft(2, '0')} - ${_monthName(m)}')),
                                         ],
+                                        onChanged: (val) => setDialogState(() => dialogMonth = val),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      DropdownButton<int?>(
+                                        value: dialogYear,
+                                        hint: const Text('Año'),
+                                        items: _yearItems(),
+                                        onChanged: (val) => setDialogState(() => dialogYear = val),
                                       ),
                                     ],
                                   ),
                                   actions: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Column(
-                                          children: [
-                                            SizedBox(
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(right: 8.0),
-                                                child: GeneratePDFButton<IncapacidadRow>(
-                                                  buttonLabel: 'Generar',
-                                                  reportTitle: 'Reporte de Incapacidades',
-                                                  fetchData: () {
-                                                    // Pass the dialog selections directly to getRegistros.
-                                                    // getRegistros will handle the combinations: (year+month), (year only), or (all).
-                                                    return getRegistros(dialogYear, dialogMonth);
-                                                  },
-                                                  tableHeaders: [
-                                                    'Fecha Solicitud',
-                                                    'Periodo Incapacidad',
-                                                    'Tipo',
-                                                    'Estado',
-                                                    'Empleado',
-                                                    'Emisor y Documento',
-                                                    'Motivo',
-                                                  ],
-                                                  rowMapper: (row) => row.toStringList(),
-                                                  reportMonth: dialogMonth,
-                                                  reportYear: dialogYear,
-                                                  columnFlexes: [1.0, 1.15, 1.15, 1.15, 1.3, 1.15, 1.3],
-                                                  bodyContent: null,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Column(
-                                          children: [
-                                            TextButton(
-                                              onPressed: () => Navigator.of(context).pop(),
-                                              child: const Text('Cancelar'),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    // Generate button uses existing GeneratePDFButton inside the dialog so the PDF preview appears as before
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: GeneratePDFButton<IncapacidadRow>(
+                                        buttonLabel: 'Generar',
+                                        reportTitle: 'Reporte de Incapacidades',
+                                        fetchData: () {
+                                          final year = dialogYear ?? (dialogMonth != null ? DateTime.now().year : null);
+                                          if (year != null && dialogMonth != null) return getRegistros(year, dialogMonth);
+                                          return getRegistros();
+                                        },
+                                        tableHeaders: [
+                                          'Fecha Solicitud',
+                                          'Fecha Inicio',
+                                          'Fecha Fin',
+                                          'Tipo',
+                                          'Estado',
+                                          'Empleado',
+                                          'Emisor y Documento',
+                                          'Correo',
+                                          'Motivo',
+                                          'Area',
+                                        ],
+                                        rowMapper: (row) => row.toStringList(),
+                                        reportMonth: dialogMonth,
+                                        reportYear: dialogYear,
+                                        columnFlexes: [1.0, 1.15, 1.15, 1.15, 1.3, 1.15, 1.3, 1.5, 1.3, 1.4],
+                                        bodyContent: null,
+                                      ),
                                     ),
                                   ],
                                 );
@@ -335,39 +316,46 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                         },
                       ),
                     ),
-
+              
+              
+              
+              
                     //Search bar
                     SearchBarWidget(
-                      hintText: 'Buscar por empleado, tipo, estado o fecha',
-                      initialQuery: _query,
-                      onChanged: (value) => value.isNotEmpty ? setState(() => _query = value.toLowerCase()) : null,
-                      onClear: () => setState(() => _query = ''),
-                      sortColumns: _sortColumns,
-                      currentSortColumn: _sortColumn,
-                      currentSortAsc: _sortAsc,
-                      onSortSelected: (key) {
-                        setState(() {
-                          if (key == null) {
-                            _sortColumn = null;
-                            _sortAsc = true;
-                          } else if (_sortColumn == key) {
-                            _sortAsc = !_sortAsc;
-                          } else {
-                            _sortColumn = key;
-                            _sortAsc = true;
-                          }
-                        });
+                    hintText: 'Buscar por empleado, tipo, estado o fecha',
+                    initialQuery: _query,
+                    onChanged: (value) => value.isNotEmpty ? setState(() => _query = value.toLowerCase()) : null,
+                    onClear: () => setState(() => _query = ''),
+                    sortColumns: _sortColumns,
+                    currentSortColumn: _sortColumn,
+                    currentSortAsc: _sortAsc,
+                    onSortSelected: (key) {
+                      setState(() {
+                        if (key == null) {
+                          _sortColumn = null;
+                          _sortAsc = true;
+                        } else if (_sortColumn == key) {
+                          _sortAsc = !_sortAsc;
+                        } else {
+                          _sortColumn = key;
+                          _sortAsc = true;
+                        }
                       },
-                    ),
+                      );
+                    },
+                  ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-
+              
+              
+              
+              
             // Table
             Expanded(
-              child: FutureBuilder<List<IncapacidadModel>>(
+              child: FutureBuilder<List<IncapacidadModel>>( 
                 future: getAllIncapacidades(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -377,92 +365,84 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
                   final list = snapshot.data ?? [];
-
+              
                   if (list.isEmpty) {
                     return const Center(child: Text('No hay incapacidades registradas'));
                   }
-
-                  final filtered = list.where((inc) => _matchesQuery(inc, _query)).toList();
+              
+                  final filtered = list.where((inc) => _matchesQuery(inc, _query)).toList();                  
                   final sorted = List<IncapacidadModel>.from(filtered);
                   if (_sortColumn != null) {
                     sorted.sort((a, b) => _compareByColumn(a, b));
                   }
-
+              
                   if (filtered.isEmpty) {
                     return const Center(child: Text('No hay resultados que coincidan con la búsqueda'));
                   }
-
+              
                   const columns = [
-                    DataColumn2(label: Center(child: Text('Estado')), size: ColumnSize.M),
-                    DataColumn2(label: Center(child: Text('Fecha Solicitud')), size: ColumnSize.M),
-                    DataColumn2(label: Center(child: Text('Empleado')), size: ColumnSize.M),
-                    DataColumn2(label: Center(child: Text('Tipo')), size: ColumnSize.M),
-                    DataColumn2(label: Center(child: Text('Ente Emisor')), size: ColumnSize.M),
-                    DataColumn2(label: Center(child: Text('# Certificado')), size: ColumnSize.M),
-                    DataColumn2(label: Center(child: Text('Periodo Incapacidad')), size: ColumnSize.L),
-                    DataColumn2(label: Center(child: Text('Detalles')), size: ColumnSize.S),
-                  ];
-
+                        DataColumn2(label: Center(child: Text('Estado')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Fecha Solicitud')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Empleado')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Tipo')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Ente Emisor')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('# Certificado')), size: ColumnSize.M),
+                        DataColumn2(label: Center(child: Text('Inicio de \nincapacidad')), size: ColumnSize.L),
+                        DataColumn2(label: Center(child: Text('Fin de \nincapacidad')), size: ColumnSize.L),
+                        DataColumn2(label: Center(child: Text('Detalles')), size: ColumnSize.S),
+                      ];
+              
                   List<DataRow> dataRows = [];
-
+              
                   for (var inc in sorted) {
                     dataRows.add(
                       DataRow2(
                         cells: [
-                          DataCell(inc.estado == "Pendiente"
-                              ? Center(
-                                  child: const Text(
-                                  "Pendiente",
-                                  style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                                ))
-                              : inc.estado == "Aprobada"
-                                  ? Center(
-                                      child: const Text(
-                                      "Aprobada",
-                                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                                    ))
-                                  : Center(
-                                      child: const Text(
-                                      "Rechazada",
-                                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                                    ))),
-                          DataCell(Center(child: Text(formatDate(inc.fechaSolicitud)))),
-                          DataCell(Text(inc.usuario)),
-                          DataCell(Text(inc.tipoIncapacidad)),
-                          DataCell(Text(inc.enteEmisor)),
-                          DataCell(Text(inc.numCertificado)),
-                          DataCell(Center(child: Text('${formatDate(inc.fechaInicioIncapacidad)}#${formatDate(inc.fechaFinIncapacidad)}'))),
+                        DataCell(inc.estado == "Pendiente" ? 
+                        Center(child: const Text("Pendiente", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),))
+                        : inc.estado == "Aprobada" ? 
+                        Center(child: const Text("Aprobada", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),))
+                        : Center(child: const Text("Rechazada", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),))),
+                        DataCell(Center(child: Text(formatDate(inc.fechaSolicitud)))),
+                        DataCell(Text(inc.usuario)),
+                        DataCell(Text(inc.tipoIncapacidad)),
+                        DataCell(Text(inc.enteEmisor)),
+                        DataCell(Text(inc.numCertificado)),
+                        DataCell(Center(child: Text(formatDate(inc.fechaInicioIncapacidad)))),
+                        DataCell(Center(child: Text(formatDate(inc.fechaFinIncapacidad)))),
 
-                          DataCell(
-                            Center(
-                              child: FittedBox(
-                                fit: BoxFit.fitWidth,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.blue,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text('Ver'),
-                                  onPressed: () {
-                                    // Pass a safe callback that checks mounted before calling setState
-                                    void safeSetState() {
-                                      if (!mounted) return;
-                                      setState(() {});
-                                    }
-                                    showDialog<void>(
-                                      context: context,
-                                      builder: (context) => buildDetallesDialog(context, inc, setState: safeSetState),
-                                    );
-                                  },
-                                ),
+                        DataCell(
+                          Center(
+                            child: FittedBox(
+                              fit: BoxFit.fitWidth,
+                              child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.blue,
+                                foregroundColor: Colors.white,
                               ),
+                              child: const Text('Ver'),
+                              onPressed: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (context) => buildDetallesDialog(context, inc, setState: () {
+                                    setState(() {});
+                                  }),
+                                );
+                              },
+                                                        ),
                             ),
-                          ),
-                        ],
-                      ),
+                          )),
+                      ]),
                     );
                   }
-
+              
+                  // Horizontal + vertical scrollable table
+                  // return SingleChildScrollView(
+                  //   scrollDirection: Axis.horizontal,
+                  //   child: SingleChildScrollView(
+                  //     child: tableGenerator(sorted, context, columns, dataRows),
+                  //   ),
+                  // );
                   return Padding(
                     padding: const EdgeInsets.all(30),
                     child: tableGenerator(sorted, context, columns, dataRows),
@@ -475,20 +455,12 @@ class _IncapacidadesScreenState extends State<IncapacidadesScreen> {
       ),
     );
   }
-
   Future<List<IncapacidadRow>> getRegistros([int? year, int? month]) async {
     // If a month is provided but year is null, default to current year
     if (month != null && year == null) year = DateTime.now().year;
     List<IncapacidadModel> incapacidades;
-    // three cases:
-    // - year != null && month != null -> specific month
-    // - year != null && month == null -> whole year
-    // - year == null -> all records
     if (year != null && month != null) {
       incapacidades = await getIncapacidadesByMonth(year, month);
-    } else if (year != null && month == null) {
-      // fetch by year
-      incapacidades = await getIncapacidadesByYear(year);
     } else {
       incapacidades = await getAllIncapacidades();
     }

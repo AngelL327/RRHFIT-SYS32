@@ -1,5 +1,6 @@
 import 'dart:typed_data';
-import 'dart:html' as html;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:rrhfit_sys32/util/browser.dart' as browser;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:rrhfit_sys32/core/theme.dart';
@@ -38,10 +39,15 @@ class _DocumentViewerDialogState extends State<DocumentViewerDialog> {
 
   void _abrirPdfEnNavegador() {
     debugPrint("Abriendo PDF en navegador: ${widget.documentUrl}");
-    html.window.open(widget.documentUrl, '_blank');
-    // Cerrar el diálogo después de abrir
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) Navigator.pop(context);
+    // Use platform helpers: web implementation opens a new tab, non-web opens
+    // an external browser via url_launcher.
+    browser.openInNewTab(widget.documentUrl).catchError((e) {
+      debugPrint('Error opening URL: $e');
+    }).whenComplete(() {
+      // Close dialog after a short delay so the external browser/tab has time to open
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) Navigator.pop(context);
+      });
     });
   }
 
@@ -50,29 +56,35 @@ class _DocumentViewerDialogState extends State<DocumentViewerDialog> {
     
     try {
       debugPrint("Descargando archivo: ${widget.documentUrl}");
-      final uri = Uri.parse(widget.documentUrl);
-      final response = await http.get(uri).timeout(const Duration(seconds: 30));
-
-      if (response.statusCode == 200) {
-        final bytes = response.bodyBytes;
-        final blob = html.Blob([bytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..target = 'blank'
-          ..download = 'certificado_incapacidad.pdf';
-        anchor.click();
-        html.Url.revokeObjectUrl(url);
-        
+      if (kIsWeb) {
+        final uri = Uri.parse(widget.documentUrl);
+        final response = await http.get(uri).timeout(const Duration(seconds: 30));
+        if (response.statusCode == 200) {
+          final bytes = response.bodyBytes;
+          await browser.downloadFromBytes(bytes, 'certificado_incapacidad.pdf');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Archivo descargado exitosamente'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          throw Exception('Error HTTP ${response.statusCode}');
+        }
+      } else {
+        // On non-web platforms just open the URL in the external browser so the
+        // system/browser handles the download.
+        await browser.openInNewTab(widget.documentUrl);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Archivo descargado exitosamente'),
+              content: Text('Se abrió el documento en el navegador externo'),
               backgroundColor: Colors.green,
             ),
           );
         }
-      } else {
-        throw Exception('Error HTTP ${response.statusCode}');
       }
     } catch (e) {
       debugPrint(" Error descargando: $e");
